@@ -1,78 +1,118 @@
-import os, json, time, requests
-from datetime import datetime, timezone
-from playwright.sync_api import sync_playwright
+from curl_cffi import requests
+import json
+import os
+import time
 
-CLUB_ID = os.getenv("CLUB_ID","41026")
-PROJECT = os.getenv("FIREBASE_PROJECT","football-signup-64bd9")
-API_KEY = os.getenv("FIREBASE_API_KEY")
-TYPES = ["leagueMatch","friendlyMatch","playoffMatch"]
+# ========== CONFIG 可改參數 ==========
+CLUB_ID = "41026"
+PLATFORM = "common-gen5"
+BASE_URL = "https://proclubs.ea.com/api/fc/clubs/matches"
+MATCH_TYPES = ["leagueMatch", "friendlyMatch", "playoffMatch"]
+MAX_RESULT_COUNT = 10
 
-def fetch_with_browser():
-    all_m = []
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36")
-        page = context.new_page()
-        print("去 EA 攞 Akamai 餅...")
-        page.goto("https://www.ea.com/", wait_until="domcontentloaded", timeout=60000)
-        time.sleep(5)
-        page.goto("https://proclubs.ea.com/", wait_until="domcontentloaded", timeout=60000)
-        time.sleep(3)
-        for t in TYPES:
-            url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={t}&maxResultCount=10"
-            print(f"捉 {t}...")
-            try:
-                data = page.evaluate(f"""async () => {{
-                    const r = await fetch("{url}", {{credentials:"include"}});
-                    return await r.json();
-                }}""")
-                if isinstance(data, list):
-                    print(f"{t} 成功 {len(data)} 場")
-                    all_m.extend(data)
-                else:
-                    print(f"{t} 回傳 {data}")
-            except Exception as e:
-                print(f"{t} 失敗 {e}")
-        browser.close()
-    return all_m
+# Firebase REST API 設定
+FIREBASE_PROJECT_ID = "football-signup-64bd9"
+FIREBASE_COLLECTION = "matches"
+FIREBASE_API_KEY = os.environ["FIREBASE_API_KEY"]
+FIREBASE_REST_BASE = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents/{FIREBASE_COLLECTION}"
 
-matches = fetch_with_browser()
-dedup = {m['matchId']: m for m in matches}
-merged = sorted(dedup.values(), key=lambda x: int(x.get('timestamp',0)), reverse=True)
-print(f"總共 {len(merged)} 場")
+# curl_cffi 模擬瀏覽器指紋，chrome120 穩定
+IMPERSONATE = "chrome120"
+REQUEST_TIMEOUT = 30
+# ====================================
 
-os.makedirs("data", exist_ok=True)
-with open("data/matches.json","w",encoding="utf-8") as f:
-    json.dump({"fetchedAt": datetime.now(timezone.utc).isoformat(), "matches": merged}, f, ensure_ascii=False, indent=2)
-
-# 推去 Firebase (用你而家個 API_KEY REST)
-if not merged or not API_KEY:
-    print("無數據或無 API_KEY，跳過 Firebase")
-    exit(0)
-
-for m in merged:
-    clubs = m.get("clubs",{})
-    our = clubs.get(CLUB_ID) or list(clubs.values())[0]
-    opp_id = next((k for k in clubs if k!=CLUB_ID), "0")
-    opp = clubs.get(opp_id,{})
-    ourG = int(our.get("goals",0))
-    oppG = int(our.get("goalsAgainst", opp.get("goals",0)))
-    result = "W" if ourG>oppG else "L" if ourG<oppG else "D"
-
-    # Firestore REST 格式
-    doc_id = str(m['matchId'])
-    url = f"https://firestore.googleapis.com/v1/projects/{PROJECT}/databases/(default)/documents/matches/{doc_id}?key={API_KEY}"
-    body = {
-        "fields": {
-            "matchId": {"stringValue": doc_id},
-            "timestamp": {"integerValue": str(m.get('timestamp',0))},
-            "ourGoals": {"integerValue": str(ourG)},
-            "oppGoals": {"integerValue": str(oppG)},
-            "result": {"stringValue": result},
-            "opponent": {"stringValue": opp.get('details',{}).get('name', opp_id)},
-            "opponentId": {"stringValue": opp_id},
-            "raw": {"stringValue": json.dumps(m)[:900000]}
-        }
+def fetch_ea_matches(match_type: str):
+    params = {
+        "platform": PLATFORM,
+        "clubIds": CLUB_ID,
+        "matchType": match_type,
+        "maxResultCount": MAX_RESULT_COUNT
     }
-    r = requests.patch(url, json=body)
-    print(f"推 {doc_id} {r.status_code}")
+    headers = {
+        "accept": "application/json, text/plain, */*",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "referer": "https://www.ea.com/"
+    }
+    session = requests.Session()
+    resp = session.get(
+        BASE_URL,
+        params=params,
+        headers=headers,
+        impersonate=IMPERSONATE,
+        timeout=REQUEST_TIMEOUT
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+def firestore_check_doc_exists(doc_id: str) -> bool:
+    url = f"{FIREBASE_REST_BASE}/{doc_id}?key={FIREBASE_API_KEY}"
+    r = requests.get(url, impersonate=IMPERSONATE, timeout=20)
+    return r.status_code == 200
+
+def firestore_write_match(match: dict):
+    """
+    Firestore REST API 寫入，document id = match["matchId"]，自動去重
+    Firestore REST 格式要轉成 fields map
+    """
+    match_id = match["matchId"]
+    if firestore_check_doc_exists(match_id):
+        print(f"✅ Match {match_id} already exists, skip")
+        return True
+
+    # 轉 python dict → firestore REST fields 結構
+    def to_fs_value(val):
+        if isinstance(val, str):
+            return {"stringValue": val}
+        elif isinstance(val, bool):
+            return {"booleanValue": val}
+        elif isinstance(val, int):
+            return {"integerValue": str(val)}
+        elif isinstance(val, float):
+            return {"doubleValue": val}
+        elif isinstance(val, list):
+            return {"arrayValue": {"values": [to_fs_value(i) for i in val]}}
+        elif isinstance(val, dict):
+            return {"mapValue": {"fields": {k: to_fs_value(v) for k, v in val.items()}}}
+        elif val is None:
+            return {"nullValue": None}
+        else:
+            return {"stringValue": str(val)}
+
+    fs_fields = {}
+    for k, v in match.items():
+        fs_fields[k] = to_fs_value(v)
+
+    payload = {
+        "fields": fs_fields
+    }
+    url = f"{FIREBASE_REST_BASE}/{match_id}?key={FIREBASE_API_KEY}"
+    res = requests.patch(
+        url,
+        json=payload,
+        impersonate=IMPERSONATE,
+        timeout=30
+    )
+    res.raise_for_status()
+    print(f"📥 Wrote new match: {match_id}")
+    return True
+
+def main():
+    all_matches = []
+    for mt in MATCH_TYPES:
+        print(f"\n🔍 Fetch matchType: {mt}")
+        data = fetch_ea_matches(mt)
+        matches = data.get("matches", [])
+        print(f"Got {len(matches)} matches for {mt}")
+        all_matches.extend(matches)
+        time.sleep(2) # 簡單限流，唔好狂炸EA API
+
+    # 去重（防止同一場賽事同時出現多個matchType返回）
+    unique_matches = {m["matchId"]: m for m in all_matches}.values()
+    print(f"\n📊 Total unique matches: {len(unique_matches)}")
+
+    for match in unique_matches:
+        firestore_write_match(match)
+        time.sleep(0.8)
+
+if __name__ == "__main__":
+    main()
