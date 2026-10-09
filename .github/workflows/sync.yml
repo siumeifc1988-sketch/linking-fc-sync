@@ -15,11 +15,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install curl_cffi --quiet
+      - run: pip install curl_cffi requests --quiet
       - run: python fetch_ea_to_firebase.py
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_PROJECT: football-signup-64bd9
       - run: |
           git config user.name "linking-bot"
           git config user.email "bot@linking.hk"
-          git pull origin main --rebase --autostash
+          git stash push -m "autostash" --keep-index || true
+          git pull origin main --rebase --autostash || (git stash drop || true; git pull origin main --rebase)
+          git stash pop || true
           git add data/
           git diff --staged --quiet || (git commit -m "auto sync $(date -u '+%Y-%m-%d %H:%M UTC')" && git push origin main)
