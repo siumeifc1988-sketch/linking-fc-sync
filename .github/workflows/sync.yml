@@ -1,21 +1,24 @@
 name: sync-fc27
 on:
   schedule:
-    - cron: '0 */2 * * *'  # 每2小時一次，你講嘅最佳實踐
+    - cron: '0 */2 * * *'
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - run: pip install requests --quiet
-      - run: python fetch_data.py
+        with:
+          python-version: '3.11'
+      - run: pip install curl_cffi requests --quiet
+      - run: python fetch_ea_to_firebase.py
       - run: |
           git config user.name "linking-bot"
           git config user.email "bot@linking.hk"
-          git add data/matches.json
+          git add data/
           git diff --staged --quiet || (git commit -m "auto sync $(date -u)" && git push)
