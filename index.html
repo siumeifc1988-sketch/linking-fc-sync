@@ -1,230 +1,162 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LinKing FC - 教練戰術板</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-:root{--bg:#080808;--surface:#141414;--surface2:#1c1c1c;--border:#222;--text:#fff;--muted:#999;--green:#00e676;--green-bg:rgba(0,230,118,0.12);--red:#ff3d57;--red-bg:rgba(255,61,87,0.12);--yellow:#ffcc00;--yellow-bg:rgba(255,204,0,0.12)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,sans-serif}
-.header{position:sticky;top:0;z-index:20;background:rgba(8,8,8,0.9);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
-.max{max-width:1280px;margin:0 auto;padding:0 20px}
-.h-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
-.logo{display:flex;align-items:center;gap:12px}
-.badge{width:36px;height:36px;border-radius:10px;background:#fff;color:#000;display:grid;place-items:center;font-weight:900}
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
-@media(max-width:800px){.kpi{grid-template-columns:repeat(2,1fr)}}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
-.card h3{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.big{font-size:28px;font-weight:800}
-.tabs{display:flex;gap:8px;margin:20px 0;overflow:auto}
-.tab{padding:10px 18px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;white-space:nowrap}
-.tab.active{background:#fff;color:#000;border-color:#fff;font-weight:700}
-.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
-table{width:100%;border-collapse:collapse;min-width:900px}
-th{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);text-align:left;padding:12px;background:var(--surface2);border-bottom:1px solid var(--border)}
-td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
-tr:hover td{background:var(--surface2)}
-.bar{height:6px;border-radius:999px;background:#222;overflow:hidden;display:flex;margin-top:4px}
-.bar-green{background:var(--green);height:100%}
-.bar-red{background:var(--red);height:100%}
-.badge-sm{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid}
-.green{color:var(--green);border-color:rgba(0,230,118,0.25);background:var(--green-bg)}
-.red{color:var(--red);border-color:rgba(255,61,87,0.25);background:var(--red-bg)}
-.yellow{color:var(--yellow);border-color:rgba(255,204,0,0.25);background:var(--yellow-bg)}
-.match{border-radius:16px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);margin-bottom:12px;overflow:hidden}
-.match-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer}
-.pill{display:inline-flex;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800}
-</style>
-</head>
-<body>
-<div class="header"><div class="max"><div class="h-inner">
-<div class="logo"><div class="badge">LK</div><div><div style="font-weight:800">LinKing FC</div><div style="font-size:11px;color:var(--muted)">教練戰術板 · 自動同步</div></div></div>
-<div style="text-align:right"><div id="lastUpdate" style="font-size:11px;color:var(--muted)">同步中...</div><div id="record" style="font-size:12px;font-weight:700">-</div></div>
-</div></div></div>
-<div class="max" style="padding:20px 20px 40px">
-<div class="kpi">
-<div class="card"><h3>總場次</h3><div class="big" id="kpi-total">-</div><div style="font-size:11px;color:var(--muted)" id="kpi-wdl">-</div></div>
-<div class="card"><h3>勝率</h3><div class="big" id="kpi-winrate">-</div><div class="bar"><div id="bar-winrate" class="bar-green" style="width:0%"></div></div></div>
-<div class="card"><h3>平均入球</h3><div class="big" id="kpi-gf">-</div><div style="font-size:11px;color:var(--muted)" id="kpi-ga">失球 -</div></div>
-<div class="card"><h3>平均控球</h3><div class="big" id="kpi-poss">-</div><div style="font-size:11px;color:var(--muted)">EA 數據</div></div>
-</div>
-<div class="tabs">
-<button class="tab active" data-tab="players">球員能力</button>
-<button class="tab" data-tab="matches">每場明細</button>
-<button class="tab" data-tab="overview">總覽趨勢</button>
-</div>
-<div id="tab-players"></div>
-<div id="tab-matches" style="display:none"></div>
-<div id="tab-overview" style="display:none"><div class="card"><h3>近10場走勢 W=3 D=1 L=0</h3><canvas id="trendChart" height="120"></canvas></div></div>
-</div>
-<script>
-const CLUB_ID="41026";
-// FIX: 先用相對路徑，避免 Project Pages 404
-const URLS=["./data/matches.json","./data/matches.json?t="+Date.now(),"https://siumeifc1988-sketch.github.io/linking-fc-sync/data/matches.json","https://raw.githubusercontent.com/siumeifc1988-sketch/linking-fc-sync/main/data/matches.json"];
-function gv(o,keys){
-  if(!o) return 0;
-  for(const k of keys){
-    if(o[k]!=null && o[k]!==""){
-      const n=Number(o[k]); return isNaN(n)?0:n;
-    }
-    // 大小寫兼容
-    const foundKey = Object.keys(o).find(x=>x.toLowerCase()===k.toLowerCase());
-    if(foundKey && o[foundKey]!=null){
-      const n=Number(o[foundKey]); if(!isNaN(n)) return n;
-    }
-    // details 內層
-    if(o.details && o.details[k]!=null){
-      const n=Number(o.details[k]); if(!isNaN(n)) return n;
-    }
-  }
-  return 0;
+import os
+import json
+import time
+from curl_cffi import requests as curl_requests
+import requests as py_requests
+
+CLUB_ID = "41026"
+TYPES = {
+    "leagueMatch": "聯賽",
+    "friendlyMatch": "友誼賽",
+    "playoffMatch": "季後賽"
 }
-function findClub(m){
-  const clubs=m.clubs||{};
-  const keys=Object.keys(clubs);
-  if(!keys.length) return {us:null,them:null};
-  let usKey = keys.find(k=>String(k)===String(CLUB_ID)) || keys[0];
-  let themKey = keys.find(k=>String(k)!==String(usKey));
-  return {us:clubs[usKey], them: themKey?clubs[themKey]:null};
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+    "Referer": "https://www.ea.com/",
+    "Origin": "https://www.ea.com"
 }
-function parse(raw){
-  const list=Array.isArray(raw)?raw:(raw.matches||raw.data||[]);
-  console.log("[LinKing] 原始", list.length, "場");
-  return list.map((m,i)=>{
-    const {us,them}=findClub(m);
-    if(!us) return null;
-    const gf=gv(us,["goals","score"]);
-    const ga=them?gv(them,["goals","score"]):gv(us,["goalsAgainst"]);
-    let r="D"; if(gf>ga) r="W"; else if(gf<ga) r="L";
-    // DATE = timestamp (秒) -> 毫秒
-    const ts = m.timestamp? m.timestamp*1000 : (Date.now()-i*86400000);
-    const date = new Date(ts).toLocaleDateString("zh-HK",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
-    const players = us.players||us.members||m.players||[];
-    const oppName = them? (them.details?.name || them.clubName || them.name || "對手") : "對手";
-    return {
-      id:String(m.matchId||i),
-      date, ts,
-      gf, ga, result:r,
-      poss: gv(us,["possession","possessionPct"])||50,
-      opp: oppName,
-      players: Array.isArray(players)?players:Object.values(players),
-      rawTimestamp: m.timestamp||0
-    };
-  }).filter(Boolean).sort((a,b)=>a.ts-b.ts);
-}
-let allMatches=[];
-let playersMap=new Map();
-async function load(){
-  document.getElementById("lastUpdate").textContent="載入 data/matches.json ...";
-  let ok=false;
-  for(const url of URLS){
-    try{
-      const r=await fetch(url,{cache:"no-store"});
-      if(!r.ok){ console.warn(url, "status", r.status); continue; }
-      const j=await r.json();
-      const parsed=parse(j);
-      if(parsed.length){ allMatches=parsed; ok=true; console.log("成功載入", url, parsed.length); break; }
-    }catch(e){ console.warn("fetch 失敗", url, e); }
-  }
-  if(!ok){
-    document.getElementById("tab-players").innerHTML="<div class='card'>讀唔到 data/matches.json<br>請檢查：1. GitHub Pages 是否 Deploy 完成 2. 打開 /data/matches.json 睇下有無 JSON<br>Console 有 log</div>";
-    document.getElementById("lastUpdate").textContent="載入失敗";
-    return;
-  }
-  render();
-}
-function aggPlayers(){
-  playersMap=new Map();
-  allMatches.forEach(m=>{
-    m.players.forEach(p=>{
-      const id=p.playerId||p.id||p.name||"unknown";
-      const name=p.name||p.playerName||"球員";
-      if(!playersMap.has(id)) playersMap.set(id,{id,name,matches:0,goals:0,assists:0,ratingSum:0,ratingCount:0,passesMade:0,passesAtt:0,shots:0,shotsOn:0,tackles:0,interceptions:0});
-      const a=playersMap.get(id);
-      a.matches++; a.goals+=gv(p,["goals"]); a.assists+=gv(p,["assists"]);
-      const rating=gv(p,["rating","overallRating"]); if(rating){a.ratingSum+=rating;a.ratingCount++}
-      a.passesMade+=gv(p,["passesMade"]); a.passesAtt+=gv(p,["passesAttempted"])||gv(p,["passesMade"]);
-      a.shots+=gv(p,["shots"]); a.shotsOn+=gv(p,["shotsOnTarget"]);
-      a.tackles+=gv(p,["tackles","tacklesMade"]); a.interceptions+=gv(p,["interceptions"])
-    })
-  })
-}
-function renderKPIs(){
-  const w=allMatches.filter(m=>m.result==="W").length;
-  const d=allMatches.filter(m=>m.result==="D").length;
-  const l=allMatches.filter(m=>m.result==="L").length;
-  const total=allMatches.length;
-  document.getElementById("kpi-total").textContent=total+" 場";
-  document.getElementById("kpi-wdl").textContent=w+"勝 "+d+"和 "+l+"負";
-  document.getElementById("kpi-winrate").textContent=total?Math.round(w/total*100)+"%":"-";
-  document.getElementById("bar-winrate").style.width=total?w/total*100+"%":"0%";
-  document.getElementById("kpi-gf").textContent=total?(allMatches.reduce((s,m)=>s+m.gf,0)/total).toFixed(1):"-";
-  document.getElementById("kpi-ga").textContent="失球 "+(total?(allMatches.reduce((s,m)=>s+m.ga,0)/total).toFixed(1):"-");
-  document.getElementById("kpi-poss").textContent=total?Math.round(allMatches.reduce((s,m)=>s+m.poss,0)/total)+"%":"-";
-  document.getElementById("record").textContent=w+"W "+d+"D "+l+"L";
-  if(allMatches.length){
-    const last = allMatches[allMatches.length-1];
-    const lastDate = new Date(last.ts).toLocaleString("zh-HK");
-    document.getElementById("lastUpdate").textContent="最後比賽 "+lastDate+" · DATE已同步";
-  } else {
-    document.getElementById("lastUpdate").textContent=new Date().toLocaleString("zh-HK");
-  }
-}
-function renderPlayers(){
-  aggPlayers();
-  const arr=[...playersMap.values()].sort((a,b)=>(b.ratingCount?b.ratingSum/b.ratingCount:0)-(a.ratingCount?a.ratingSum/a.ratingCount:0));
-  if(!arr.length){
-    document.getElementById("tab-players").innerHTML="<div class='card'>EA matches API 冇球員明細，只會有入球數。如要球員數據，需另外呼叫 members/stats API。暫時顯示每場比分。</div>";
-    return;
-  }
-  let html='<div class="table-wrap"><table><thead><tr><th>球員</th><th>出場</th><th>評分</th><th>入球</th><th>助攻</th><th>傳球 有效/無效</th><th>射門 有效/無效</th><th>防守 截+欄 分開計</th><th>能力</th></tr></thead><tbody>';
-  arr.forEach(p=>{
-    const rating=p.ratingCount?(p.ratingSum/p.ratingCount).toFixed(1):"-";
-    const passPct=p.passesAtt?p.passesMade/p.passesAtt:0;
-    const passEff=Math.round(passPct*100);
-    const passFail=p.passesAtt-p.passesMade;
-    const shotPct=p.shots?p.shotsOn/p.shots:0;
-    const shotEff=p.shots?Math.round(shotPct*100):0;
-    const ability=Math.round((p.goals*10+p.assists*6+passPct*30+(p.tackles+p.interceptions)*2+(parseFloat(rating)||7)*5));
-    let badge=""; if(passEff>=85) badge='<span class="badge-sm green">傳球核心</span>'; if((p.tackles+p.interceptions)/p.matches>3) badge+='<span class="badge-sm yellow" style="margin-left:4px">防守支柱</span>'; if(parseFloat(rating)>=8.5) badge+='<span class="badge-sm red" style="margin-left:4px">火熱</span>';
-    html+='<tr><td><div style="font-weight:700">'+p.name+'</div></td><td>'+p.matches+'</td><td>'+rating+'</td><td>'+p.goals+'</td><td>'+p.assists+'</td><td><div>'+p.passesMade+'/'+p.passesAtt+' <span style="color:var(--green)">'+passEff+'%有效</span></div><div class="bar"><div class="bar-green" style="width:'+passEff+'%"></div><div class="bar-red" style="width:'+(100-passEff)+'%"></div></div><div style="font-size:10px;color:var(--muted)">無效 '+passFail+'</div></td><td><div>'+p.shotsOn+'/'+p.shots+' <span style="color:'+(shotEff>=50?'var(--green)':'var(--red)')+'">'+shotEff+'%</span></div><div class="bar"><div class="bar-green" style="width:'+shotEff+'%"></div><div class="bar-red" style="width:'+(100-shotEff)+'%"></div></div></td><td><div style="display:flex;gap:6px"><span style="background:rgba(0,230,118,0.15);color:var(--green);padding:2px 6px;border-radius:6px">截 '+p.interceptions+'</span><span style="background:rgba(255,61,87,0.15);color:var(--red);padding:2px 6px;border-radius:6px">欄 '+p.tackles+'</span></div><div style="font-size:10px;color:var(--muted);margin-top:4px">總 '+(p.tackles+p.interceptions)+' 場均 '+((p.tackles+p.interceptions)/p.matches).toFixed(1)+'</div></td><td>'+ability+' '+badge+'</td></tr>'
-  });
-  html+='</tbody></table></div>';
-  document.getElementById("tab-players").innerHTML=html
-}
-function renderMatches(){
-  let html="";
-  [...allMatches].sort((a,b)=>b.ts-a.ts).forEach(m=>{
-    const col=m.result==="W"?"var(--green)":m.result==="D"?"var(--yellow)":"var(--red)";
-    html+='<div class="match" style="border-left-color:'+col+'"><div class="match-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'"><div><div style="font-size:11px;color:var(--muted)">'+m.date+' vs '+m.opp+' · DATE: '+m.rawTimestamp+'</div><div style="font-weight:800">LinKing FC <span style="background:#fff;color:#000;padding:2px 8px;border-radius:999px;margin:0 6px">'+m.gf+'-'+m.ga+'</span> <span class="pill" style="background:'+(m.result==='W'?'var(--green-bg)':m.result==='D'?'var(--yellow-bg)':'var(--red-bg)')+';color:'+col+'">'+m.result+'</span></div></div><div style="font-size:11px;color:var(--muted)">'+m.players.length+'人 · 控球 '+Math.round(m.poss)+'%</div></div><div style="display:none;padding:12px;border-top:1px solid var(--border);background:var(--bg)"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">'+m.players.map(p=>'<div class="card" style="padding:10px"><div style="font-weight:700;font-size:12px">'+(p.name||"球員")+'</div><div style="font-size:11px;color:var(--muted)">入球 '+gv(p,["goals"])+' 截 '+gv(p,["interceptions"])+' 欄 '+gv(p,["tackles"])+'</div></div>').join("")+'</div></div></div>'
-  });
-  document.getElementById("tab-matches").innerHTML=html||"<div class='card'>暫無比賽</div>"
-}
-function renderOverview(){
-  try{
-    const ctx=document.getElementById("trendChart");
-    const data=allMatches.slice(-10).map((m,i)=>({x:i+1,y:m.result==="W"?3:m.result==="D"?1:0,label:m.date}));
-    new Chart(ctx,{
-      type:"line",
-      data:{labels:data.map(d=>"#"+d.x+" "+d.label),datasets:[{label:"戰果",data:data.map(d=>d.y),borderColor:"#fff",backgroundColor:"rgba(255,255,255,0.1)",tension:0.4,fill:true}]},
-      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:0,max:3,ticks:{color:"#999",callback:v=>v==3?"W":v==1?"D":v==0?"L":v}},x:{ticks:{color:"#999"}}}}
-    });
-  }catch(e){ console.warn("chart fail",e); }
-}
-function render(){renderKPIs();renderPlayers();renderMatches();renderOverview()}
-document.querySelectorAll(".tab").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("tab-players").style.display=btn.dataset.tab==="players"?"block":"none";
-    document.getElementById("tab-matches").style.display=btn.dataset.tab==="matches"?"block":"none";
-    document.getElementById("tab-overview").style.display=btn.dataset.tab==="overview"?"block":"none";
-  })
-});
-load();
-</script>
-</body>
-</html>
+
+all_matches = []
+
+for match_type in TYPES:
+    url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={match_type}&maxResultCount=20"
+    try:
+        r = curl_requests.get(url, headers=headers, impersonate="chrome124", timeout=30)
+        print(f"{match_type}: {r.status_code}")
+        if r.status_code == 200:
+            data = r.json()
+            for m in data:
+                m["_matchType"] = match_type
+                all_matches.append(m)
+            print(f"{match_type} 捉到 {len(data)} 場")
+    except Exception as e:
+        print(f"{match_type} 錯誤 {e}")
+    time.sleep(2)
+
+dedup = {str(m['matchId']): m for m in all_matches}
+merged = sorted(dedup.values(), key=lambda x: int(x.get('timestamp', 0)), reverse=True)
+
+# ---------- 球員表現 ----------
+players_raw = []
+players_stats = []
+
+def fetch_players(endpoint):
+    try:
+        r = curl_requests.get(endpoint, headers=headers, impersonate="chrome124", timeout=30)
+        print(f"{endpoint} -> {r.status_code}")
+        if r.status_code == 200:
+            return r.json()
+    except Exception as e:
+        print(f"球員API錯誤 {e}")
+    return None
+
+# EA 有幾個不同路徑，試哂
+urls_members = [
+    f"https://proclubs.ea.com/api/fc/clubs/{CLUB_ID}/members?platform=common-gen5",
+    f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={CLUB_ID}",
+    f"https://proclubs.ea.com/api/fc/clubs/{CLUB_ID}/members/stats?platform=common-gen5"
+]
+
+members_list = None
+members_stats = None
+
+for u in urls_members:
+    j = fetch_players(u)
+    if j:
+        if isinstance(j, dict) and "members" in j:
+            members_list = j["members"]
+        elif isinstance(j, list) and len(j)>0 and "name" in str(j[0]).lower():
+            # 可能是 members
+            if "gamesPlayed" not in str(j[0]):
+                members_list = j
+            else:
+                members_stats = j
+        elif isinstance(j, list):
+            members_stats = j
+    time.sleep(1)
+
+# 嘗試第二組專門 stats
+if not members_stats:
+    j = fetch_players(f"https://proclubs.ea.com/api/fc/clubs/{CLUB_ID}/members/stats?platform=common-gen5")
+    if j:
+        members_stats = j if isinstance(j, list) else j.get("members",[])
+
+print(f"members: {len(members_list) if members_list else 0}  stats: {len(members_stats) if members_stats else 0}")
+
+# 合併
+players_map = {}
+if members_list:
+    for m in members_list:
+        pid = str(m.get("playerId") or m.get("id") or m.get("name"))
+        players_map[pid] = {"playerId": pid, "name": m.get("name") or m.get("playerName") or "球員", "proPos": m.get("favoritePosition") or m.get("pos") or "", "raw": m}
+
+if members_stats:
+    for s in members_stats:
+        pid = str(s.get("playerId") or s.get("id") or s.get("name"))
+        if pid not in players_map:
+            players_map[pid] = {"playerId": pid, "name": s.get("name") or s.get("playerName") or "球員"}
+        # 合併 stats
+        players_map[pid].update(s)
+
+final_players = list(players_map.values())
+# 按入球排序
+final_players.sort(key=lambda x: int(x.get("goals",0) or 0), reverse=True)
+
+os.makedirs("data", exist_ok=True)
+with open("data/matches.json", "w", encoding="utf-8") as f:
+    json.dump({"matches": merged, "updated": int(time.time()), "count": len(merged)}, f, ensure_ascii=False, indent=2)
+
+with open("data/players.json", "w", encoding="utf-8") as f:
+    json.dump({"players": final_players, "updated": int(time.time()), "count": len(final_players)}, f, ensure_ascii=False, indent=2)
+
+print(f"寫入 {len(merged)} 場 到 data/matches.json")
+print(f"寫入 {len(final_players)} 球員 到 data/players.json")
+
+# ---------- Firebase ----------
+API_KEY = os.getenv("FIREBASE_API_KEY")
+PROJECT = os.getenv("FIREBASE_PROJECT", "football-signup-64bd9")
+
+if not API_KEY:
+    print("無 FIREBASE_API_KEY，跳過 Firebase")
+else:
+    # matches
+    for m in merged:
+        match_id = str(m.get("matchId"))
+        ts = int(m.get("timestamp", 0))
+        date_str = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(ts)) if ts else ""
+        payload = {
+            "fields": {
+                "matchId": {"stringValue": match_id},
+                "timestamp": {"integerValue": str(ts)},
+                "dateStr": {"stringValue": date_str},
+                "matchType": {"stringValue": m.get("_matchType","")},
+                "raw": {"stringValue": json.dumps(m, ensure_ascii=False)[:900000]}
+            }
+        }
+        url = f"https://firestore.googleapis.com/v1/projects/{PROJECT}/databases/(default)/documents/matches/{match_id}?key={API_KEY}"
+        try:
+            py_requests.patch(url, json=payload, timeout=15)
+        except: pass
+        time.sleep(0.15)
+    # players
+    for p in final_players:
+        pid = str(p.get("playerId") or p.get("id"))
+        payload = {
+            "fields": {
+                "playerId": {"stringValue": pid},
+                "name": {"stringValue": p.get("name","")},
+                "gamesPlayed": {"integerValue": str(int(p.get("gamesPlayed",0) or p.get("matches",0) or 0))},
+                "goals": {"integerValue": str(int(p.get("goals",0) or 0))},
+                "assists": {"integerValue": str(int(p.get("assists",0) or 0))},
+                "rating": {"doubleValue": float(p.get("ratingAve",0) or p.get("rating",0) or 0)},
+                "raw": {"stringValue": json.dumps(p, ensure_ascii=False)[:900000]}
+            }
+        }
+        url = f"https://firestore.googleapis.com/v1/projects/{PROJECT}/databases/(default)/documents/players/{pid}?key={API_KEY}"
+        try:
+            r = py_requests.patch(url, json=payload, timeout=15)
+            print(f"Firebase player {pid} {p.get('name')} -> {r.status_code}")
+        except Exception as e:
+            print(f"player {pid} fail {e}")
