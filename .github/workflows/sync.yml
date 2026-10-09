@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -18,5 +20,6 @@ jobs:
       - run: |
           git config user.name "linking-bot"
           git config user.email "bot@linking.hk"
+          git pull origin main --rebase --autostash
           git add data/
-          git diff --staged --quiet || (git commit -m "auto sync $(date -u)" && git push)
+          git diff --staged --quiet || (git commit -m "auto sync $(date -u '+%Y-%m-%d %H:%M UTC')" && git push origin main)
