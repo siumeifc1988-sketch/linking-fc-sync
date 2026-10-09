@@ -6,14 +6,13 @@ from curl_cffi import requests
 CLUB_ID = "41026"
 TYPES = {
     "leagueMatch": "聯賽",
-    "friendlyMatch": "友誼賽", 
+    "friendlyMatch": "友誼賽",
     "playoffMatch": "季後賽"
 }
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "application/json",
     "Referer": "https://www.ea.com/",
     "Origin": "https://www.ea.com"
 }
@@ -23,41 +22,25 @@ all_matches = []
 for match_type in TYPES:
     url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={match_type}&maxResultCount=20"
     try:
-        # 用 curl_cffi 扮 Chrome，過 Akamai
         r = requests.get(url, headers=headers, impersonate="chrome124", timeout=30)
         print(f"{match_type}: {r.status_code}")
-        
         if r.status_code == 200:
             data = r.json()
             for m in data:
-                m["_matchTypeLabel"] = TYPES[match_type]
                 m["_matchType"] = match_type
                 all_matches.append(m)
             print(f"{match_type} 捉到 {len(data)} 場")
         else:
-            print(f"{match_type} 被擋 {r.status_code}，今次跳過，下次再試")
+            print(f"{match_type} 被擋 {r.status_code}")
     except Exception as e:
         print(f"{match_type} 錯誤 {e}")
-    
     time.sleep(3)
 
-# 去重 + 按時間排序
 dedup = {str(m['matchId']): m for m in all_matches}
 merged = sorted(dedup.values(), key=lambda x: int(x.get('timestamp', 0)), reverse=True)
 
 os.makedirs("data", exist_ok=True)
 with open("data/matches.json", "w", encoding="utf-8") as f:
-    json.dump({
-        "matches": merged, 
-        "updated": int(time.time()),
-        "count": len(merged)
-    }, f, ensure_ascii=False, indent=2)
+    json.dump({"matches": merged, "updated": int(time.time()), "count": len(merged)}, f, ensure_ascii=False, indent=2)
 
 print(f"寫入 {len(merged)} 場 到 data/matches.json")
-
-# 如果有設 Firebase，同時推去 Firebase
-FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY")
-PROJECT = os.getenv("FIREBASE_PROJECT", "football-signup-64bd9")
-
-if FIREBASE_API_KEY and merged:
-    for m in merged[:20]:  # 最
