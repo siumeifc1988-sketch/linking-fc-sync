@@ -1,18 +1,39 @@
-name: Sync EA Matches to Firebase
+name: sync
 on:
   schedule:
-    - cron: '0 0,8,16 * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - run: pip install requests
-      - env:
+        with:
+          python-version: '3.11'
+
+      - name: Install
+        run: |
+          pip install playwright firebase-admin requests
+          playwright install chromium --with-deps
+
+      - name: Fetch EA via Browser + Push Firebase
+        env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_PROJECT: football-signup-64bd9
           CLUB_ID: 41026
         run: python fetch_ea_to_firebase.py
+
+      - name: Commit JSON
+        run: |
+          git config user.name "LinKingBot"
+          git config user.email "bot@linkingfc.hk"
+          git add data/matches.json || true
+          git diff --staged --quiet && echo "無新野" && exit 0
+          git commit -m "auto sync $(date -u)"
+          git push
