@@ -1,4 +1,4 @@
-name: LinKing FC Sync - Full (chrome110 + Firebase 3650)
+name: LinKing FC Sync - Full (curl_cffi chrome110 + Firebase 3650)
 
 on:
   schedule:
@@ -26,33 +26,22 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Fetch EA (1st)
+      - name: Fetch EA + Sync Firebase (3650)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
         run: |
           python scripts/fetch_ea_PLUS.py
 
-      - name: Commit with safe rebase
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
+      - name: Commit data
         run: |
           git config user.name "linking-fc-bot"
           git config user.email "bot@linking.fc"
-          # 1. 先 stash 你今次生成嘅 data，避免 pull 嗰陣話 unstaged
-          git stash push -m "temp-sync-data" --include-untracked --keep-index || true
-          # 2. 拉最新 remote (你手動上傳嘅 index.html)
-          git pull --rebase origin main || { git rebase --abort || true; git pull origin main --no-rebase || true; }
-          # 3. 還原並重跑一次 fetch，確保 merge 咗 remote 舊數據 + EA 新數據
-          git stash pop || true
-          python scripts/fetch_ea_PLUS.py
-          # 4. commit & push 重試 - 加埋 players_career.json
           git add data/matches.json data/players.json data/players_career.json data/summary.json data/archive/ || true
           git diff --cached --quiet && echo "無新數據" && exit 0
           COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
           git commit -m "auto: ${COUNT}場 sync $(date -u +'%Y-%m-%d %H:%M UTC') [chrome110+firebase+career]"
-          for i in 1 2 3; do git push && break || { echo "push retry $i"; git pull --rebase origin main; sleep 2; }; done
+          git push
 
-      - name: Note
-        run: echo "同步完成，Firebase 已同步到 clubs/41026/matches + members_career"
+      - name: Deploy note
+        run: echo "data 已更新，Firebase 已同步到 clubs/41026/matches + members_career"
