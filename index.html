@@ -78,14 +78,30 @@ async function load(){
   const st=document.getElementById('st');
   try{
     st.textContent='連接 Firebase 中...';
-    const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10));
+    let snap;
+    try{
+      const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10));
+      snap=await Promise.race([getDocs(q), new Promise((_,rej)=>setTimeout(()=>rej(new Error('clubs超時')),10000))]);
+      if(snap.empty) throw new Error('clubs空');
+    }catch(e){
+      console.warn('clubs/41026/matches 空，轉頂層 matches', e.message);
+      const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10));
+      snap=await Promise.race([getDocs(q), new Promise((_,rej)=>setTimeout(()=>rej(new Error('頂層超時')),10000))]);
+    }
+    if(snap.empty) throw new Error('matches 集合為空或無權限');
     const snap=await Promise.race([getDocs(q), new Promise((_,rej)=>setTimeout(()=>rej(new Error('連接超時 10秒 - 檢查 Firestore Rules 是否 allow read')),10000))]);
     if(snap.empty) throw new Error('matches 集合為空或無權限');
     let arr=[]; snap.forEach(doc=>{ arr.push(parseDoc(doc.data())); });
     ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
     st.textContent=`已載入 ${ALL.length}場`; renderKPI(); renderMatches();
-    const q2=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(120));
-    const snap2=await getDocs(q2); let arr2=[]; snap2.forEach(doc=>{ arr2.push(parseDoc(doc.data())); });
+    let snap2;
+    try{
+      const q2=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(120));
+      snap2=await getDocs(q2);
+    }catch(e){
+      const q2=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(120));
+      snap2=await getDocs(q2);
+    } let arr2=[]; snap2.forEach(doc=>{ arr2.push(parseDoc(doc.data())); });
     aggPlayers(arr2); showBoard('goals'); st.textContent+=` · 累計 ${arr2.length}場`;
   }catch(err){ console.error(err); st.innerHTML=`<span style="color:#f87171">❌ ${err.message}</span>`;
     const demo=[{id:'1',ts:Date.now()/1000,sf:3,sa:1,opp:'Demo FC',res:'W',myList:[{name:'Ryan Yip',posCN:'中場',goals:2,assists:1,shotOn:3,pm:45,pa:50,keyPass:4,interceptions:2,clearances:1,tk:3,tka:4,saves:0,rating:8.5},{name:'Andy',posCN:'後衛',goals:0,assists:1,shotOn:0,pm:30,pa:32,keyPass:1,interceptions:5,clearances:6,tk:2,tka:2,saves:0,rating:7.2}],oppList:[{name:'Opp Striker',posCN:'前鋒',goals:1,assists:0,shotOn:2,pm:10,pa:15,keyPass:0,interceptions:0,clearances:0,tk:0,tka:0,saves:0,rating:6.8}]}];
