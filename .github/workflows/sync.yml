@@ -33,16 +33,17 @@ jobs:
         run: |
           python scripts/fetch_ea_PLUS.py
 
-      - name: Commit data
+      - name: Commit with safe rebase
         run: |
           git config user.name "linking-fc-bot"
           git config user.email "bot@linking.fc"
+          git stash push -m "temp-sync-data" --include-untracked --keep-index || true
+          git pull --rebase origin main || { git rebase --abort || true; git pull origin main --no-rebase || true; }
+          git stash pop || true
+          python scripts/fetch_ea_PLUS.py
           git add -A data/ || true
           mkdir -p data/archive
           git diff --cached --quiet && echo "無新數據" && exit 0
           COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
           git commit -m "auto: ${COUNT}場 sync $(date -u +'%Y-%m-%d %H:%M UTC') [chrome110+firebase+career]"
-          git push
-
-      - name: Deploy note
-        run: echo "data 已更新，Firebase 已同步到 clubs/41026/matches + members_career"
+          for i in 1 2 3; do git push && break || { echo "push retry $i"; git pull --rebase origin main; sleep 2; }; done
