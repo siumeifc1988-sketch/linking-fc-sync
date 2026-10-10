@@ -57,7 +57,15 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-const firebaseConfig = { apiKey: "AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70", authDomain: "football-signup-64bd9.firebaseapp.com", projectId: "football-signup-64bd9", storageBucket: "football-signup-64bd9.firebasestorage.app", messagingSenderId: "133898606488", appId: "1:133898606488:web:fc2f0ce732a26de9157ded" };
+const firebaseConfig = {
+  apiKey: "AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70",
+  authDomain: "football-signup-64bd9.firebaseapp.com",
+  databaseURL: "https://football-signup-64bd9-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "football-signup-64bd9",
+  storageBucket: "football-signup-64bd9.firebasestorage.app",
+  messagingSenderId: "133898606488",
+  appId: "1:133898606488:web:fc2f0ce732a26de9157ded"
+};
 const CLUB_ID='41026'; const app=initializeApp(firebaseConfig); const db=getFirestore(app);
 let ALL=[],FIL=[],PLAYERS=[]; let sortKey='goals';
 function decodeAgg(str){ const m={}; if(!str) return m; str.split(',').forEach(p=>{ const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]), v=Number(kv[1]); if(!isNaN(k)) m[k]=v; }); return m; }
