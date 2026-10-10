@@ -1,14 +1,10 @@
 """
-LinKing FC - 完整電腦流程版 (curl_cffi + Firebase + 3650)
-路徑: scripts/fetch_ea_PLUS.py
-MAX_KEEP=3650，每日10場夠一年
-
-電腦本地測試:
-pip install -r requirements.txt
-python scripts/fetch_ea_PLUS.py
+Fix: curl_cffi 0.6.2 只支援 chrome99, chrome100, chrome101, chrome104, chrome107, chrome110, chrome120 唔支援 124
+改用 chrome110 + 自動 fallback
 """
 import os, json, time
 from pathlib import Path
+
 from curl_cffi import requests as curl_requests
 
 CLUB_ID = "41026"
@@ -20,7 +16,7 @@ TYPES = {
 }
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.9",
     "Referer": "https://www.ea.com/",
@@ -28,18 +24,28 @@ HEADERS = {
 }
 
 def cffi_get(url):
-    try:
-        r = curl_requests.get(url, headers=HEADERS, impersonate="chrome124", timeout=30)
-        print(f"GET {url} -> {r.status_code} len={len(r.text)}")
-        if r.status_code == 200 and r.text:
-            return r.json()
-    except Exception as e:
-        print(f"失敗 {url}: {e}")
+    for imp in ["chrome110", "chrome120", "chrome", "safari"]:
+        try:
+            r = curl_requests.get(url, headers=HEADERS, impersonate=imp, timeout=30)
+            print(f"GET {url} [{imp}] -> {r.status_code} len={len(r.text)}")
+            if r.status_code == 200 and r.text and len(r.text) > 10:
+                try:
+                    return r.json()
+                except:
+                    print(f"非JSON: {r.text[:200]}")
+            elif r.status_code == 403:
+                print(f"403 Forbidden [{imp}] 試下一個")
+                continue
+        except Exception as e:
+            err = str(e)
+            if "Impersonating" in err and "not supported" in err:
+                print(f"{imp} 不支援，試下一個")
+                continue
+            print(f"失敗 {url} [{imp}]: {e}")
     return None
 
 Path("data/archive").mkdir(parents=True, exist_ok=True)
 
-# 1. 讀舊檔
 old_matches = []
 if os.path.exists("data/matches.json"):
     try:
@@ -48,7 +54,6 @@ if os.path.exists("data/matches.json"):
         pass
 print(f"[1] 舊檔 {len(old_matches)} 場")
 
-# 2. curl_cffi 抓新場次
 all_new = []
 for mt in TYPES:
     url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={mt}&maxResultCount=20"
@@ -58,14 +63,13 @@ for mt in TYPES:
             m["_matchType"] = mt
             m["_matchTypeName"] = TYPES[mt]
         all_new.extend(j)
+        print(f"  {mt}: {len(j)} 場")
     time.sleep(1.2)
 
-# 3. 去重
 merged_dict = {str(m.get("matchId") or m.get("id")): m for m in old_matches + all_new if m.get("matchId") or m.get("id")}
 merged = sorted(merged_dict.values(), key=lambda x: int(x.get("timestamp",0) or 0), reverse=True)
-print(f"[2] 合併後 {len(merged)} 場")
+print(f"[2] 合併後 {len(merged)} 場 (新增 {len(all_new)} 場)")
 
-# 4. 封存
 if len(merged) > MAX_KEEP:
     recent = merged[:MAX_KEEP]
     archive = merged[MAX_KEEP:]
@@ -82,17 +86,15 @@ if len(merged) > MAX_KEEP:
 else:
     recent = merged
 
-# 5. 主檔
 json.dump({
     "matches": recent,
     "count": len(recent),
     "updated": int(time.time()),
     "maxKeep": MAX_KEEP,
-    "method": "curl_cffi chrome124"
+    "method": "curl_cffi chrome110 fallback"
 }, open("data/matches.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"[3] data/matches.json {len(recent)}場 {os.path.getsize('data/matches.json')//1024}KB")
 
-# 6. 球員 (正確路徑)
 players_raw = None
 for url in [
     f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={CLUB_ID}",
@@ -101,9 +103,8 @@ for url in [
     j = cffi_get(url)
     if j and len(str(j)) > 50:
         players_raw = j
-        print(f"[4] 球員命中 {url}")
-        if isinstance(j, list) or "goals" in str(j):
-            break
+        print(f"[4] 球員命中 {url} -> {type(j)}")
+        break
     time.sleep(1)
 
 final_players = []
@@ -136,7 +137,7 @@ for p in final_players[:150]:
         "tacklesMade": p.get("tacklesMade") or 0,
         "tackleAttempts": p.get("tackleAttempts") or 0,
         "tackleSuccessRate": p.get("tackleSuccessRate") or 0,
-        "interceptions": p.get("interceptions"), # 分開欄
+        "interceptions": p.get("interceptions"),
         "redCards": p.get("redCards",0),
         "rating": p.get("rating") or 0,
         "position": p.get("position") or "",
@@ -147,19 +148,15 @@ json.dump({"players": cleaned, "count": len(cleaned), "updated": int(time.time()
           open("data/players.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"[5] data/players.json {len(cleaned)}人")
 
-# 7. Firebase 上傳 (如果有 secrets)
 try:
     if os.getenv("FIREBASE_SERVICE_ACCOUNT") or os.path.exists("firebase-key.json"):
         import firebase_admin
         from firebase_admin import credentials, firestore, storage
         print("[6] 上傳 Firebase...")
-        # 支援兩種: 環境變數 JSON 或 檔案
         if os.getenv("FIREBASE_SERVICE_ACCOUNT"):
-            import base64, tempfile
-            # GitHub Secrets 通常 base64
+            import base64
             cred_json = os.getenv("FIREBASE_SERVICE_ACCOUNT")
             try:
-                # 試 base64 decode
                 cred_str = base64.b64decode(cred_json).decode()
                 cred_dict = json.loads(cred_str)
             except:
@@ -167,39 +164,25 @@ try:
             cred = credentials.Certificate(cred_dict)
         else:
             cred = credentials.Certificate("firebase-key.json")
-
         if not firebase_admin._apps:
-            firebase_admin.initialize_app(cred, {
-                'storageBucket': os.getenv("FIREBASE_BUCKET", "linking-fc.appspot.com")
-            })
-
-        # Firestore
+            firebase_admin.initialize_app(cred, {'storageBucket': os.getenv("FIREBASE_BUCKET", "linking-fc.appspot.com")})
         db = firestore.client()
-        db.collection("clubs").document(CLUB_ID).set({
-            "matchesCount": len(recent),
-            "playersCount": len(cleaned),
-            "updated": firestore.SERVER_TIMESTAMP,
-            "maxKeep": MAX_KEEP
-        }, merge=True)
-        # 分批寫 matches (最多500 batch)
+        db.collection("clubs").document(CLUB_ID).set({"matchesCount": len(recent), "playersCount": len(cleaned), "updated": firestore.SERVER_TIMESTAMP, "maxKeep": MAX_KEEP}, merge=True)
         batch = db.batch()
-        for i, m in enumerate(recent[:100]):  # 只上傳最近100場到 Firestore，全部放 Storage
+        for i, m in enumerate(recent[:100]):
             ref = db.collection("clubs").document(CLUB_ID).collection("matches").document(str(m.get("matchId")))
             batch.set(ref, {k: v for k,v in m.items() if k != "_raw"}, merge=True)
             if i % 400 == 0 and i>0:
                 batch.commit()
                 batch = db.batch()
         batch.commit()
-        print("  Firestore OK")
-
-        # Storage 上傳完整 JSON (大數據放呢度，唔爆 Firestore)
         bucket = storage.bucket()
         bucket.blob(f"clubs/{CLUB_ID}/matches.json").upload_from_filename("data/matches.json")
         bucket.blob(f"clubs/{CLUB_ID}/players.json").upload_from_filename("data/players.json")
-        print("  Storage OK -> clubs/41026/matches.json")
+        print("  Firebase OK")
     else:
-        print("[6] 無 Firebase key，跳過上傳 (本地測試正常)")
+        print("[6] 無 Firebase key，跳過上傳")
 except Exception as e:
-    print(f"Firebase 失敗 (唔影響主流程): {e}")
+    print(f"Firebase 失敗: {e}")
 
 print("=== 完成 ===")
