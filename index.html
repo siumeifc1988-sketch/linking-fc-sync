@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>LinKing FC 41026 - v3 Responsive</title>
+<title>LinKing FC 41026 - v4 今季累計</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto;background:#0a0a0a;color:#e5e5e5;line-height:1.5;overflow-x:hidden}
 .h{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.96);backdrop-filter:blur(14px);border-bottom:1px solid #222;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
@@ -51,28 +51,28 @@
 .bothGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
 @media(max-width:1099px){.bothGrid{grid-template-columns:1fr}}
 .tableTitle{font-size:12px;font-weight:800;margin:8px 0 4px 0;display:flex;gap:6px;align-items:center}
-/* sticky first column on mobile */
 @media(max-width:800px){
   .table th:first-child,.table td:first-child{position:sticky;left:0;z-index:2;background:#161616}
   .table th:first-child{z-index:3;background:#1a1a1a;min-width:110px}
   .table td:first-child{min-width:110px}
 }
+.badge{font-size:9px;padding:2px 6px;border-radius:6px;background:#1e1e1e;border:1px solid #333;color:#888}
 </style>
 </head>
 <body>
-<div class="h"><div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%"><b style="color:#fff">LinKing FC 41026 v3</b><span class="mono" id="st">載入中...</span></div></div>
+<div class="h"><div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%"><b style="color:#fff">LinKing FC 41026 v4 <span class="badge">今季 members/stats</span></b><span class="mono" id="st">載入中...</span></div></div>
 <div class="wrap">
 <div class="card"><div class="kpi" id="kpi"></div></div>
-<div id="view-matches"><div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="qOpp" class="input" placeholder="對手" style="flex:1;min-width:90px"><select id="qRes" class="input" style="max-width:80px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select><select id="sortMatches" class="input" style="max-width:110px"><option value="dateDesc">日期新→舊</option><option value="dateAsc">日期舊→新</option><option value="opp">對手A-Z</option><option value="result">賽果</option><option value="xgDesc">xG高→低</option><option value="defDesc">防守高→低</option><option value="scoreDesc">入球多→少</option></select></div><div class="mono" id="matchesCount" style="margin-top:6px"></div><div class="mono" style="margin-top:4px;color:#555">手機：用「我方/對手/並排」切換 · 電腦：自動左右並排 · 點表頭排序</div></div><div id="mlist"></div><div style="height:90px"></div></div>
-<div id="view-players" class="hidden"><div class="card"><div style="display:flex;gap:6px"><input id="qP" class="input" placeholder="球員"><select id="filterPos" class="input" style="max-width:90px"><option value="all">全部位置</option><option value="前鋒">前鋒</option><option value="中場">中場</option><option value="後衛">後衛</option><option value="門將">門將</option></select></div><div class="mono" style="margin-top:8px">統一榜單 · 點擊表頭排序</div><div id="board"></div></div><div style="height:90px"></div></div>
+<div id="view-matches"><div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="qOpp" class="input" placeholder="對手" style="flex:1;min-width:90px"><select id="qRes" class="input" style="max-width:80px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select><select id="sortMatches" class="input" style="max-width:110px"><option value="dateDesc">日期新→舊</option><option value="dateAsc">日期舊→新</option><option value="opp">對手A-Z</option><option value="result">賽果</option><option value="xgDesc">xG高→低</option><option value="defDesc">防守高→低</option><option value="scoreDesc">入球多→少</option></select></div><div class="mono" id="matchesCount" style="margin-top:6px"></div><div class="mono" style="margin-top:4px;color:#555">單場：分頁 LinKing/對手/並排 · 表頭排序 · 手機首欄固定</div></div><div id="mlist"></div><div style="height:90px"></div></div>
+<div id="view-players" class="hidden"><div class="card"><div style="display:flex;gap:6px"><input id="qP" class="input" placeholder="球員"><select id="filterPos" class="input" style="max-width:90px"><option value="all">全部位置</option><option value="前鋒">前鋒</option><option value="中場">中場</option><option value="後衛">後衛</option><option value="門將">門將</option></select></div><div class="mono" style="margin-top:8px" id="boardMeta">統一榜單 · 今季累計 (members/stats?platform=common-gen5&clubId=41026) + 近10場 xG/xA/xGI/總防守 · 點擊表頭排序</div><div id="board"></div></div><div style="height:90px"></div></div>
 </div>
-<div class="bottom"><div class="wrap" style="display:flex;justify-content:space-around;width:100%"><button id="b-m" class="active" onclick="nav('matches')">⚽<span>近10場</span></button><button id="b-p" onclick="nav('players')">📊<span>統一榜單</span></button></div></div>
+<div class="bottom"><div class="wrap" style="display:flex;justify-content:space-around;width:100%"><button id="b-m" class="active" onclick="nav('matches')">⚽<span>近10場</span></button><button id="b-p" onclick="nav('players')">📊<span>統一榜單(今季)</span></button></div></div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 const firebaseConfig={apiKey:"AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70",authDomain:"football-signup-64bd9.firebaseapp.com",projectId:"football-signup-64bd9",storageBucket:"football-signup-64bd9.firebasestorage.app",messagingSenderId:"133898606488",appId:"1:133898606488:web:fc2f0ce732a26de9157ded"};
 const CLUB_ID='41026'; const app=initializeApp(firebaseConfig); const db=getFirestore(app);
-let ALL=[],FIL=[],CAREER=[],MERGED=[]; let sortKey='xgi'; let sortDir='desc';
+let ALL=[],FIL=[],SEASON=[],MERGED=[]; let sortKey='xgi'; let sortDir='desc';
 let matchSortState={}; let openMatches=new Set(); let matchTeamView={};
 function decodeAgg(s){const m={}; if(!s) return m; s.split(',').forEach(p=>{const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]),v=Number(kv[1]); if(!isNaN(k)&&v!=null) m[k]=v;}); return m;}
 function posCN(pos){ if(!pos) return '未知'; pos=String(pos).toLowerCase(); if(pos.includes('goal')) return '門將'; if(pos.includes('def')) return '後衛'; if(pos.includes('mid')) return '中場'; if(pos.includes('for')||pos.includes('striker')||pos.includes('wing')||pos.includes('forward')) return '前鋒'; return pos; }
@@ -103,15 +103,95 @@ async function load(){
     try{ const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); if(snap.empty) throw new Error('empty'); }catch(e){ const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); }
     let arr=[]; snap.forEach(doc=>{ const parsed=parseDoc(doc.data()); if(parsed) arr.push(parsed); }); ALL=arr.filter(x=>x&&x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
     document.getElementById('st').textContent=`${ALL.length}場`; renderMatches(); renderKPI();
-    try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:safe(m.gamesPlayed),goals:safe(m.goals),assists:safe(m.assists),ratingAve:Number(m.ratingAve||0)||0,favoritePosition:m.favoritePosition||'',redCards:safe(m.redCards),yellowCards:safe(m.yellowCards),fouls:safe(m.fouls),manOfTheMatch:safe(m.manOfTheMatch),cleanSheetsDef:safe(m.cleanSheetsDef),cleanSheetsGK:safe(m.cleanSheetsGK),tacklesMade:safe(m.tacklesMade)}); }); buildMerged(); }catch(e){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:safe(m.gamesPlayed),goals:safe(m.goals),assists:safe(m.assists),ratingAve:Number(m.ratingAve||0)||0,favoritePosition:m.favoritePosition||'',redCards:safe(m.redCards),yellowCards:safe(m.yellowCards),fouls:safe(m.fouls),manOfTheMatch:safe(m.manOfTheMatch),cleanSheetsDef:safe(m.cleanSheetsDef),cleanSheetsGK:safe(m.cleanSheetsGK),tacklesMade:safe(m.tacklesMade)}); }); buildMerged(); }catch(e){} }
+    await loadSeason();
   }catch(err){ document.getElementById('st').textContent='失敗'; console.error(err); }
 }
+async function loadSeason(){
+  const st=document.getElementById('st');
+  const tryCollections = [
+    ['clubs/41026/members', collection(db,'clubs','41026','members')],
+    ['clubs/41026/members_season', collection(db,'clubs','41026','members_season')],
+    ['clubs/41026/members_stats', collection(db,'clubs','41026','members_stats')],
+    ['clubs/41026/members/season', null], // placeholder
+    ['members', collection(db,'members')],
+    ['members_season', collection(db,'members_season')],
+    ['members_career_fallback', collection(db,'clubs','41026','members_career')],
+  ];
+  // Try firestore collections
+  for(const [name, col] of tryCollections){
+    if(!col) continue;
+    try{
+      const snap = await getDocs(query(col, orderBy('gamesPlayed','desc')));
+      if(!snap.empty){
+        SEASON=[]; snap.forEach(d=>{
+          const m=d.data();
+          SEASON.push({
+            name:m.name||'Unknown',
+            gamesPlayed:safe(m.gamesPlayed),
+            goals:safe(m.goals),
+            assists:safe(m.assists),
+            ratingAve:Number(m.ratingAve||0)||0,
+            favoritePosition:m.favoritePosition||'',
+            redCards:safe(m.redCards),
+            yellowCards:safe(m.yellowCards),
+            fouls:safe(m.fouls),
+            manOfTheMatch:safe(m.manOfTheMatch),
+            cleanSheetsDef:safe(m.cleanSheetsDef),
+            cleanSheetsGK:safe(m.cleanSheetsGK),
+            tacklesMade:safe(m.tacklesMade),
+            passesMade:safe(m.passesMade||m.passesmade),
+            shotSuccessRate:safe(m.shotSuccessRate)
+          });
+        });
+        console.log('Season loaded from', name, SEASON.length);
+        document.getElementById('boardMeta').textContent = `統一榜單 · 今季累計 (${name} ${SEASON.length}人) + 近10場 xG/xA/xGI/總防守 · 點擊表頭排序`;
+        buildMerged(); return;
+      }
+    }catch(e){ console.warn('fail', name, e.message); }
+  }
+  // Fallback: try fetch from EA directly via client (may be blocked by CORS, but try)
+  try{
+    const res = await fetch('https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId=41026', {headers:{'User-Agent':'Mozilla/5.0'}});
+    if(res.ok){
+      const j=await res.json();
+      const members=j.members||[];
+      SEASON=members.map(m=>({
+        name:m.name||'Unknown', gamesPlayed:safe(m.gamesPlayed), goals:safe(m.goals), assists:safe(m.assists),
+        ratingAve:Number(m.ratingAve||0)||0, favoritePosition:m.favoritePosition||'', redCards:safe(m.redCards), yellowCards:safe(m.yellowCards),
+        fouls:safe(m.fouls), manOfTheMatch:safe(m.manOfTheMatch), cleanSheetsDef:safe(m.cleanSheetsDef), cleanSheetsGK:safe(m.cleanSheetsGK),
+        tacklesMade:safe(m.tacklesMade)
+      }));
+      document.getElementById('boardMeta').textContent = `統一榜單 · 今季累計 (EA members/stats ${SEASON.length}人) + 近10場 xG/xA/xGI/總防守`;
+      buildMerged(); return;
+    }
+  }catch(e){ console.warn('EA direct fetch failed', e); }
+  // Last fallback: keep empty and show message
+  document.getElementById('boardMeta').textContent = '統一榜單 · 未搵到 members/stats，Firestore 請確認 clubs/41026/members';
+  SEASON=[]; buildMerged();
+}
 function buildMerged(){
-  const aggMap={}; ALL.forEach(m=>{ m.myList.forEach(p=>{ if(!aggMap[p.name]) aggMap[p.name]={xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0}; const o=aggMap[p.name]; o.xg+=p.xg; o.xa+=p.xa; o.xgi+=p.xgi; o.goals+=p.goals; o.assists+=p.assists; o.pm+=p.pm; o.pa+=p.pa; o.keyPass+=p.keyPass; o.interceptions+=p.interceptions; o.clearances+=p.clearances; o.blocks+=p.blocks; o.tk+=p.tk; o.saves+=p.saves; o.gc+=p.gc; o.games+=1; if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;} }); });
-  MERGED=CAREER.map(c=>{ const a=aggMap[c.name]||{xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0}; const totalDef=a.interceptions+a.clearances+a.blocks+a.tk; const avgRating=a.ratingCnt? (a.ratingSum/a.ratingCnt):c.ratingAve; return { name:c.name, posCN:posCN(c.favoritePosition), posClass:posClass(c.favoritePosition), gamesPlayed:c.gamesPlayed||a.games, goals:c.goals, assists:c.assists, xg:Number(a.xg.toFixed(2)), xa:Number(a.xa.toFixed(2)), xgi:Number(a.xgi.toFixed(2)), ratingAvg:avgRating? Number(avgRating.toFixed(2)):0, pm:a.pm, pa:a.pa, passPct: a.pa? Math.round(a.pm/a.pa*100):0, keyPass:a.keyPass, interceptions:a.interceptions, clearances:a.clearances, tk:a.tk, totalDef, saves:a.saves, cleanDef:c.cleanSheetsDef, cleanGK:c.cleanSheetsGK, redCards:c.redCards, fouls:c.fouls }; });
+  const aggMap={};
+  ALL.forEach(m=>{ m.myList.forEach(p=>{ if(!aggMap[p.name]) aggMap[p.name]={xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0}; const o=aggMap[p.name]; o.xg+=p.xg; o.xa+=p.xa; o.xgi+=p.xgi; o.goals+=p.goals; o.assists+=p.assists; o.pm+=p.pm; o.pa+=p.pa; o.keyPass+=p.keyPass; o.interceptions+=p.interceptions; o.clearances+=p.clearances; o.blocks+=p.blocks; o.tk+=p.tk; o.saves+=p.saves; o.gc+=p.gc; o.games+=1; if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;} }); });
+  MERGED=SEASON.map(c=>{
+    const a=aggMap[c.name]||{xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0};
+    const totalDef=a.interceptions+a.clearances+a.blocks+a.tk;
+    const avgRating=a.ratingCnt? (a.ratingSum/a.ratingCnt):c.ratingAve;
+    return {
+      name:c.name, posCN:posCN(c.favoritePosition), posClass:posClass(c.favoritePosition),
+      gamesPlayed:c.gamesPlayed||a.games, games10:a.games,
+      goals:c.goals, goals10:a.goals,
+      assists:c.assists, assists10:a.assists,
+      xg:Number(a.xg.toFixed(2)), xa:Number(a.xa.toFixed(2)), xgi:Number(a.xgi.toFixed(2)),
+      ratingAvg:avgRating? Number(avgRating.toFixed(2)):0, ratingSeason:Number(c.ratingAve||0),
+      pm:a.pm, pa:a.pa, passPct: a.pa? Math.round(a.pm/a.pa*100):0, keyPass:a.keyPass,
+      interceptions:a.interceptions, clearances:a.clearances, blocks:a.blocks, tk:a.tk, totalDef,
+      saves:a.saves, gc:a.gc, cleanDef:c.cleanSheetsDef, cleanGK:c.cleanSheetsGK,
+      redCards:c.redCards, yellowCards:c.yellowCards, fouls:c.fouls, motm:c.manOfTheMatch
+    };
+  });
   renderBoard();
 }
-function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.xg,0),0); const totalDef=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.interceptions+p.clearances+p.tk,0),0); const totalSaves=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.saves,0),0); document.getElementById('kpi').innerHTML=`<div><b>${ALL.length}</b><span style="font-size:10px;display:block">近10場</span></div><div><b>${w}-${d}-${l}</b><span style="font-size:10px;display:block">勝-和-負</span></div><div><b>${gf}-${ga}</b><span style="font-size:10px;display:block">得失球</span></div><div><b>${xg.toFixed(1)}</b><span style="font-size:10px;display:block">xG總和</span></div><div><b>${totalDef}</b><span style="font-size:10px;display:block">總防守</span></div><div><b>${totalSaves}</b><span style="font-size:10px;display:block">總撲救</span></div>`; const mc=document.getElementById('matchesCount'); if(mc){ mc.textContent=`已累計 ${ALL.length} 場 · 總入球 ${gf} · 總防守 ${totalDef}`; } }
+function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.xg,0),0); const totalDef=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.interceptions+p.clearances+p.tk,0),0); const totalSaves=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.saves,0),0); document.getElementById('kpi').innerHTML=`<div><b>${ALL.length}</b><span style="font-size:10px;display:block">近10場</span></div><div><b>${w}-${d}-${l}</b><span style="font-size:10px;display:block">勝-和-負</span></div><div><b>${gf}-${ga}</b><span style="font-size:10px;display:block">得失球</span></div><div><b>${xg.toFixed(1)}</b><span style="font-size:10px;display:block">xG總和</span></div><div><b>${totalDef}</b><span style="font-size:10px;display:block">總防守</span></div><div><b>${totalSaves}</b><span style="font-size:10px;display:block">總撲救</span></div>`; const mc=document.getElementById('matchesCount'); if(mc){ mc.textContent=`已累計 ${ALL.length} 場 · 總入球 ${gf} · 總防守 ${totalDef} · 榜單來源 members/stats 今季 ${SEASON.length}人`; } }
 function getSortVal(p,k){ if(k==='totalDef') return p.interceptions+p.clearances+p.blocks+p.tk; if(k==='passPct') return p.pa? p.pm/p.pa*100:0; if(k==='passStr') return p.pm; if(k==='rating') return p.rating||0; return Number(p[k]||0); }
 function sortList(list,state){ return [...list].sort((a,b)=>{ const av=getSortVal(a,state.key), bv=getSortVal(b,state.key); return state.dir==='desc'? bv-av: av-bv; }); }
 function makeHeaders(idx,k,dir){
@@ -172,9 +252,10 @@ function renderBoard(){
   const q=document.getElementById('qP')?.value.toLowerCase()||''; const posF=document.getElementById('filterPos')?.value||'all';
   let list=MERGED.filter(p=>{ if(q&&!p.name.toLowerCase().includes(q)) return false; if(posF!=='all'&&p.posCN!==posF) return false; return true; });
   list=list.sort((a,b)=>{ let av=a[sortKey], bv=b[sortKey]; if(typeof av==='string') av=0; if(typeof bv==='string') bv=0; if(sortDir==='desc') return bv-av; else return av-bv; });
-  const headers=[ {k:'name',t:'球員',sort:false}, {k:'posCN',t:'位置',sort:false}, {k:'gamesPlayed',t:'場次'}, {k:'goals',t:'入球'}, {k:'assists',t:'助攻'}, {k:'xg',t:'xG'}, {k:'xa',t:'xA'}, {k:'xgi',t:'xGI'}, {k:'ratingAvg',t:'評分'}, {k:'passPct',t:'傳球%'}, {k:'keyPass',t:'威脅傳球'}, {k:'interceptions',t:'攔截'}, {k:'clearances',t:'解圍'}, {k:'tk',t:'剷球'}, {k:'totalDef',t:'總防守'}, {k:'saves',t:'撲救'}, {k:'cleanGK',t:'零封GK'}, {k:'redCards',t:'紅'}, {k:'fouls',t:'犯規'} ];
+  const headers=[ {k:'name',t:'球員',sort:false}, {k:'posCN',t:'位置',sort:false}, {k:'gamesPlayed',t:'今季場次'}, {k:'goals',t:'今季入球'}, {k:'assists',t:'今季助攻'}, {k:'xg',t:'近10場xG'}, {k:'xa',t:'近10場xA'}, {k:'xgi',t:'近10場xGI'}, {k:'ratingAvg',t:'近10場評分'}, {k:'ratingSeason',t:'今季評分'}, {k:'passPct',t:'傳球%'}, {k:'keyPass',t:'威脅傳球'}, {k:'interceptions',t:'攔截'}, {k:'clearances',t:'解圍'}, {k:'tk',t:'剷球'}, {k:'totalDef',t:'總防守'}, {k:'saves',t:'撲救'}, {k:'cleanGK',t:'零封'}, {k:'motm',t:'MOTM'} ];
   let html=`<div class="tableWrap"><table class="table"><tr>${headers.map(h=> h.sort===false? `<th>${h.t}</th>` : `<th data-k="${h.k}" onclick="sortBoard('${h.k}')" class="${sortKey===h.k?'sorted':''}">${h.t}<span class="sort-hint">${sortKey===h.k?(sortDir==='desc'?'▼':'▲'):''}</span></th>`).join('')}</tr>`;
-  html+=list.map((p,i)=>`<tr><td><b style="color:#fff">${i+1}. ${p.name}</b></td><td><span class="posTag ${p.posClass}">${p.posCN}</span></td><td>${p.gamesPlayed||'-'}</td><td>${p.goals||'-'}</td><td>${p.assists||'-'}</td><td>${v2(p.xg)}</td><td>${v2(p.xa)}</td><td><b style="color:#fff">${v2(p.xgi)}</b></td><td>${p.ratingAvg? p.ratingAvg.toFixed(2):'-'}</td><td>${p.passPct? p.passPct+'%':'-'}</td><td>${v(p.keyPass)}</td><td>${v(p.interceptions)}</td><td>${v(p.clearances)}</td><td>${v(p.tk)}</td><td><b>${v(p.totalDef)}</b></td><td>${p.saves? `<b style="color:#fde68a">${p.saves}</b>`: '-'}</td><td>${v(p.cleanGK||p.cleanDef)}</td><td>${p.redCards? `<span style="color:#f87171">${p.redCards}</span>`: '-'}</td><td>${v(p.fouls)}</td></tr>`).join(''); html+=`</table></div>`; document.getElementById('board').innerHTML=html;
+  html+=list.map((p,i)=>`<tr><td><b style="color:#fff">${i+1}. ${p.name}</b></td><td><span class="posTag ${p.posClass}">${p.posCN}</span></td><td>${p.gamesPlayed||'-'}</td><td><b>${p.goals||'-'}</b></td><td>${p.assists||'-'}</td><td>${v2(p.xg)}</td><td>${v2(p.xa)}</td><td><b style="color:#fff">${v2(p.xgi)}</b></td><td>${p.ratingAvg? p.ratingAvg.toFixed(2):'-'}</td><td>${p.ratingSeason? p.ratingSeason.toFixed(2):'-'}</td><td>${p.passPct? p.passPct+'%':'-'}</td><td>${v(p.keyPass)}</td><td>${v(p.interceptions)}</td><td>${v(p.clearances)}</td><td>${v(p.tk)}</td><td><b>${v(p.totalDef)}</b></td><td>${p.saves? `<b style="color:#fde68a">${p.saves}</b>`: '-'}</td><td>${v(p.cleanGK||p.cleanDef)}</td><td>${v(p.motm)}</td></tr>`).join(''); html+=`</table></div>`; document.getElementById('board').innerHTML=html;
+  renderKPI();
 }
 window.sortBoard=(k)=>{ if(sortKey===k){ sortDir=sortDir==='desc'?'asc':'desc'; } else { sortKey=k; sortDir='desc'; } renderBoard(); };
 window.nav=(k)=>{ document.getElementById('view-matches').classList.toggle('hidden',k!=='matches'); document.getElementById('view-players').classList.toggle('hidden',k!=='players'); document.getElementById('b-m').classList.toggle('active',k==='matches'); document.getElementById('b-p').classList.toggle('active',k==='players'); };
@@ -184,7 +265,6 @@ document.getElementById('sortMatches')?.addEventListener('change',renderMatches)
 document.getElementById('qP')?.addEventListener('input',renderBoard);
 document.getElementById('filterPos')?.addEventListener('change',renderBoard);
 load();
-window.addEventListener('resize',()=>{ /* keep both on desktop if user resized */ });
 </script>
 </body>
 </html>
