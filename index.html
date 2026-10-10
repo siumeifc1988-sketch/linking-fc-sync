@@ -2,11 +2,11 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LinKing FC 41026 - 戰績網 實測版</title>
+<title>LinKing FC 41026 - Firebase 直連版</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--line:#e8eaf0;--text:#12131a;--muted:#6b7280;--win:#16a34a;--loss:#dc2626;--draw:#ca8a04}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:var(--text);font-size:14px}
-.header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .inner{max-width:1280px;margin:0 auto;padding:12px 16px}
 .main{max-width:1280px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1.65fr .9fr;gap:16px}
 @media(max-width:980px){.main{grid-template-columns:1fr}}
@@ -21,95 +21,103 @@
 .btn{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}.btn:hover{background:#12131a;color:#fff}
 .input{height:32px;border:1px solid var(--line);border-radius:999px;padding:0 12px;font-size:12px;width:100%;background:#fff}
 .badge{width:36px;height:36px;border-radius:12px;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.dots{display:flex;gap:6px}.dots span{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px}
 </style>
-</head>
-<body>
-<div class="header"><div class="inner" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:10px;align-items:center"><div class="badge">LK</div><div><div style="font-weight:800">LinKing FC 41026</div><div class="mono" id="status">讀取 data/matches.json...</div></div></div><div class="mono">3650累計 · curl_cffi chrome110</div></div></div>
-<div class="main">
-<div style="display:flex;flex-direction:column;gap:16px">
-<div class="card"><div id="kpi" class="kpi"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="oppSearch" class="input" placeholder="搜對手" style="max-width:200px"><select id="typeFilter" class="input" style="max-width:120px"><option value="all">全部</option><option value="聯賽">聯賽</option><option value="leagueMatch">league</option><option value="friendly">友誼</option><option value="playoff">季後賽</option></select><button class="btn" id="exportCsv">匯出 CSV</button><span class="mono" id="cnt"></span></div></div>
-<div class="card"><h3 style="margin:0 0 10px;font-size:12px">賽程 <span class="mono" id="range"></span></h3><div style="overflow:auto"><table class="table" id="mt"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>類型</th><th>操作</th></tr></thead><tbody></tbody></table></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="prev">上一頁</button><span class="mono" id="pageInfo" style="align-self:center"></span><button class="btn" id="next">下一頁</button></div></div>
-</div>
-<div class="card"><h3 style="margin:0 0 10px;font-size:12px">球員 · Squad <span class="mono" id="pcnt"></span></h3><input id="pSearch" class="input" placeholder="搜球員" style="margin-bottom:10px"><div id="plist"></div></div>
-</div>
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// 你的 Firebase config - 去 Firebase Console -> Project Settings -> General -> Your apps -> Config 複製
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "football-signup-64bd9.firebaseapp.com",
+  projectId: "football-signup-64bd9",
+  storageBucket: "football-signup-64bd9.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 const CLUB_ID='41026';
-let ALL=[], FIL=[], page=0, PS=50;
-function parseEA(raw){
-  let arr = Array.isArray(raw) ? raw : (raw.matches || raw.data || []);
-  return arr.map(m=>{
-    let ts = Number(m.timestamp||m.matchTime||m.time||m.startTime||0);
-    // EA clubs dict
-    let sf=0,sa=0, oppName='對手', type=m._matchTypeName||m.matchType||m.matchTypeName||'聯賽', res='D', oppId='';
-    if(m.clubs){
-      const keys=Object.keys(m.clubs);
-      const myKey = keys.find(k=>String(k)===String(CLUB_ID)) || keys[0];
-      const oppKey = keys.find(k=>String(k)!==String(myKey)) || keys[1];
-      if(myKey && m.clubs[myKey]){
-        const my=m.clubs[myKey]; sf=Number(my.goals ?? my.score ?? my.result?.goalsFor ?? 0); sa=Number(my.goalsAgainst ?? my.result?.goalsAgainst ?? my.goalsConceded ?? 0);
-        if(sa===0 && oppKey && m.clubs[oppKey]) sa=Number(m.clubs[oppKey].goals ?? 0);
-        oppName = oppKey ? (m.clubs[oppKey].clubName || m.clubs[oppKey].name || m.clubs[oppKey].clubInfo?.name || '對手') : oppName;
-        oppId=oppKey||'';
-        res = my.result || (sf>sa?'W':sf<sa?'L':'D');
-        if(my.outcome) res = my.outcome==='won'?'W':my.outcome==='lost'?'L':'D';
+let ALL=[], FIL=[], page=0, PS=50, PLAYERS=[];
+function parseFirebaseDoc(docData){
+  // Firestore doc 可能是 EA 原始 clubs 結構 或 已扁平
+  let ts = Number(docData.timestamp||docData.matchTime||docData.time||0); if(ts>1e12) ts=Math.floor(ts/1000);
+  let clubs = docData.clubs||{};
+  let my = clubs[CLUB_ID] || clubs[String(CLUB_ID)] || {};
+  // 如果 my 係空，搵 LinKing FC
+  if(!my.goals){
+    for(let k of Object.keys(clubs)){ if(clubs[k].details?.name==='LinKing FC'){ my=clubs[k]; break; } }
+  }
+  let otherKey = Object.keys(clubs).find(k=>k!==String(CLUB_ID) && k!=='41026') || Object.keys(clubs)[1];
+  let other = clubs[otherKey]||{};
+  let sf = parseInt(my.goals ?? docData.goalsFor ?? docData.sf ?? 0,10);
+  let sa = parseInt(my.goalsAgainst ?? docData.goalsAgainst ?? docData.sa ?? 0,10);
+  let oppName = other.details?.name || docData.opponentName || docData.opponent || '對手';
+  let type = docData._matchTypeName || docData.type || '聯賽';
+  let res = sf>sa?'W':sf<sa?'L':'D';
+  return {id:String(docData.matchId||docData.id||ts), ts, sf, sa, oppName, res, type, oppId:otherKey||'', raw:docData};
+}
+async function loadFromFirebase(){
+  const statusEl=document.getElementById('status');
+  try{
+    // 嘗試 Firebase
+    if(firebaseConfig.apiKey!=="YOUR_API_KEY"){
+      const app=initializeApp(firebaseConfig);
+      const db=getFirestore(app);
+      statusEl.textContent='連接 Firebase football-signup-64bd9...';
+      const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(3650));
+      const snap=await getDocs(q);
+      let list=[]; snap.forEach(d=>{ list.push({id:d.id, ...d.data()}); });
+      if(list.length>0){
+        ALL=list.map(parseFirebaseDoc).filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts);
+        statusEl.textContent=`Firebase 已載入 ${ALL.length} 場 · football-signup-64bd9/matches`;
+        FIL=ALL.slice(); renderKPI(); renderTable(); return;
       }
-    } else {
-      sf=Number(m.goalsFor||m.clubGoals||m.ourGoals||m.scoreFor||0); sa=Number(m.goalsAgainst||m.opponentGoals||m.scoreAgainst||0);
-      oppName=m.opponentName||m.opponent||m.opponentClubName||oppName;
-      res=m.result|| (sf>sa?'W':sf<sa?'L':'D');
     }
-    const id=String(m.matchId||m.id||ts+Math.random());
-    // Fix timestamp if ms
-    if(ts>1e12) ts=Math.floor(ts/1000);
-    return {id, ts, oppName, sf, sa, res: (res[0]||'D').toUpperCase().replace('WON','W').replace('LOST','L').slice(0,1) , type, oppId, raw:m};
-  }).filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts);
-}
-function parsePlayers(raw){
-  let list = Array.isArray(raw) ? raw : (raw.players||raw.members||raw.data||[]);
-  return list.map(p=>({name:p.name||p.playerName||p.personaName||'Unknown', games:p.gamesPlayed||p.matches||0, goals:p.goals||0, assists:p.assists||0, rating:Number(p.rating||0), pos:p.position||''})).sort((a,b)=>b.goals-a.goals);
-}
-let PLAYERS=[];
-async function load(){
+  }catch(e){
+    console.error(e); statusEl.textContent='Firebase 載入失敗，轉讀本地 data/matches.json · '+e.message;
+  }
+  // Fallback 本地 JSON
   try{
-    const r=await fetch('./data/matches.json?ts='+Date.now()); if(r.ok){ const j=await r.json(); ALL=parseEA(j); document.getElementById('status').textContent=`已載入 ${ALL.length} 場 · ${j.method||'curl_cffi'}`; }
-  }catch(e){ document.getElementById('status').textContent='matches.json 讀取失敗，檢查 data/ 是否存在'; }
-  try{
-    const r=await fetch('./data/players.json?ts='+Date.now()); if(r.ok){ const j=await r.json(); PLAYERS=parsePlayers(j); }
-  }catch{}
-  FIL=ALL.slice(); renderKPI(); renderTable(); renderPlayers();
+    const r=await fetch('./data/matches.json?ts='+Date.now()); if(r.ok){ const j=await r.json(); const arr=j.matches||j; ALL=arr.map(d=>{ if(d.clubs) return parseFirebaseDoc(d); return {id:d.matchId||d.id, ts:d.timestamp, sf:d.goalsFor||0, sa:d.goalsAgainst||0, oppName:d.opponentName||'對手', res:d.result||'D', type:d.type||'聯賽', oppId:'', raw:d}; }).filter(x=>x.ts).sort((a,b)=>b.ts-a.ts); statusEl.textContent=`本地已載入 ${ALL.length} 場`; FIL=ALL.slice(); renderKPI(); renderTable(); }
+  }catch(e){ statusEl.textContent='載入失敗'; }
 }
 function renderKPI(){
   const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length;
   const gf=ALL.reduce((s,m)=>s+m.sf,0), ga=ALL.reduce((s,m)=>s+m.sa,0);
-  document.getElementById('kpi').innerHTML=`<div><b>${w}</b><span>勝</span></div><div><b>${d}</b><span>和</span></div><div><b>${l}</b><span>負</span></div><div><b>${gf}-${ga}</b><span>得失 ${gf-ga>=0?'+':''}${gf-ga}</span></div>`;
+  document.getElementById('kpi').innerHTML=`<div><b>${w}</b><span>勝 W</span></div><div><b>${d}</b><span>和 D</span></div><div><b>${l}</b><span>負 L</span></div><div><b>${gf}-${ga} (${gf-ga>=0?'+':''}${gf-ga})</b><span>得失球</span></div>`;
   document.getElementById('cnt').textContent=`${FIL.length}/${ALL.length}場`;
+  document.getElementById('formDots').innerHTML=ALL.slice(0,5).map(m=>`<span style="background:${m.res==='W'?'#16a34a':m.res==='L'?'#dc2626':'#ca8a04'}">${m.res}</span>`).join('');
 }
-function fmt(ts){ if(!ts) return '-'; const d=new Date(ts*1000); return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` }
+function fmt(ts){ const d=new Date(ts*1000); return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 let expanded=null;
 function renderTable(){
   const start=page*PS, slice=FIL.slice(start,start+PS);
   document.getElementById('range').textContent=`${start+1}-${Math.min(start+PS,FIL.length)}/${FIL.length}`;
-  document.getElementById('pageInfo').textContent=`第 ${page+1} / ${Math.max(1,Math.ceil(FIL.length/PS))} 頁`;
+  document.getElementById('pageInfo').textContent=`第 ${page+1}/${Math.max(1,Math.ceil(FIL.length/PS))}頁`;
   const tb=document.querySelector('#mt tbody'); tb.innerHTML='';
   slice.forEach(m=>{
-    const tr=document.createElement('tr'); tr.innerHTML=`<td><div>${fmt(m.ts)}</div><div class="mono">DATE ${m.ts}</div></td><td><b>${m.oppName}</b><div class="mono">ID ${m.oppId||''}</div></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.res}">${m.res}</span></td><td>${m.type}</td><td><button class="btn" data-id="${m.id}">查看</button> <button class="btn" data-c="${m.id}">複製</button></td>`;
+    const tr=document.createElement('tr'); tr.innerHTML=`<td><div>${fmt(m.ts)}</div><div class="mono">DATE ${m.ts}</div></td><td><b>${m.oppName}</b><div class="mono">ID ${m.oppId}</div></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.res}">${m.res}</span></td><td>${m.type}</td><td><button class="btn" data-id="${m.id}">查看</button> <button class="btn" data-c="${m.id}">複製</button></td>`;
     tb.appendChild(tr);
-    if(expanded===m.id){ const er=document.createElement('tr'); er.innerHTML=`<td colspan="6"><div class="mono">matchId ${m.id} · vs ${m.oppName} · ${m.sf}-${m.sa} · clubs ${JSON.stringify(Object.keys(m.raw.clubs||{}))}</div></td>`; tb.appendChild(er); }
+    if(expanded===m.id){ const er=document.createElement('tr'); er.innerHTML=`<td colspan="6"><div class="mono">matchId ${m.id} · vs ${m.oppName} · ${m.sf}-${m.sa} · Firebase doc ${m.id}</div></td>`; tb.appendChild(er); }
   });
   tb.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ expanded=expanded===b.dataset.id?null:b.dataset.id; renderTable(); });
-  tb.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{ const m=ALL.find(x=>x.id===b.dataset.c); const ic=m.res==='W'?'🟢':m.res==='L'?'🔴':'🟡'; const txt=`${ic} ${fmt(m.ts)} vs ${m.oppName} ${m.sf}-${m.sa} | DATE ${m.ts} | ${m.type}`; navigator.clipboard.writeText(txt); b.textContent='已複製'; setTimeout(()=>b.textContent='複製',1000); });
+  tb.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{ const m=ALL.find(x=>x.id===b.dataset.c); const ic=m.res==='W'?'🟢':m.res==='L'?'🔴':'🟡'; const txt=`${ic} ${fmt(m.ts)} vs ${m.oppName} ${m.sf}-${m.sa} | DATE ${m.ts}`; navigator.clipboard.writeText(txt); b.textContent='已複製'; setTimeout(()=>b.textContent='複製',1000); });
 }
-function renderPlayers(){
-  const q=document.getElementById('pSearch').value.toLowerCase(); let list=PLAYERS.filter(p=>!q||p.name.toLowerCase().includes(q));
-  document.getElementById('pcnt').textContent=`${list.length}人`; document.getElementById('plist').innerHTML=list.map(p=>`<div style="display:flex;gap:8px;padding:8px;border-bottom:1px solid #f0f1f5"><div style="width:30px;height:30px;border-radius:50%;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">${p.name.slice(0,2).toUpperCase()}</div><div><b style="font-size:13px">${p.name}</b> <span class="mono">${p.pos}</span><div class="mono">${p.games}場 · ${p.goals}球 · ${p.assists}助</div></div></div>`).join('');
-}
-document.getElementById('oppSearch').addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); FIL=ALL.filter(m=>!q||m.oppName.toLowerCase().includes(q)); page=0; renderKPI(); renderTable(); });
-document.getElementById('typeFilter').addEventListener('change',e=>{ const t=e.target.value; FIL= t==='all'?ALL.slice():ALL.filter(m=> (m.type||'').toLowerCase().includes(t.toLowerCase()) ); page=0; renderKPI(); renderTable(); });
-document.getElementById('pSearch').addEventListener('input',renderPlayers);
+document.getElementById('oppSearch')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); FIL=ALL.filter(m=>!q||m.oppName.toLowerCase().includes(q)); page=0; renderKPI(); renderTable(); });
+document.getElementById('typeFilter')?.addEventListener('change',e=>{ const t=e.target.value; FIL= t==='all'?ALL.slice():ALL.filter(m=>m.res===t); page=0; renderKPI(); renderTable(); });
 document.getElementById('prev').onclick=()=>{ if(page>0){ page--; renderTable(); } };
 document.getElementById('next').onclick=()=>{ if((page+1)*PS<FIL.length){ page++; renderTable(); } };
-document.getElementById('exportCsv').onclick=()=>{ const rows=FIL; const bom='\uFEFF'; const head=['DATE','timestamp','對手','比分','賽果','類型','入球','失球','對手ID','matchId']; const lines=[head.join(',')]; rows.forEach(m=>{ lines.push([`"${fmt(m.ts)}"`,m.ts,`"${m.oppName.replace(/"/g,'""')}"`,`"${m.sf}-${m.sa}"`,m.res,`"${m.type}"`,m.sf,m.sa,m.oppId,m.id].join(',')); }); const blob=new Blob([bom+lines.join('\n')],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`LinKingFC_${rows.length}場_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
-load();
+document.getElementById('exportCsv')?.addEventListener('click',()=>{ const bom='\uFEFF'; const head=['DATE','timestamp','對手','比分','賽果','類型','入球','失球','對手ID','matchId']; const lines=[head.join(',')]; FIL.forEach(m=>{ lines.push([`"${fmt(m.ts)}"`,m.ts,`"${m.oppName.replace(/"/g,'""')}"`,`"${m.sf}-${m.sa}"`,m.res,`"${m.type}"`,m.sf,m.sa,m.oppId,m.id].join(',')); }); const blob=new Blob([bom+lines.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`LinKingFC_${FIL.length}場.csv`; a.click(); });
+loadFromFirebase();
 </script>
+</head>
+<body>
+<div class="header"><div class="inner" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:10px;align-items:center"><div class="badge">LK</div><div><div style="font-weight:800">LinKing FC 41026 · Firebase 直連</div><div class="mono" id="status">初始化 Firebase...</div></div></div><div class="mono">football-signup-64bd9 / matches</div></div></div>
+<div class="main">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:12px">最近戰績</h3><div id="formDots" class="dots"></div></div><div id="kpi" class="kpi"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="oppSearch" class="input" placeholder="搜對手" style="max-width:200px"><select id="typeFilter" class="input" style="max-width:110px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select><button class="btn" id="exportCsv">匯出 CSV</button><span class="mono" id="cnt" style="align-self:center"></span></div></div>
+<div class="card"><h3 style="margin:0 0 10px;font-size:12px">賽程 Firebase <span class="mono" id="range"></span></h3><div style="overflow:auto"><table class="table" id="mt"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>類型</th><th>操作</th></tr></thead><tbody></tbody></table></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="prev">上一頁</button><span class="mono" id="pageInfo" style="align-self:center"></span><button class="btn" id="next">下一頁</button></div></div>
+</div>
+<div class="card"><h3 style="margin:0 0 10px;font-size:12px">Firebase 設定教學</h3><div class="mono" style="line-height:1.7">1. 去 Firebase Console -> Project Settings -> General -> Your apps<br>2. 複製 firebaseConfig (apiKey, authDomain...)<br>3. 貼到呢個檔最頂 const firebaseConfig 度<br>4. Firestore Rules 要 Allow read: allow read: if true;<br>5. 上傳呢個 index.html 到 GitHub Pages，網站就會直接讀你貼嗰個 matches/76224918210018 嗰堆 collection<br><br>如果唔填 config，網站自動 fallback 讀 data/matches.json (而家 0-0 問題已修)</div></div>
+</div>
 </body>
 </html>
