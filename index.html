@@ -1,51 +1,86 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>LinKing FC 41026 - Firebase 直連豐富版</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LinKing FC 41026</title>
 <style>
-:root{--bg:#f4f5fa;--card:#fff;--line:#e8eaf0;--text:#101225;--muted:#7a7f94;--win:#16a34a;--loss:#dc2626;--draw:#ca8a04;--primary:#11142d}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Inter;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
-.header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.inner{max-width:1440px;margin:0 auto;padding:14px 16px}.main{max-width:1440px;margin:0 auto;padding:12px;display:grid;grid-template-columns:1.75fr.95fr;gap:14px}
-@media(max-width:1080px){.main{grid-template-columns:1fr}}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px}
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}@media(max-width:640px){.kpi{grid-template-columns:repeat(2,1fr)}}
-.kpi div{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fcfcff}.kpi b{font-size:20px;display:block;font-weight:900}
-.mono{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)}
-.pill{display:inline-flex;min-width:28px;height:24px;align-items:center;justify-content:center;border-radius:999px;font-size:11px;font-weight:800;border:1px solid var(--line)}
-.pill.W{background:#ecfdf5;color:var(--win);border-color:#a7f3d0}.pill.L{background:#fef2f2;color:var(--loss);border-color:#fecaca}.pill.D{background:#fffbeb;color:var(--draw);border-color:#fde68a}
-.table{width:100%;border-collapse:collapse}.table th{font-size:11px;color:var(--muted);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-weight:700}.table td{padding:10px 8px;border-bottom:1px solid #f1f2f6;font-size:13px}
-.btn{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}.btn:hover{background:var(--primary);color:#fff}
-.input{height:36px;border:1px solid var(--line);border-radius:999px;padding:0 14px;font-size:13px;width:100%;background:#fff}
-.badge{width:40px;height:40px;border-radius:14px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
-.dots{display:flex;gap:6px}.dots span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px}
-.tab{display:flex;gap:6px;margin:10px 0;overflow:auto}.tab button{height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#f6f7fb;font-size:11px;cursor:pointer}.tab button.active{background:var(--primary);color:#fff}
-.player{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid #f1f2f6;align-items:center}.avatar{width:38px;height:38px;border-radius:12px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}@media(max-width:640px){.detail-grid{grid-template-columns:1fr}}
-.detail-box{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fcfcff}.mini-table{width:100%;border-collapse:collapse}.mini-table td,.mini-table th{padding:6px 4px;font-size:11px;border-bottom:1px solid #f1f2f6;text-align:left}
-.trend{display:flex;align-items:end;gap:3px;height:36px;margin-top:6px}.trend span{width:8px;border-radius:4px 4px 0 0;display:block}
+body{margin:0;font-family:system-ui;background:#f4f5fa;color:#111;font-size:14px}
+.h{position:sticky;top:0;background:#fff;border-bottom:1px solid #e8eaf0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.card{background:#fff;border:1px solid #e8eaf0;border-radius:16px;padding:12px;margin:12px}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+.kpi div{border:1px solid #e8eaf0;border-radius:12px;padding:10px;background:#fcfcff}
+.kpi b{font-size:18px;display:block}
+.mono{font-family:monospace;font-size:11px;color:#7a7f94}
+.pill{display:inline-flex;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid #e8eaf0}
+.W{background:#ecfdf5;color:#16a34a}.L{background:#fef2f2;color:#dc2626}.D{background:#fffbeb;color:#ca8a04}
+.table{width:100%;border-collapse:collapse}.table th{font-size:11px;color:#7a7f94;text-align:left;padding:8px;border-bottom:1px solid #e8eaf0}.table td{padding:8px;border-bottom:1px solid #f1f2f6;font-size:13px}
+.btn{height:28px;padding:0 10px;border-radius:999px;border:1px solid #e8eaf0;background:#fff;font-size:12px}
 </style>
 </head>
 <body>
-<div class="header"><div class="inner" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div class="badge">LK</div><div><div style="font-weight:900">LinKing FC 41026 · 豐富版</div><div class="mono" id="status">直連 football-signup-64bd9 / matches...</div></div></div><span class="mono">41026 Firebase 直連</span></div></div>
-<div class="main">
-<div style="display:flex;flex-direction:column;gap:14px">
-<div class="card"><div style="display:flex;justify-content:space-between"><h3 style="margin:0;font-size:13px">戰績總覽</h3><div id="formDots" class="dots"></div></div><div id="kpi" class="kpi"></div><div id="extraStats" class="mono" style="display:flex;gap:10px;flex-wrap:wrap"></div><div id="trend" class="trend"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><input id="oppSearch" class="input" placeholder="搜對手" style="max-width:180px;flex:1"><select id="resFilter" class="input" style="max-width:100px"><option value="all">全部</option><option value="W">勝</option><option value="D">和</option><option value="L">負</option></select><button class="btn" id="exportCsv">CSV</button><span class="mono" id="cnt"></span></div></div>
-<div class="card"><h3 style="margin:0 0 10px;font-size:13px">賽程細節 <span class="mono" id="range"></span></h3><div style="overflow:auto"><table class="table" id="mt"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>類型</th><th>操作</th></tr></thead><tbody></tbody></table></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="prev">上一頁</button><span class="mono" id="pageInfo"></span><button class="btn" id="next">下一頁</button></div></div>
-</div>
-<div style="display:flex;flex-direction:column;gap:14px">
-<div class="card"><div style="display:flex;justify-content:space-between"><h3 style="margin:0;font-size:13px">球員</h3><span class="mono" id="pcnt"></span></div><input id="pSearch" class="input" placeholder="搜球員" style="margin:10px 0"><div class="tab" id="pTabs"><button data-sort="goals" class="active">入球</button><button data-sort="assists">助攻</button><button data-sort="games">場次</button><button data-sort="rating">評分</button></div><div id="podium" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:8px 0"></div><div id="plist" style="max-height:560px;overflow:auto"></div></div>
-<div class="card"><h3 style="margin:0 0 8px;font-size:13px">排行榜</h3><div id="leaders" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div></div>
-</div>
-</div>
-<script>
-const CLUB_ID='41026';let ALL=[],FIL=[],page=0,PS=30,PLAYERS=[],sortKey='goals';
-const FIRESTORE_URL='https://firestore.googleapis.com/v1/projects/football-signup-64bd9/databases/(default)/documents/matches?pageSize=300';
-function decodeVal(v){if(!v)return null;if('stringValue' in v)return v.stringValue;if('integerValue' in v)return parseInt(v.integerValue,10);if('doubleValue' in v)return Number(v.doubleValue);if('mapValue' in v){const o={};for(let k in (v.mapValue.fields||{}))o[k]=decodeVal(v.mapValue.fields[k]);return o}if('arrayValue' in v)return(v.arrayValue.values||[]).map(decodeVal);return null;}
-function parseFirestoreDoc(doc){const plain={};for(let k in (doc.fields||{}))plain[k]=decodeVal(doc.fields[k]);let ts=Number(plain.timestamp||0);if(ts>1e12)ts=Math.floor(ts/1000);let clubs=plain.clubs||{};let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{};let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||'';let other=clubs[otherKey]||{};let sf=parseInt(my.goals||0,10),sa=parseInt(my.goalsAgainst||0,10);let oppName=other.details?.name||'對手';let type=plain._matchTypeName||'聯賽';if(type==='leagueMatch')type='聯賽';let res=sf>sa?'W':sf<sa?'L':'D';let myPlayersRaw=(plain.players||{})[CLUB_ID]||{};let myPlayerList=Object.values(myPlayersRaw).map(p=>({name:p.playername||p.name||'Unknown',pos:p.pos||'',goals:Number(p.goals||0),assists:Number(p.assists||0),rating:Number(p.rating||0),passesMade:Number(p.passesmade||0),passAtt:Number(p.passattempts||0),shots:Number(p.shots||0),tacklesMade:Number(p.tacklesmade||0)}));return{id:String(plain.matchId||doc.name.split('/').pop()),ts,sf,sa,oppName,oppId:otherKey,res,type,myPlayers:myPlayerList,raw:plain};}
-async function loadFirebase(){const status=document.getElementById('status');try{const r=await fetch(FIRESTORE_URL);const j=await r.json();ALL=(j.documents||[]).map(parseFirestoreDoc).filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts);status.textContent=`Firebase 已載入 ${ALL.length}場 · 直連 football-signup-64bd9/matches`;}catch(e){status.textContent='Firebase 失敗轉本地 '+e.message;const r=await fetch('./data/matches.json?ts='+Date.now());if(r.ok){const j=await r.json();let arr=j.matches||j;ALL=arr.map(m=>{let ts=Number(m.timestamp||0);if(ts>1e12)ts=Math.floor(ts/1000);let clubs=m.clubs||{};let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{};let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||'';let other=clubs[otherKey]||{};let sf=parseInt(my.goals||0,10),sa=parseInt(my.goalsAgainst||0,10);let myPlayersRaw=(m.players||{})[CLUB_ID]||{};let myPlayerList=Object.values(myPlayersRaw).map(p=>({name:p.playername||'Unknown',pos:p.pos||'',goals:Number(p.goals||0),assists:Number(p.assists||0),rating:Number(p.rating||0),passesMade:Number(p.passesmade||0),passAtt:Number(p.passattempts||0),shots:Number(p.shots||0),tacklesMade:Number(p.tacklesmade||0)}));return{id:String(m.matchId||ts),ts,sf,sa,oppName:other.details?.name||'對手',oppId:otherKey,res:sf>sa?'W':sf<sa?'L':'D',type:m._matchTypeName||'聯賽',myPlayers:myPlayerList}}).sort((a,b)=>b.ts-a.ts);}}FIL=ALL.slice();renderKPI();renderTable();loadPlayers();}
-async function loadPlayers(){try{const r=await fetch('./data/players.json?ts='+Date.now());if(r.ok){const j=await r.json();PLAYERS=(j.players||j).map(p=>({name:p.name||'Unknown',games:Number(p.gamesPlayed||0),goals:Number(p.goals||0),assists:Number(p.assists||0),rating:Number(p.rating||0),pos:p.position||''})).sort((a,b)=>b.goals-a.goals);}}catch{}if(PLAYERS.length===0){const map={};ALL.forEach(m=>{m.myPlayers.forEach(p=>{if(!map[p.name])map[p.name]={name:p.name,pos:p.pos,games:0,goals:0,assists:0,rating:0};map[p.name].games++;map[p.name].goals+=p.goals;map[p.name].assists+=p.assists;map[p.name].rating+=p.rating;});});PLAYERS=Object.values(map).map(p=>({...p,rating:p.games?p.rating/p.games:0})).sort((a,b)=>b.goals-a.goals);}renderPlayers();renderLeaders();}
-function renderKPI(){const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length;const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0);const winRate=ALL.length?Math.round(w/ALL.length*100):0;document.getElementById('kpi').innerHTML=`<div><b>${w}</b><span>勝 ${winRate}%</span></div><div><b>${d}</b><span>和</span></div><div><b>${l}</b><span>負</span></div><div><b>${gf}-${ga}</b><span>得失</span></div>`;document.getElementById('cnt').textContent=`${FIL.length}/${ALL.length}`;document.getElementById('extraStats').innerHTML=`<span>總 ${ALL.length}</span><span>勝率 ${winRate}%</span><span>最近 ${ALL.slice(0,5).map(m=>m.res).join('')}</span>`;document.getElementById('formDots').innerHTML=ALL.slice(0,5).map(m=>`<span style="background:${m.res==='W'?'#16a34a':m.res==='L'?'#dc2626':'#ca8a04'}">${m.res}</span>`).join('');document.getElementById('trend').innerHTML=ALL.slice(0,20).reverse().map(m=>`<span style="height:${10+m.sf*6}px;background:${m.res==='W'?'#16a34a':m.res==='L'?'#dc2626':'#ca8a04'}" title="${m.oppName} ${m.sf}-${m.sa}"></span>`).join('');}
-function fmt(ts){const d=new Date(ts*1000);return`${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
-let expanded=null;
-function renderTable(){const start=page*PS,slice=FIL.slice(start,start+PS);document.getElementById('range').textContent=`${start+1}-${Math.min(start+PS,FIL.length)}/${FIL.length}`;document.getElementById('pageInfo').textContent=`第 ${page+1}/${Math.max(1,Math.ceil(FIL.length/PS))}頁`;const tb=document.querySelector('#mt tbody');tb.innerHTML='';slice.forEach(m=>{const tr=document.createElement('tr');tr.innerHTML=`<td><div>${fmt(m.ts)}</div><div class="mono">DATE ${m.ts}</div></td><td><b>${m.oppName}</b><div class="mono">ID ${m.oppId}</div></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.res}">${m.res}</span></td><td>${m.type}</td><td><button class="btn" data-id="${m.id}" style="height:26px">查看</button></td>`;tb.appendChild(tr);if(expanded===m.id){const er=document.createElement('tr');er.innerHTML=`<td colspan="6" style="background:#fbfcff"><div class="detail-grid"><div class="detail-box"><h4>本場 ${m.myPlayers.length}人</h4><table class="mini-table"><tr><th>球員</th><th>位置</th><th>評分</th><th>入球</th><th>助攻</th><th>傳球</th><th>射門</th></tr>${m.myPlayers.map(p=>`<tr><td><b>${p.name}</b></td><td>${p.pos}</td><td>${p.rating? p.rating.toFixed(1):'-'}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.passesMade}/${p.passAtt||0}</td><td>${p.shots}</td></tr>`).join('')}</table></div><div class="detail-box"><div class="mono">matchId ${m.id} · Firebase football-signup-64bd9/matches/${m.id}</div></div></div></td>`;tb.appendChild(er);}});tb.querySelectorAll('button[data-id]').forEach(b
+<div class="h"><div><b>LinKing FC 41026</b><div class="mono" id="st">只讀 football-signup-64bd9/matches</div></div><span class="mono">Firebase</span></div>
+<div class="card"><div id="kpi" class="kpi"></div><div id="extra" class="mono"></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between"><b>賽程</b><span class="mono" id="cnt"></span></div><table class="table" id="mt"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>操作</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><b>球員</b><div id="plist" class="mono"></div></div>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+const firebaseConfig = {
+  apiKey: "AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70",
+  authDomain: "football-signup-64bd9.firebaseapp.com",
+  projectId: "football-signup-64bd9",
+  storageBucket: "football-signup-64bd9.firebasestorage.app",
+  messagingSenderId: "133898606488",
+  appId: "1:133898606488:web:fc2f0ce732a26de9157ded"
+};
+const CLUB_ID='41026';
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+let ALL=[];
+function parse(d){
+ let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000);
+ let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{};
+ let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{};
+ let sf=parseInt(my.goals||0,10), sa=parseInt(my.goalsAgainst||0,10);
+ let opp=other.details?.name||'對手';
+ let res=sf>sa?'W':sf<sa?'L':'D';
+ let players=(d.players||{})[CLUB_ID]||{};
+ let list=Object.values(players).map(p=>`${p.playername||p.name}:${p.goals||0}球`).join(' | ');
+ return {ts,sf,sa,opp,res,list,raw:d};
+}
+async function load(){
+ const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(200));
+ const snap=await getDocs(q);
+ let arr=[]; snap.forEach(doc=>{ arr.push(parse(doc.data())); });
+ ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts);
+ document.getElementById('st').textContent=`Firebase 已載入 ${ALL.length}場 · football-signup-64bd9/matches`;
+ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length;
+ const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0);
+ document.getElementById('kpi').innerHTML=`<div><b>${w}</b><span>勝</span></div><div><b>${d}</b><span>和</span></div><div><b>${l}</b><span>負</span></div><div><b>${gf}-${ga}</b><span>得失</span></div>`;
+ document.getElementById('cnt').textContent=`${ALL.length}場`;
+ document.getElementById('extra').textContent=`總 ${ALL.length}場 · 勝率 ${ALL.length?Math.round(w/ALL.length*100):0}%`;
+ const tb=document.querySelector('#mt tbody'); tb.innerHTML='';
+ ALL.forEach(m=>{
+  const tr=document.createElement('tr');
+  const date=new Date(m.ts*1000); const fmt=`${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+  tr.innerHTML=`<td>${fmt}<div class="mono">DATE ${m.ts}</div></td><td><b>${m.opp}</b></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.res}">${m.res}</span></td><td><button class="btn" onclick="alert('${m.list.replace(/'/g,"")}')">球員</button></td>`;
+  tb.appendChild(tr);
+ });
+ const map={};
+ ALL.forEach(m=>{
+  const players=(m.raw.players||{})[CLUB_ID]||{};
+  Object.values(players).forEach(p=>{
+   const n=p.playername||p.name||'Unknown';
+   if(!map[n]) map[n]={name:n,g:0,a:0,ga:0};
+   map[n].g+=Number(p.goals||0);
+   map[n].a+=Number(p.assists||0);
+   map[n].ga++;
+  });
+ });
+ const plist=Object.values(map).sort((a,b)=>b.g-a.g).slice(0,20);
+ document.getElementById('plist').innerHTML=plist.map(p=>`${p.name} ${p.g}球 ${p.a}助 ${p.ga}場`).join('<br>');
+}
+load();
+</script>
+</body>
+</html>
