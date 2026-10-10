@@ -2,9 +2,9 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LinKing FC 41026 - 仿英超 xG+xA</title>
+<title>LinKing FC 41026</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:#0a0a0a;color:#e5e5e5;line-height:1.6}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto;background:#0a0a0a;color:#e5e5e5;line-height:1.6}
 .h{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid #222;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
 .mono{font-family:ui-monospace,monospace;font-size:11px;color:#888}
 .card{margin:12px;background:#161616;border:1px solid #262626;border-radius:20px;padding:14px}
@@ -12,8 +12,7 @@
 .pill{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #333}
 .W{background:#0f1f12;color:#4ade80}.L{background:#1f1010;color:#f87171}.D{background:#1f1c0f;color:#fbbf24}
 .table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-.table th{color:#888;font-size:11px;text-align:left;padding:10px 8px;border-bottom:1px solid #262626;position:sticky;top:0;background:#161616;cursor:pointer}
-.table th:hover{color:#fff}
+.table th{color:#888;font-size:11px;text-align:left;padding:10px 8px;border-bottom:1px solid #262626;position:sticky;top:0;background:#161616}
 .table td{padding:10px 8px;border-bottom:1px solid #1e1e1e;font-size:12px;color:#ccc}
 .tableWrap{overflow:auto;border:1px solid #262626;border-radius:12px;background:#161616;margin-top:10px}
 .hidden{display:none}
@@ -32,29 +31,25 @@
 .matchMeta{font-size:11px;color:#888}
 .teamHead{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px 0}
 .teamHead b{font-size:14px;color:#fff}
-.premGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
-.premGrid div{background:#1a1a1a;border:1px solid #262626;border-radius:12px;padding:10px;text-align:center}
-.premGrid b{font-size:14px;color:#fff;display:block}
-.premGrid span{font-size:10px;color:#888}
-.xgBar{height:6px;background:#262626;border-radius:999px;overflow:hidden;margin:6px 0;display:flex}
-.xgBar i{display:block;height:100%}
-.xgBar .my{background:#fff}.xgBar .opp{background:#666}
+.agg10{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.agg10 div{background:#1e1e1e;border:1px solid #262626;border-radius:12px;padding:10px;text-align:center}
+.agg10 b{display:block;color:#fff;font-size:14px}
+.agg10 span{font-size:11px;color:#888}
+@media(max-width:900px){.agg10{grid-template-columns:repeat(2,1fr)}}
 .compareGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:900px){.compareGrid{grid-template-columns:1fr}.premGrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.compareGrid{grid-template-columns:1fr}}
 .teamTag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;margin-left:6px}
 .my{background:#fff;color:#000}.opp{background:#2a2a2a;color:#aaa}
-.badge{display:inline-block;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:800;margin-left:4px}
-.badge-xg{background:#1a2a1a;color:#4ade80}.badge-xa{background:#1a1a2a;color:#60a5fa}.badge-over{background:#2a1a1a;color:#f87171}
 </style>
 </head>
 <body>
-<div class="h"><b style="color:#fff">LinKing FC 41026 · 仿英超</b><span class="mono">xG xA xGI 預期數據</span></div>
+<div class="h"><b style="color:#fff">LinKing FC 41026</b><span class="mono" id="st"></span></div>
 <div class="card"><div class="kpi" id="kpi"></div></div>
 <div id="view-matches"><div class="card"><div style="display:flex;gap:8px"><input id="qOpp" class="input" placeholder="搜對手"><select id="qRes" class="input" style="max-width:90px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select></div></div><div id="mlist"></div><div style="height:130px"></div></div>
 <div id="view-players" class="hidden">
-<div class="card"><div style="display:flex;gap:8px"><input id="qP" class="input" placeholder="搜球員"><select id="qSort" class="input" style="max-width:120px"><option value="games">場次</option><option value="xg">xG</option><option value="xa">xA</option><option value="xgi">xGI</option><option value="goals">入球</option><option value="rating">評分</option><option value="red">紅牌</option></select></div><div id="plist" style="margin-top:12px"></div></div><div style="height:130px"></div></div>
+<div class="card"><div style="display:flex;gap:8px"><input id="qP" class="input" placeholder="搜球員"><select id="qSort" class="input" style="max-width:110px"><option value="games">場次</option><option value="goals">入球</option><option value="rating">評分</option><option value="red">紅牌</option><option value="fouls">犯規</option></select></div><div id="plist" style="margin-top:12px"></div></div><div style="height:130px"></div></div>
 <div id="view-board" class="hidden"><div class="card"><div id="board"></div></div><div style="height:130px"></div></div>
-<div class="bottom"><button id="b-m" class="active" onclick="nav('matches')">⚽ 近10場</button><button id="b-p" onclick="nav('players')">👥 生涯</button><button id="b-d" onclick="nav('board')">📊 英超榜</button></div>
+<div class="bottom"><button id="b-m" class="active" onclick="nav('matches')">⚽ 近10場</button><button id="b-p" onclick="nav('players')">👥 生涯</button><button id="b-d" onclick="nav('board')">📊 榜單</button></div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -64,128 +59,82 @@ let ALL=[],FIL=[],CAREER=[]; let sortKey='games';
 function decodeAgg(s){const m={}; if(!s) return m; s.split(',').forEach(p=>{const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]),v=Number(kv[1]); if(!isNaN(k)) m[k]=v;}); return m;}
 function posCN(pos){ if(!pos) return '未知'; pos=String(pos).toLowerCase(); if(pos.includes('goal')) return '門將'; if(pos.includes('def')) return '後衛'; if(pos.includes('mid')) return '中場'; if(pos.includes('for')||pos.includes('striker')||pos.includes('wing')||pos.includes('forward')) return '前鋒'; return pos; }
 function posClass(pos){ const cn=posCN(pos); if(cn==='中場') return 'pos-mid'; if(cn==='後衛') return 'pos-def'; if(cn==='前鋒') return 'pos-fwd'; if(cn==='門將') return 'pos-gk'; return 'pos-mid'; }
-function parsePlayer(p){
-  const a=decodeAgg(p.match_event_aggregate_0||p.aggregate||'');
+function parsePlayer(p){ 
+  const a=decodeAgg(p.match_event_aggregate_0||p.aggregate||''); 
   const succ = a[215]||0;
-  const pm = succ || Number(p.passesmade||p.passesMade||0) || 0;
-  const pa = Number(p.passattempts||p.passAttempts||0) || (succ + (a[153]||0)) || pm;
-  const passRate = pa? Math.round(pm/pa*100):0;
-  const shots = Number(p.shots||a[100]||0);
-  const shotOn = Number(a[101]||p.shotsOn||0);
-  const shotOff = Math.max(0, shots - shotOn);
-  const insideBox = Number(a[106]||0);
-  const outsideBox = Number(a[107]||Math.max(0, shots - insideBox));
-  // xG 模型 - 仿英超 StatsBomb 簡化版
-  let xg=0;
-  if(insideBox>0){ xg = shotOn*0.35 + (insideBox - shotOn)*0.12 + outsideBox*0.04; }
-  else { xg = shotOn*0.32 + shotOff*0.06; }
-  xg = Math.max(0, xg);
-  // xA 模型 - 關鍵傳球
-  const keyPass = Number(a[216]||p.keyPasses||0);
-  const xa = keyPass*0.12 + Number(p.assists||0)*0.15; // 每關鍵傳球0.12 xA，助攻再加
-  const xgi = xg + xa;
-  const shotOnRate = shots? Math.round(shotOn/shots*100):0;
-  const goals = Number(p.goals||0);
-  const xgDiff = goals - xg;
+  const passesMade = Number(p.passesmade||p.passesMade||0);
+  const passAtt = Number(p.passattempts||p.passAttempts||0);
+  const pm = succ || passesMade || 0;
+  const pa = passAtt || (succ + (a[153]||0)) || pm;
   return {
     name:p.playername||p.name||'Unknown',
     pos:p.pos||p.position||'',
     posCN:posCN(p.pos||p.position||''),
     rating:Number(p.rating||0),
-    goals:goals,
+    goals:Number(p.goals||0),
     assists:Number(p.assists||0),
-    shots:shots,
-    shotOn:shotOn,
-    shotOnRate:shotOnRate,
-    xg:Number(xg.toFixed(2)),
-    xa:Number(xa.toFixed(2)),
-    xgi:Number(xgi.toFixed(2)),
-    xgDiff:Number(xgDiff.toFixed(2)),
-    pm:pm, pa:pa, passRate:passRate,
-    keyPass:keyPass,
-    interceptions:Number(a[24]||p.interceptions||0),
-    clearances:Number(a[30]||0),
+    shotOn:a[101]||Number(p.shotsOn||0)||0,
+    shots:Number(p.shots||a[100]||0),
+    pm:pm,
+    pa:pa,
+    keyPass:a[216]||Number(p.keyPasses||0)||0,
+    interceptions:a[24]||Number(p.interceptions||0)||0,
+    clearances:a[30]||0,
     tk:Number(p.tacklesmade||p.tacklesMade||0),
+    tka:Number(p.tackleattempts||p.tackleAttempts||0),
     saves:Number(p.saves||0)
-  };
+  }; 
 }
 function parseDoc(d){ let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000); let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{}; let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{}; let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0); let opp=other.details?.name||'對手'; let res=sf>sa?'W':sf<sa?'L':'D'; let players=d.players||{}; let myRaw=players[CLUB_ID]||{}; let oppRaw=players[otherKey]||{}; if(Array.isArray(myRaw)) myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p])); if(Array.isArray(oppRaw)) oppRaw=Object.fromEntries(oppRaw.map((p,i)=>[p.playerId||i,p])); let myList=Object.values(myRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); let oppList=Object.values(oppRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); return {ts,sf,sa,opp,res,myList,oppList}; }
 function fmt(ts){const d=new Date(ts*1000); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 async function load(){
   const st=document.getElementById('st');
-  st.textContent='載入中...';
+  st.textContent='載入中... Firebase';
   try{
-    let snap=null; let loadedFrom='firebase';
+    let snap=null;
     try{ 
       const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); 
       snap=await getDocs(q); 
-      if(snap.empty) throw new Error('clubs/41026/matches empty');
-      st.textContent=`Firebase clubs/41026/matches: ${snap.size}場`;
+      if(snap.empty) throw new Error('clubs/41026/matches empty'); 
+      st.textContent=`Firebase: ${snap.size}場`;
     }catch(e){ 
-      console.warn('firebase clubs fail', e);
-      try{
-        const q2=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); 
-        snap=await getDocs(q2);
-        if(snap.empty) throw new Error('matches empty');
-        st.textContent=`Firebase matches: ${snap.size}場`;
-      }catch(e2){
-        console.warn('firebase top fail', e2);
-        loadedFrom='local';
-        // fallback to local data/matches.json in repo
-        const r=await fetch('./data/matches.json?v='+Date.now());
-        if(!r.ok) throw new Error('local fetch '+r.status);
-        const j=await r.json();
-        let arr=j.matches||j||[];
-        arr=arr.slice(0,20).map(m=>parseDoc(m));
-        ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
-        st.textContent=`本地 data/matches.json: ${ALL.length}場`;
-        renderKPI(); renderMatches();
-        // still try career
-        try{
-          const rc=await fetch('./data/players_career.json'); 
-          if(rc.ok){ const jc=await rc.json(); CAREER=(jc.players||[]).map(p=>({name:p.name||'Unknown',gamesPlayed:parseInt(p.gamesPlayed||0),goals:parseInt(p.goals||0),assists:parseInt(p.assists||0),ratingAve:parseFloat(p.ratingAve||0),favoritePosition:p.favoritePosition||'',redCards:parseInt(p.redCards||0),yellowCards:parseInt(p.yellowCards||0),fouls:parseInt(p.fouls||0),manOfTheMatch:parseInt(p.manOfTheMatch||0)})); renderPlayers(); }
-        }catch(e){}
-        return;
-      }
+      const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); 
+      snap=await getDocs(q); 
+      if(snap.empty) throw new Error('matches empty');
+      st.textContent=`Firebase備用: ${snap.size}場`; 
     }
-    let arr=[]; snap.forEach(doc=>{ try{ arr.push(parseDoc(doc.data())); }catch(e){ console.warn('parse fail', e); } }); 
-    ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
-    if(ALL.length===0){ st.textContent='Firebase 有回應但解析 0 場，試本地'; throw new Error('parse 0'); }
-    renderKPI(); renderMatches();
+    let arr=[]; 
+    snap.forEach(doc=>{ try{ arr.push(parseDoc(doc.data())); }catch(e){ console.warn(e); } }); 
+    ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); 
+    FIL=ALL.slice();
+    if(ALL.length===0) throw new Error('parse 0場');
+    renderKPI(); 
+    renderMatches();
     try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){ console.warn(e); }
-    if(!CAREER.length){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){} }
+    if(!CAREER.length){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){ console.warn(e); } }
   }catch(err){ 
     console.error(err); 
-    document.getElementById('st').textContent='載入失敗: '+err.message+'，請開 F12 睇 console';
-    document.getElementById('mlist').innerHTML=`<div class="card" style="color:#f87171">載入失敗: ${err.message}<br>請檢查 Firestore 規則是否允許公開讀取，或改用本地 data/matches.json</div>`;
+    document.getElementById('st').textContent='Firebase 載入失敗: '+err.message;
+    document.getElementById('mlist').innerHTML=`<div class="card" style="color:#f87171">Firebase 載入失敗: ${err.message}<br>請檢查 Firestore 規則</div>`;
   }
 }
-function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+(m.sf||0),0),ga=ALL.reduce((s,m)=>s+(m.sa||0),0); const xg=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xg||0),0),0), xga=ALL.reduce((s,m)=>s+(m.oppList||[]).reduce((a,p)=>a+(p.xg||0),0),0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失<br><span class="mono">xG ${xg.toFixed(1)}-${xga.toFixed(1)}</span></div>`; }
+function renderKPI(){{ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失</div>`; }
 function renderMatches(){
   const wrap=document.getElementById('mlist'); wrap.innerHTML='';
   FIL.forEach((m,idx)=>{
     const div=document.createElement('div'); div.className='card'; const id='d'+idx;
     const myGoals=m.myList.reduce((s,p)=>s+p.goals,0), oppGoals=m.oppList.reduce((s,p)=>s+p.goals,0);
-    const myShots=m.myList.reduce((s,p)=>s+p.shots,0), oppShots=m.oppList.reduce((s,p)=>s+p.shots,0);
-    const myShotOn=m.myList.reduce((s,p)=>s+p.shotOn,0), oppShotOn=m.oppList.reduce((s,p)=>s+p.shotOn,0);
-    const myXG=m.myList.reduce((s,p)=>s+p.xg,0), oppXG=m.oppList.reduce((s,p)=>s+p.xg,0);
-    const myXA=m.myList.reduce((s,p)=>s+p.xa,0), oppXA=m.oppList.reduce((s,p)=>s+p.xa,0);
-    const myXGI=myXG+myXA, oppXGI=oppXG+oppXA;
+    const myAssists=m.myList.reduce((s,p)=>s+p.assists,0), oppAssists=m.oppList.reduce((s,p)=>s+p.assists,0);
+    const myShot=m.myList.reduce((s,p)=>s+p.shotOn,0), oppShot=m.oppList.reduce((s,p)=>s+p.shotOn,0);
     const myPass=m.myList.reduce((s,p)=>s+p.pm,0), oppPass=m.oppList.reduce((s,p)=>s+p.pm,0);
     const myKey=m.myList.reduce((s,p)=>s+p.keyPass,0), oppKey=m.oppList.reduce((s,p)=>s+p.keyPass,0);
-    const xgTotal=myXG+oppXG||1; const myPct=Math.round(myXG/xgTotal*100);
-    div.innerHTML=`<div class="matchRow" onclick="document.getElementById('${id}').classList.toggle('hidden')"><div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · xG ${myXG.toFixed(2)}-${oppXG.toFixed(2)} · ${m.myList.length}人 vs ${m.oppList.length}人</div></div><div class="score">${m.sf}-${m.sa}<div class="mono" style="font-size:10px">xG ${myXG.toFixed(1)}</div></div></div><div id="${id}" class="hidden">
-      <div class="premGrid">
-        <div><b>${myGoals}-${oppGoals}</b><span>入球</span><div class="xgBar"><i class="my" style="width:${myGoals/(myGoals+oppGoals||1)*100}%"></i><i class="opp" style="width:${oppGoals/(myGoals+oppGoals||1)*100}%"></i></div></div>
-        <div><b>${myXG.toFixed(2)}-${oppXG.toFixed(2)}</b><span>xG 預期入球</span><div class="xgBar"><i class="my" style="width:${myPct}%"></i><i class="opp" style="width:${100-myPct}%"></i></div></div>
-        <div><b>${myXA.toFixed(2)}-${oppXA.toFixed(2)}</b><span>xA 預期助攻</span></div>
-        <div><b>${myXGI.toFixed(2)}-${oppXGI.toFixed(2)}</b><span>xGI 預期參與</span></div>
-        <div><b>${myShots}-${oppShots}</b><span>射門</span></div>
-        <div><b>${myShotOn}-${oppShotOn}</b><span>中框</span></div>
-        <div><b>${myPass}-${oppPass}</b><span>成功傳球</span></div>
-        <div><b>${myKey}-${oppKey}</b><span>關鍵傳球</span></div>
-      </div>
-      <div class="compareGrid"><div><div class="teamHead"><b><span class="teamTag my">我隊</span> ${m.myList.length}人</b><span class="mono">xG xA xGI</span></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>入球</th><th>射門</th><th>中框</th><th>xG</th><th>xA</th><th>xGI</th><th>差值</th><th>成功傳球</th><th>關鍵</th><th>評分</th></tr>${m.myList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b><br><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.shots}</td><td>${p.shotOn}</td><td><span class="badge badge-xg">${p.xg.toFixed(2)}</span></td><td><span class="badge badge-xa">${p.xa.toFixed(2)}</span></td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td style="color:${p.xgDiff>0?'#4ade80':'#f87171'}">${p.xgDiff>0?'+':''}${p.xgDiff.toFixed(2)}</td><td>${p.pm}/${p.pa}<br><span class="mono">${p.passRate}%</span></td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div><div><div class="teamHead"><b><span class="teamTag opp">對手</span> ${m.oppList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>入球</th><th>射門</th><th>中框</th><th>xG</th><th>xA</th><th>xGI</th><th>差值</th><th>成功傳球</th><th>關鍵</th><th>評分</th></tr>${m.oppList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b><br><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.shots}</td><td>${p.shotOn}</td><td><span class="badge badge-xg">${p.xg.toFixed(2)}</span></td><td><span class="badge badge-xa">${p.xa.toFixed(2)}</span></td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td style="color:${p.xgDiff>0?'#4ade80':'#f87171'}">${p.xgDiff>0?'+':''}${p.xgDiff.toFixed(2)}</td><td>${p.pm}/${p.pa}<br><span class="mono">${p.passRate}%</span></td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div></div></div>`;
+    const myInt=m.myList.reduce((s,p)=>s+p.interceptions,0), oppInt=m.oppList.reduce((s,p)=>s+p.interceptions,0);
+    const myClear=m.myList.reduce((s,p)=>s+p.clearances,0), oppClear=m.oppList.reduce((s,p)=>s+p.clearances,0);
+    const myTk=m.myList.reduce((s,p)=>s+p.tk,0), oppTk=m.oppList.reduce((s,p)=>s+p.tk,0);
+    const mySave=m.myList.reduce((s,p)=>s+p.saves,0), oppSave=m.oppList.reduce((s,p)=>s+p.saves,0);
+    const myRat=m.myList.length? (m.myList.reduce((s,p)=>s+p.rating,0)/m.myList.length).toFixed(1):'0.0';
+    const oppRat=m.oppList.length? (m.oppList.reduce((s,p)=>s+p.rating,0)/m.oppList.length).toFixed(1):'0.0';
+    div.innerHTML=`<div class="matchRow" onclick="document.getElementById('${id}').classList.toggle('hidden')"><div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · ${m.myList.length}人 vs ${m.oppList.length}人</div></div><div class="score">${m.sf}-${m.sa}</div></div><div id="${id}" class="hidden"><div class="agg10"><div><b>${myGoals}-${oppGoals}</b><span>入球</span></div><div><b>${myAssists}-${oppAssists}</b><span>助攻</span></div><div><b>${myShot}-${oppShot}</b><span>射框</span></div><div><b>${myPass}-${oppPass}</b><span>成功傳球</span></div><div><b>${myKey}-${oppKey}</b><span>關鍵傳球</span></div><div><b>${myInt}-${oppInt}</b><span>攔截</span></div><div><b>${myClear}-${oppClear}</b><span>解圍</span></div><div><b>${myTk}-${oppTk}</b><span>剷球</span></div><div><b>${mySave}-${oppSave}</b><span>撲救</span></div><div><b>${myRat}-${oppRat}</b><span>評分</span></div></div><div class="compareGrid"><div><div class="teamHead"><b><span class="teamTag my">我隊</span> ${m.myList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>成功傳球</th><th>關鍵傳球</th><th>攔截</th><th>解圍</th><th>剷球</th><th>撲救</th><th>評分</th></tr>${m.myList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.interceptions}</td><td>${p.clearances}</td><td>${p.tk}</td><td>${p.saves}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div><div><div class="teamHead"><b><span class="teamTag opp">對手</span> ${m.oppList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>成功傳球</th><th>關鍵傳球</th><th>攔截</th><th>解圍</th><th>剷球</th><th>撲救</th><th>評分</th></tr>${m.oppList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.interceptions}</td><td>${p.clearances}</td><td>${p.tk}</td><td>${p.saves}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div></div></div>`;
     wrap.appendChild(div);
   });
 }
@@ -193,14 +142,11 @@ function renderPlayers(){
   const q=document.getElementById('qP')?.value.toLowerCase()||''; let list=CAREER.filter(p=>!q||p.name.toLowerCase().includes(q));
   if(sortKey==='games') list=list.sort((a,b)=>b.gamesPlayed-a.gamesPlayed);
   if(sortKey==='goals') list=list.sort((a,b)=>b.goals-a.goals);
-  if(sortKey==='xg') list=list.sort((a,b)=>(b.xg||0)-(a.xg||0));
-  if(sortKey==='xa') list=list.sort((a,b)=>(b.xa||0)-(a.xa||0));
-  if(sortKey==='xgi') list=list.sort((a,b)=>(b.xgi||0)-(a.xgi||0));
   if(sortKey==='rating') list=list.sort((a,b)=>b.ratingAve-a.ratingAve);
   if(sortKey==='red') list=list.sort((a,b)=>b.redCards-a.redCards);
-  document.getElementById('plist').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>場次</th><th>入球</th><th>助攻</th><th>評分</th><th>紅牌</th><th>黃牌</th><th>犯規</th><th>MOTM</th></tr>${list.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.favoritePosition)}">${posCN(p.favoritePosition)}</span></td><td>${p.gamesPlayed}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.ratingAve.toFixed(2)}</td><td>${p.redCards}</td><td>${p.yellowCards||0}</td><td>${p.fouls||0}</td><td>${p.manOfTheMatch}</td></tr>`).join('')}</table></div><div class="mono" style="margin-top:8px">生涯頁暫用官方累計，近10場先有 xG xA xGI (按近10場射門/關鍵傳球計)</div>`;
-  const topXG=[...ALL.flatMap(m=>m.myList)].reduce((acc,p)=>{ const f=acc.find(x=>x.name===p.name); if(f){ f.xg+=p.xg; f.xa+=p.xa; f.goals+=p.goals; f.shots+=p.shots; f.keyPass+=p.keyPass; } else acc.push({...p}); return acc; },[]).sort((a,b)=>b.xg-a.xg).slice(0,10);
-  document.getElementById('board').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>#</th><th>球員</th><th>xG</th><th>xA</th><th>xGI</th><th>入球</th><th>射門</th><th>關鍵</th></tr>${topXG.map((p,i)=>`<tr><td>${i+1}</td><td><b style="color:#fff">${p.name}</b><br><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td><span class="badge badge-xg">${p.xg.toFixed(2)}</span></td><td><span class="badge badge-xa">${p.xa.toFixed(2)}</span></td><td><b>${p.xgi.toFixed(2)}</b></td><td>${p.goals}</td><td>${p.shots}</td><td>${p.keyPass}</td></tr>`).join('')}</table></div>`;
+  if(sortKey==='fouls') list=list.sort((a,b)=>(b.fouls||0)-(a.fouls||0));
+  document.getElementById('plist').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>場次</th><th>入球</th><th>助攻</th><th>評分</th><th>紅牌</th><th>黃牌</th><th>犯規</th><th>MOTM</th></tr>${list.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.favoritePosition)}">${posCN(p.favoritePosition)}</span></td><td>${p.gamesPlayed}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.ratingAve.toFixed(2)}</td><td>${p.redCards}</td><td>${p.yellowCards||0}</td><td>${p.fouls||0}</td><td>${p.manOfTheMatch}</td></tr>`).join('')}</table></div>`;
+  document.getElementById('board').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>#</th><th>球員</th><th>入球</th><th>場次</th><th>紅牌</th><th>犯規</th></tr>${list.slice(0,20).map((p,i)=>`<tr><td>${i+1}</td><td><b style="color:#fff">${p.name}</b></td><td>${p.goals}</td><td>${p.gamesPlayed}</td><td>${p.redCards}</td><td>${p.fouls||0}</td></tr>`).join('')}</table></div>`;
 }
 window.nav=(k)=>{ document.getElementById('view-matches').classList.toggle('hidden',k!=='matches'); document.getElementById('view-players').classList.toggle('hidden',k!=='players'); document.getElementById('view-board').classList.toggle('hidden',k!=='board'); document.getElementById('b-m').classList.toggle('active',k==='matches'); document.getElementById('b-p').classList.toggle('active',k==='players'); document.getElementById('b-d').classList.toggle('active',k==='board'); };
 document.getElementById('qOpp')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); FIL=ALL.filter(m=>!q||m.opp.toLowerCase().includes(q)); renderMatches(); });
