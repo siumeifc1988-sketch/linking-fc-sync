@@ -112,16 +112,55 @@ function parsePlayer(p){
 function parseDoc(d){ let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000); let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{}; let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{}; let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0); let opp=other.details?.name||'對手'; let res=sf>sa?'W':sf<sa?'L':'D'; let players=d.players||{}; let myRaw=players[CLUB_ID]||{}; let oppRaw=players[otherKey]||{}; if(Array.isArray(myRaw)) myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p])); if(Array.isArray(oppRaw)) oppRaw=Object.fromEntries(oppRaw.map((p,i)=>[p.playerId||i,p])); let myList=Object.values(myRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); let oppList=Object.values(oppRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); return {ts,sf,sa,opp,res,myList,oppList}; }
 function fmt(ts){const d=new Date(ts*1000); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
 async function load(){
+  const st=document.getElementById('st');
+  st.textContent='載入中...';
   try{
-    let snap=null;
-    try{ const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); if(snap.empty) throw 0; }catch(e){ const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); }
-    let arr=[]; snap.forEach(doc=>arr.push(parseDoc(doc.data()))); ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
+    let snap=null; let loadedFrom='firebase';
+    try{ 
+      const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); 
+      snap=await getDocs(q); 
+      if(snap.empty) throw new Error('clubs/41026/matches empty');
+      st.textContent=`Firebase clubs/41026/matches: ${snap.size}場`;
+    }catch(e){ 
+      console.warn('firebase clubs fail', e);
+      try{
+        const q2=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); 
+        snap=await getDocs(q2);
+        if(snap.empty) throw new Error('matches empty');
+        st.textContent=`Firebase matches: ${snap.size}場`;
+      }catch(e2){
+        console.warn('firebase top fail', e2);
+        loadedFrom='local';
+        // fallback to local data/matches.json in repo
+        const r=await fetch('./data/matches.json?v='+Date.now());
+        if(!r.ok) throw new Error('local fetch '+r.status);
+        const j=await r.json();
+        let arr=j.matches||j||[];
+        arr=arr.slice(0,20).map(m=>parseDoc(m));
+        ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
+        st.textContent=`本地 data/matches.json: ${ALL.length}場`;
+        renderKPI(); renderMatches();
+        // still try career
+        try{
+          const rc=await fetch('./data/players_career.json'); 
+          if(rc.ok){ const jc=await rc.json(); CAREER=(jc.players||[]).map(p=>({name:p.name||'Unknown',gamesPlayed:parseInt(p.gamesPlayed||0),goals:parseInt(p.goals||0),assists:parseInt(p.assists||0),ratingAve:parseFloat(p.ratingAve||0),favoritePosition:p.favoritePosition||'',redCards:parseInt(p.redCards||0),yellowCards:parseInt(p.yellowCards||0),fouls:parseInt(p.fouls||0),manOfTheMatch:parseInt(p.manOfTheMatch||0)})); renderPlayers(); }
+        }catch(e){}
+        return;
+      }
+    }
+    let arr=[]; snap.forEach(doc=>{ try{ arr.push(parseDoc(doc.data())); }catch(e){ console.warn('parse fail', e); } }); 
+    ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
+    if(ALL.length===0){ st.textContent='Firebase 有回應但解析 0 場，試本地'; throw new Error('parse 0'); }
     renderKPI(); renderMatches();
-    try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){}
+    try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){ console.warn(e); }
     if(!CAREER.length){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){} }
-  }catch(err){ console.error(err); }
+  }catch(err){ 
+    console.error(err); 
+    document.getElementById('st').textContent='載入失敗: '+err.message+'，請開 F12 睇 console';
+    document.getElementById('mlist').innerHTML=`<div class="card" style="color:#f87171">載入失敗: ${err.message}<br>請檢查 Firestore 規則是否允許公開讀取，或改用本地 data/matches.json</div>`;
+  }
 }
-function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.xg,0),0), xga=ALL.reduce((s,m)=>s+m.oppList.reduce((a,p)=>a+p.xg,0),0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失<br><span class="mono">xG ${xg.toFixed(1)}-${xga.toFixed(1)}</span></div>`; }
+function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+(m.sf||0),0),ga=ALL.reduce((s,m)=>s+(m.sa||0),0); const xg=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xg||0),0),0), xga=ALL.reduce((s,m)=>s+(m.oppList||[]).reduce((a,p)=>a+(p.xg||0),0),0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失<br><span class="mono">xG ${xg.toFixed(1)}-${xga.toFixed(1)}</span></div>`; }
 function renderMatches(){
   const wrap=document.getElementById('mlist'); wrap.innerHTML='';
   FIL.forEach((m,idx)=>{
