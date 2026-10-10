@@ -1,183 +1,190 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LinKing FC 41026</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>LinKing FC 41026 - v3 Responsive</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto;background:#0a0a0a;color:#e5e5e5;line-height:1.6}
-.h{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:1px solid #222;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto;background:#0a0a0a;color:#e5e5e5;line-height:1.5;overflow-x:hidden}
+.h{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.96);backdrop-filter:blur(14px);border-bottom:1px solid #222;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
 .mono{font-family:ui-monospace,monospace;font-size:11px;color:#888}
-.card{margin:12px;background:#161616;border:1px solid #262626;border-radius:20px;padding:14px}
-.score{font-size:22px;font-weight:900;color:#fff}
-.pill{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #333}
+.wrap{max-width:1200px;margin:0 auto;width:100%}
+.card{margin:8px;background:#161616;border:1px solid #262626;border-radius:14px;padding:10px;overflow:hidden}
+@media(min-width:800px){.card{margin:12px;padding:14px}}
+.score{font-size:20px;font-weight:900;color:#fff}
+.pill{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid #333}
 .W{background:#0f1f12;color:#4ade80}.L{background:#1f1010;color:#f87171}.D{background:#1f1c0f;color:#fbbf24}
-.table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-.table th{color:#888;font-size:11px;text-align:left;padding:10px 8px;border-bottom:1px solid #262626;position:sticky;top:0;background:#161616}
-.table td{padding:10px 8px;border-bottom:1px solid #1e1e1e;font-size:12px;color:#ccc}
-.tableWrap{overflow:auto;border:1px solid #262626;border-radius:12px;background:#161616;margin-top:10px}
-.hidden{display:none}
-.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-top:1px solid #222;display:flex;justify-content:space-around;padding:8px 0 20px}
-.bottom button{flex:1;background:none;border:0;font-size:11px;color:#666;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-.bottom button.active{color:#fff;font-weight:800}
-.input{height:38px;border:1px solid #2a2a2a;border-radius:999px;padding:0 14px;width:100%;background:#1a1a1a;color:#fff;font-size:13px}
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.kpi div{border:1px solid #262626;border-radius:12px;padding:10px;background:#1e1e1e;text-align:center}
-.kpi b{font-size:18px;display:block;color:#fff}
-.posTag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
+.table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;min-width:820px}
+.table th{color:#aaa;font-size:10px;text-align:left;padding:10px 8px;border-bottom:1px solid #2a2a2a;position:sticky;top:0;background:#1a1a1a;font-weight:700;cursor:pointer;user-select:none}
+.table th:hover{color:#fff;background:#252525}
+.table th.sorted{color:#fff;background:#2a2a2a}
+.table td{padding:9px 8px;border-bottom:1px solid #1e1e1e;font-size:12px;color:#ccc}
+.tableWrap{overflow:auto;border:1px solid #262626;border-radius:12px;background:#161616;margin-top:8px;-webkit-overflow-scrolling:touch;max-width:100%}
+.hidden{display:none!important}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(10,10,10,.98);border-top:1px solid #222;display:flex;justify-content:space-around;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.bottom button{flex:1;background:none;border:0;font-size:10px;color:#666;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.bottom button.active{color:#fff;font-weight:700}
+.input{height:36px;border:1px solid #2a2a2a;border-radius:10px;padding:0 12px;width:100%;background:#1e1e1e;color:#fff;font-size:13px}
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media(max-width:600px){.kpi{grid-template-columns:repeat(3,1fr)}}
+.kpi div{border:1px solid #262626;border-radius:10px;padding:8px;background:#1e1e1e;text-align:center}
+.kpi b{font-size:16px;display:block;color:#fff}
+.posTag{display:inline-block;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:700}
 .pos-mid{background:#1e293b;color:#93c5fd}.pos-def{background:#132a1e;color:#86efac}.pos-fwd{background:#2a1515;color:#fca5a5}.pos-gk{background:#2a2415;color:#fde68a}
-.matchRow{display:flex;justify-content:space-between;align-items:center;padding:14px 6px;cursor:pointer;border-radius:12px}
+.matchRow{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;cursor:pointer;border-radius:10px}
 .matchRow:hover{background:#1e1e1e}
-.matchOpp{font-size:16px;font-weight:800;color:#fff}
-.matchMeta{font-size:11px;color:#888}
-.teamHead{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px 0}
-.teamHead b{font-size:14px;color:#fff}
-.agg10{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:10px 0}
-.agg10 div{background:#1e1e1e;border:1px solid #262626;border-radius:12px;padding:10px;text-align:center}
-.agg10 b{display:block;color:#fff;font-size:14px}
-.agg10 span{font-size:11px;color:#888}
-@media(max-width:900px){.agg10{grid-template-columns:repeat(2,1fr)}}
-.compareGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:900px){.compareGrid{grid-template-columns:1fr}}
-.teamTag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;margin-left:6px}
+.matchOpp{font-size:15px;font-weight:800;color:#fff}
+.matchMeta{font-size:10px;color:#888;word-break:break-all}
+.agg{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;margin:10px 0}
+.agg div{background:#1e1e1e;border:1px solid #262626;border-radius:10px;padding:7px;text-align:center}
+.agg b{display:block;color:#fff;font-size:12px}
+.agg span{font-size:10px;color:#888}
+.teamTag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:4px}
 .my{background:#fff;color:#000}.opp{background:#2a2a2a;color:#aaa}
-.badge{display:inline-block;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:800}.badge-xg{background:#1a2a1a;color:#4ade80}.badge-xa{background:#1a1a2a;color:#60a5fa}.badge-xgi{background:#2a1a2a;color:#fbbf24}</style>
+.zero{color:#444}
+.sort-hint{font-size:9px;color:#555;margin-left:4px}
+.segControl{display:flex;gap:6px;margin:10px 0 4px 0;background:#0f0f0f;border:1px solid #262626;border-radius:10px;padding:4px;width:fit-content;max-width:100%}
+.segControl button{border:0;background:transparent;color:#888;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.segControl button.active{background:#fff;color:#000}
+@media(max-width:800px){.segControl{width:100%}.segControl button{flex:1}}
+.matchTeamPane{display:none}
+.matchTeamPane.active{display:block;min-width:0}
+.bothGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+@media(max-width:1099px){.bothGrid{grid-template-columns:1fr}}
+.tableTitle{font-size:12px;font-weight:800;margin:8px 0 4px 0;display:flex;gap:6px;align-items:center}
+/* sticky first column on mobile */
+@media(max-width:800px){
+  .table th:first-child,.table td:first-child{position:sticky;left:0;z-index:2;background:#161616}
+  .table th:first-child{z-index:3;background:#1a1a1a;min-width:110px}
+  .table td:first-child{min-width:110px}
+}
+</style>
 </head>
 <body>
-<div class="h"><b style="color:#fff">LinKing FC 41026</b><span class="mono" id="st"></span></div>
+<div class="h"><div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%"><b style="color:#fff">LinKing FC 41026 v3</b><span class="mono" id="st">載入中...</span></div></div>
+<div class="wrap">
 <div class="card"><div class="kpi" id="kpi"></div></div>
-<div id="view-matches"><div class="card"><div style="display:flex;gap:8px"><input id="qOpp" class="input" placeholder="搜對手"><select id="qRes" class="input" style="max-width:90px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select></div></div><div id="mlist"></div><div style="height:130px"></div></div>
-<div id="view-players" class="hidden">
-<div class="card"><div style="display:flex;gap:8px"><input id="qP" class="input" placeholder="搜球員"><select id="qSort" class="input" style="max-width:110px"><option value="games">場次</option><option value="xg">xG</option><option value="xa">xA</option><option value="xgi">xGI</option><option value="goals">入球</option><option value="rating">評分</option><option value="red">紅牌</option><option value="fouls">犯規</option></select></div><div id="plist" style="margin-top:12px"></div></div><div style="height:130px"></div></div>
-<div id="view-board" class="hidden"><div class="card"><div id="board"></div></div><div style="height:130px"></div></div>
-<div class="bottom"><button id="b-m" class="active" onclick="nav('matches')">⚽ 近10場</button><button id="b-p" onclick="nav('players')">👥 生涯</button><button id="b-d" onclick="nav('board')">📊 榜單</button></div>
+<div id="view-matches"><div class="card"><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="qOpp" class="input" placeholder="對手" style="flex:1;min-width:90px"><select id="qRes" class="input" style="max-width:80px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select><select id="sortMatches" class="input" style="max-width:110px"><option value="dateDesc">日期新→舊</option><option value="dateAsc">日期舊→新</option><option value="opp">對手A-Z</option><option value="result">賽果</option><option value="xgDesc">xG高→低</option><option value="defDesc">防守高→低</option><option value="scoreDesc">入球多→少</option></select></div><div class="mono" id="matchesCount" style="margin-top:6px"></div><div class="mono" style="margin-top:4px;color:#555">手機：用「我方/對手/並排」切換 · 電腦：自動左右並排 · 點表頭排序</div></div><div id="mlist"></div><div style="height:90px"></div></div>
+<div id="view-players" class="hidden"><div class="card"><div style="display:flex;gap:6px"><input id="qP" class="input" placeholder="球員"><select id="filterPos" class="input" style="max-width:90px"><option value="all">全部位置</option><option value="前鋒">前鋒</option><option value="中場">中場</option><option value="後衛">後衛</option><option value="門將">門將</option></select></div><div class="mono" style="margin-top:8px">統一榜單 · 點擊表頭排序</div><div id="board"></div></div><div style="height:90px"></div></div>
+</div>
+<div class="bottom"><div class="wrap" style="display:flex;justify-content:space-around;width:100%"><button id="b-m" class="active" onclick="nav('matches')">⚽<span>近10場</span></button><button id="b-p" onclick="nav('players')">📊<span>統一榜單</span></button></div></div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 const firebaseConfig={apiKey:"AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70",authDomain:"football-signup-64bd9.firebaseapp.com",projectId:"football-signup-64bd9",storageBucket:"football-signup-64bd9.firebasestorage.app",messagingSenderId:"133898606488",appId:"1:133898606488:web:fc2f0ce732a26de9157ded"};
 const CLUB_ID='41026'; const app=initializeApp(firebaseConfig); const db=getFirestore(app);
-let ALL=[],FIL=[],CAREER=[]; let sortKey='games';
-function decodeAgg(s){const m={}; if(!s) return m; s.split(',').forEach(p=>{const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]),v=Number(kv[1]); if(!isNaN(k)) m[k]=v;}); return m;}
+let ALL=[],FIL=[],CAREER=[],MERGED=[]; let sortKey='xgi'; let sortDir='desc';
+let matchSortState={}; let openMatches=new Set(); let matchTeamView={};
+function decodeAgg(s){const m={}; if(!s) return m; s.split(',').forEach(p=>{const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]),v=Number(kv[1]); if(!isNaN(k)&&v!=null) m[k]=v;}); return m;}
 function posCN(pos){ if(!pos) return '未知'; pos=String(pos).toLowerCase(); if(pos.includes('goal')) return '門將'; if(pos.includes('def')) return '後衛'; if(pos.includes('mid')) return '中場'; if(pos.includes('for')||pos.includes('striker')||pos.includes('wing')||pos.includes('forward')) return '前鋒'; return pos; }
 function posClass(pos){ const cn=posCN(pos); if(cn==='中場') return 'pos-mid'; if(cn==='後衛') return 'pos-def'; if(cn==='前鋒') return 'pos-fwd'; if(cn==='門將') return 'pos-gk'; return 'pos-mid'; }
+function safe(n){ const v=Number(n); return isNaN(v)||!isFinite(v)?0:v; }
 function parsePlayer(p){ 
   const a=decodeAgg(p.match_event_aggregate_0||p.aggregate||''); 
-  const succ = a[215]||0;
-  const passesMade = Number(p.passesmade||p.passesMade||0);
-  const passAtt = Number(p.passattempts||p.passAttempts||0);
-  const pm = succ || passesMade || 0;
-  const pa = passAtt || (succ + (a[153]||0)) || pm;
-  const shots = Number(p.shots||a[100]||0);
-  const shotOn = Number(a[101]||p.shotsOn||0);
-  const shotOff = Math.max(0, shots - shotOn);
-  const insideBox = Number(a[106]||0);
-  const outsideBox = Number(a[107]||Math.max(0, shots - insideBox));
-  // xG 用已有資料估算 - 仿英超 StatsBomb 簡化版
-  let xg=0;
-  if(insideBox>0){ xg = shotOn*0.35 + (insideBox - shotOn)*0.12 + outsideBox*0.04; }
-  else { xg = shotOn*0.32 + shotOff*0.06; }
-  xg = Math.max(0, xg);
-  // xA 用關鍵傳球 + 助攻
-  const keyPass = Number(a[216]||p.keyPasses||0);
-  const assists = Number(p.assists||0);
-  const xa = keyPass*0.12 + assists*0.15;
-  const xgi = xg + xa;
-  const goals = Number(p.goals||0);
+  const succ = safe(a[215]); const pm = succ || safe(p.passesmade||p.passesMade) || 0;
+  const pa = safe(p.passattempts||p.passAttempts) || (succ + safe(a[153])) || pm;
+  const shots = safe(p.shots||a[100]); const shotOn = safe(a[101]||p.shotsOn);
+  const insideBox = safe(a[106]); const outsideBox = safe(a[107]||Math.max(0, shots - insideBox));
+  let xg=0; if(insideBox>0){ xg = shotOn*0.35 + Math.max(0,insideBox - shotOn)*0.12 + outsideBox*0.04; } else { xg = shotOn*0.32 + Math.max(0,shots-shotOn)*0.06; }
   return {
-    name:p.playername||p.name||'Unknown',
-    pos:p.pos||p.position||'',
-    posCN:posCN(p.pos||p.position||''),
-    rating:Number(p.rating||0),
-    goals:goals,
-    assists:assists,
-    shotOn:shotOn,
-    shots:shots,
-    xg:Number(xg.toFixed(2)),
-    xa:Number(xa.toFixed(2)),
-    xgi:Number(xgi.toFixed(2)),
-    xgDiff:Number((goals - xg).toFixed(2)),
-    pm:pm,
-    pa:pa,
-    keyPass:keyPass,
-    interceptions:a[24]||Number(p.interceptions||0)||0,
-    clearances:a[30]||0,
-    tk:Number(p.tacklesmade||p.tacklesMade||0),
-    tka:Number(p.tackleattempts||p.tackleAttempts||0),
-    saves:Number(p.saves||0)
+    name:p.playername||p.name||'Unknown', pos:p.pos||p.position||'', posCN:posCN(p.pos||p.position||''), posClass:posClass(p.pos||p.position||''),
+    rating:safe(p.rating), goals:safe(p.goals), assists:safe(p.assists), shotOn, shots,
+    xg:Number(Math.max(0,xg).toFixed(2)), xa:Number((safe(a[216])*0.12 + safe(p.assists)*0.15).toFixed(2)), xgi:0,
+    pm, pa, keyPass:safe(a[216]||p.keyPasses), interceptions:safe(a[24]||p.interceptions), clearances:safe(a[30]), blocks:safe(a[31]), tk:safe(p.tacklesmade||p.tacklesMade||a[22]), saves:safe(p.saves||a[14]), gc:safe(a[15])
   }; 
 }
-function parseDoc(d){ let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000); let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{}; let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{}; let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0); let opp=other.details?.name||'對手'; let res=sf>sa?'W':sf<sa?'L':'D'; let players=d.players||{}; let myRaw=players[CLUB_ID]||{}; let oppRaw=players[otherKey]||{}; if(Array.isArray(myRaw)) myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p])); if(Array.isArray(oppRaw)) oppRaw=Object.fromEntries(oppRaw.map((p,i)=>[p.playerId||i,p])); let myList=Object.values(myRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); let oppList=Object.values(oppRaw).map(parsePlayer).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); return {ts,sf,sa,opp,res,myList,oppList}; }
+function parseDoc(d){ let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000); if(!ts||isNaN(ts)) return null; let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name==='LinKing FC')||{}; let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{}; let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0); if(isNaN(sf)) sf=0; if(isNaN(sa)) sa=0; let opp=other.details?.name||'對手'; let res=sf>sa?'W':sf<sa?'L':'D'; let players=d.players||{}; let myRaw=players[CLUB_ID]||{}; let oppRaw=players[otherKey]||{}; if(Array.isArray(myRaw)) myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p])); if(Array.isArray(oppRaw)) oppRaw=Object.fromEntries(oppRaw.map((p,i)=>[p.playerId||i,p])); let myList=Object.values(myRaw).map(parsePlayer).map(p=>{p.xgi=Number((p.xg+p.xa).toFixed(2));return p;}).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); let oppList=Object.values(oppRaw).map(parsePlayer).map(p=>{p.xgi=Number((p.xg+p.xa).toFixed(2));return p;}).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating); return {ts,sf,sa,opp,res,myList,oppList}; }
 function fmt(ts){const d=new Date(ts*1000); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function v(vv){ if(vv==null||vv===0||isNaN(vv)) return '<span class="zero">-</span>'; return String(vv); }
+function v2(vv){ if(vv==null||vv===0||isNaN(vv)) return '<span class="zero">-</span>'; return Number(vv).toFixed(2); }
 async function load(){
-  const st=document.getElementById('st');
-  st.textContent='載入中... Firebase';
+  const st=document.getElementById('st'); st.textContent='載入中...';
   try{
     let snap=null;
-    try{ 
-      const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); 
-      snap=await getDocs(q); 
-      if(snap.empty) throw new Error('clubs/41026/matches empty'); 
-      st.textContent=`Firebase: ${snap.size}場`;
-    }catch(e){ 
-      const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); 
-      snap=await getDocs(q); 
-      if(snap.empty) throw new Error('matches empty');
-      st.textContent=`Firebase備用: ${snap.size}場`; 
-    }
-    let arr=[]; 
-    snap.forEach(doc=>{ try{ arr.push(parseDoc(doc.data())); }catch(e){ console.warn(e); } }); 
-    ALL=arr.filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts); 
-    FIL=ALL.slice();
-    if(ALL.length===0) throw new Error('parse 0場');
-    renderKPI(); 
-    renderMatches();
-    try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){ console.warn(e); }
-    if(!CAREER.length){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:parseInt(m.gamesPlayed||0),goals:parseInt(m.goals||0),assists:parseInt(m.assists||0),ratingAve:parseFloat(m.ratingAve||0),favoritePosition:m.favoritePosition||'',redCards:parseInt(m.redCards||0),yellowCards:parseInt(m.yellowCards||0),fouls:parseInt(m.fouls||0),manOfTheMatch:parseInt(m.manOfTheMatch||0)}); }); renderPlayers(); }catch(e){ console.warn(e); } }
-  }catch(err){ 
-    console.error(err); 
-    document.getElementById('st').textContent='Firebase 載入失敗: '+err.message;
-    document.getElementById('mlist').innerHTML=`<div class="card" style="color:#f87171">Firebase 載入失敗: ${err.message}<br>請檢查 Firestore 規則</div>`;
-  }
+    try{ const q=query(collection(db,'clubs','41026','matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); if(snap.empty) throw new Error('empty'); }catch(e){ const q=query(collection(db,'matches'), orderBy('timestamp','desc'), limit(10)); snap=await getDocs(q); }
+    let arr=[]; snap.forEach(doc=>{ const parsed=parseDoc(doc.data()); if(parsed) arr.push(parsed); }); ALL=arr.filter(x=>x&&x.ts>0).sort((a,b)=>b.ts-a.ts); FIL=ALL.slice();
+    document.getElementById('st').textContent=`${ALL.length}場`; renderMatches(); renderKPI();
+    try{ const q2=query(collection(db,'clubs','41026','members_career'), orderBy('gamesPlayed','desc')); const snap2=await getDocs(q2); CAREER=[]; snap2.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:safe(m.gamesPlayed),goals:safe(m.goals),assists:safe(m.assists),ratingAve:Number(m.ratingAve||0)||0,favoritePosition:m.favoritePosition||'',redCards:safe(m.redCards),yellowCards:safe(m.yellowCards),fouls:safe(m.fouls),manOfTheMatch:safe(m.manOfTheMatch),cleanSheetsDef:safe(m.cleanSheetsDef),cleanSheetsGK:safe(m.cleanSheetsGK),tacklesMade:safe(m.tacklesMade)}); }); buildMerged(); }catch(e){ try{ const q3=query(collection(db,'members_career'), orderBy('gamesPlayed','desc')); const snap3=await getDocs(q3); CAREER=[]; snap3.forEach(d=>{ const m=d.data(); CAREER.push({name:m.name||'Unknown',gamesPlayed:safe(m.gamesPlayed),goals:safe(m.goals),assists:safe(m.assists),ratingAve:Number(m.ratingAve||0)||0,favoritePosition:m.favoritePosition||'',redCards:safe(m.redCards),yellowCards:safe(m.yellowCards),fouls:safe(m.fouls),manOfTheMatch:safe(m.manOfTheMatch),cleanSheetsDef:safe(m.cleanSheetsDef),cleanSheetsGK:safe(m.cleanSheetsGK),tacklesMade:safe(m.tacklesMade)}); }); buildMerged(); }catch(e){} }
+  }catch(err){ document.getElementById('st').textContent='失敗'; console.error(err); }
 }
-function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xg||0),0),0), xga=ALL.reduce((s,m)=>s+(m.oppList||[]).reduce((a,p)=>a+(p.xg||0),0),0); const xa=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xa||0),0),0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失<br><span class="mono">xG ${xg.toFixed(1)}-${xga.toFixed(1)} xA ${xa.toFixed(1)}</span></div>`; }
+function buildMerged(){
+  const aggMap={}; ALL.forEach(m=>{ m.myList.forEach(p=>{ if(!aggMap[p.name]) aggMap[p.name]={xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0}; const o=aggMap[p.name]; o.xg+=p.xg; o.xa+=p.xa; o.xgi+=p.xgi; o.goals+=p.goals; o.assists+=p.assists; o.pm+=p.pm; o.pa+=p.pa; o.keyPass+=p.keyPass; o.interceptions+=p.interceptions; o.clearances+=p.clearances; o.blocks+=p.blocks; o.tk+=p.tk; o.saves+=p.saves; o.gc+=p.gc; o.games+=1; if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;} }); });
+  MERGED=CAREER.map(c=>{ const a=aggMap[c.name]||{xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0}; const totalDef=a.interceptions+a.clearances+a.blocks+a.tk; const avgRating=a.ratingCnt? (a.ratingSum/a.ratingCnt):c.ratingAve; return { name:c.name, posCN:posCN(c.favoritePosition), posClass:posClass(c.favoritePosition), gamesPlayed:c.gamesPlayed||a.games, goals:c.goals, assists:c.assists, xg:Number(a.xg.toFixed(2)), xa:Number(a.xa.toFixed(2)), xgi:Number(a.xgi.toFixed(2)), ratingAvg:avgRating? Number(avgRating.toFixed(2)):0, pm:a.pm, pa:a.pa, passPct: a.pa? Math.round(a.pm/a.pa*100):0, keyPass:a.keyPass, interceptions:a.interceptions, clearances:a.clearances, tk:a.tk, totalDef, saves:a.saves, cleanDef:c.cleanSheetsDef, cleanGK:c.cleanSheetsGK, redCards:c.redCards, fouls:c.fouls }; });
+  renderBoard();
+}
+function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.xg,0),0); const totalDef=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.interceptions+p.clearances+p.tk,0),0); const totalSaves=ALL.reduce((s,m)=>s+m.myList.reduce((a,p)=>a+p.saves,0),0); document.getElementById('kpi').innerHTML=`<div><b>${ALL.length}</b><span style="font-size:10px;display:block">近10場</span></div><div><b>${w}-${d}-${l}</b><span style="font-size:10px;display:block">勝-和-負</span></div><div><b>${gf}-${ga}</b><span style="font-size:10px;display:block">得失球</span></div><div><b>${xg.toFixed(1)}</b><span style="font-size:10px;display:block">xG總和</span></div><div><b>${totalDef}</b><span style="font-size:10px;display:block">總防守</span></div><div><b>${totalSaves}</b><span style="font-size:10px;display:block">總撲救</span></div>`; const mc=document.getElementById('matchesCount'); if(mc){ mc.textContent=`已累計 ${ALL.length} 場 · 總入球 ${gf} · 總防守 ${totalDef}`; } }
+function getSortVal(p,k){ if(k==='totalDef') return p.interceptions+p.clearances+p.blocks+p.tk; if(k==='passPct') return p.pa? p.pm/p.pa*100:0; if(k==='passStr') return p.pm; if(k==='rating') return p.rating||0; return Number(p[k]||0); }
+function sortList(list,state){ return [...list].sort((a,b)=>{ const av=getSortVal(a,state.key), bv=getSortVal(b,state.key); return state.dir==='desc'? bv-av: av-bv; }); }
+function makeHeaders(idx,k,dir){
+  const cols=[ {k:'name',t:'球員',s:false}, {k:'posCN',t:'位置',s:false}, {k:'goals',t:'入球'}, {k:'assists',t:'助攻'}, {k:'shotOn',t:'中龍'}, {k:'xg',t:'xG'}, {k:'xa',t:'xA'}, {k:'xgi',t:'xGI'}, {k:'passStr',t:'傳球'}, {k:'passPct',t:'傳%'}, {k:'keyPass',t:'威脅'}, {k:'interceptions',t:'攔截'}, {k:'clearances',t:'解圍'}, {k:'tk',t:'剷球'}, {k:'totalDef',t:'總防'}, {k:'saves',t:'撲救'}, {k:'rating',t:'評分'} ];
+  return '<tr>'+cols.map(c=>{ if(c.s===false) return `<th>${c.t}</th>`; const act=k===c.k; return `<th onclick="sortMatch(${idx},'${c.k}')" class="${act?'sorted':''}">${c.t}<span class="sort-hint">${act?(dir==='desc'?'▼':'▲'):''}</span></th>`; }).join('')+'</tr>';
+}
+function makeRows(list){ return list.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${p.posClass}">${p.posCN}</span></td><td>${v(p.goals)}</td><td>${v(p.assists)}</td><td>${v(p.shotOn)}</td><td>${v2(p.xg)}</td><td>${v2(p.xa)}</td><td><b style="color:#fff">${v2(p.xgi)}</b></td><td>${p.pm?`${p.pm}/${p.pa}`:'-'}</td><td>${p.pa?Math.round(p.pm/p.pa*100)+'%':'-'}</td><td>${v(p.keyPass)}</td><td>${v(p.interceptions)}</td><td>${v(p.clearances)}</td><td>${v(p.tk)}</td><td><b>${v(p.interceptions+p.clearances+p.blocks+p.tk)}</b></td><td>${p.saves?`<b style="color:#fde68a">${p.saves}</b>`:'<span class="zero">-</span>'}</td><td>${p.rating?p.rating.toFixed(1):'-'}</td></tr>`).join(''); }
 function renderMatches(){
-  const wrap=document.getElementById('mlist'); wrap.innerHTML='';
+  const sortSel=document.getElementById('sortMatches')?.value||'dateDesc';
+  if(sortSel==='dateDesc') FIL.sort((a,b)=>b.ts-a.ts);
+  else if(sortSel==='dateAsc') FIL.sort((a,b)=>a.ts-b.ts);
+  else if(sortSel==='opp') FIL.sort((a,b)=>a.opp.localeCompare(b.opp));
+  else if(sortSel==='result') FIL.sort((a,b)=>{ const o={W:0,D:1,L:2}; return (o[a.res]||9)-(o[b.res]||9); });
+  else if(sortSel==='xgDesc') FIL.sort((a,b)=> b.myList.reduce((s,p)=>s+p.xg,0)-a.myList.reduce((s,p)=>s+p.xg,0));
+  else if(sortSel==='defDesc') FIL.sort((a,b)=> b.myList.reduce((s,p)=>s+p.interceptions+p.clearances+p.tk,0)-a.myList.reduce((s,p)=>s+p.interceptions+p.clearances+p.tk,0));
+  else if(sortSel==='scoreDesc') FIL.sort((a,b)=> (b.sf-b.sa)-(a.sf-a.sa));
+  const wrap=document.getElementById('mlist');
+  const prevOpen=new Set(); wrap.querySelectorAll('[data-detail]').forEach(el=>{ if(!el.classList.contains('hidden')) prevOpen.add(el.id); });
+  wrap.innerHTML='';
   FIL.forEach((m,idx)=>{
-    const div=document.createElement('div'); div.className='card'; const id='d'+idx;
-    const myGoals=m.myList.reduce((s,p)=>s+p.goals,0), oppGoals=m.oppList.reduce((s,p)=>s+p.goals,0);
-    const myAssists=m.myList.reduce((s,p)=>s+p.assists,0), oppAssists=m.oppList.reduce((s,p)=>s+p.assists,0);
-    const myShot=m.myList.reduce((s,p)=>s+p.shotOn,0), oppShot=m.oppList.reduce((s,p)=>s+p.shotOn,0);
-    const myShots=m.myList.reduce((s,p)=>s+p.shots,0), oppShots=m.oppList.reduce((s,p)=>s+p.shots,0);
+    const state=matchSortState[idx]||{key:'rating',dir:'desc'};
+    const teamView=matchTeamView[idx]|| (window.innerWidth>=900?'both':'my');
+    const mySorted=sortList(m.myList,state); const oppSorted=sortList(m.oppList,state);
     const myXG=m.myList.reduce((s,p)=>s+p.xg,0), oppXG=m.oppList.reduce((s,p)=>s+p.xg,0);
-    const myXA=m.myList.reduce((s,p)=>s+p.xa,0), oppXA=m.oppList.reduce((s,p)=>s+p.xa,0);
-    const myXGI=m.myList.reduce((s,p)=>s+p.xgi,0), oppXGI=m.oppList.reduce((s,p)=>s+p.xgi,0);
-    const myPass=m.myList.reduce((s,p)=>s+p.pm,0), oppPass=m.oppList.reduce((s,p)=>s+p.pm,0);
-    const myKey=m.myList.reduce((s,p)=>s+p.keyPass,0), oppKey=m.oppList.reduce((s,p)=>s+p.keyPass,0);
-    const myInt=m.myList.reduce((s,p)=>s+p.interceptions,0), oppInt=m.oppList.reduce((s,p)=>s+p.interceptions,0);
-    const myClear=m.myList.reduce((s,p)=>s+p.clearances,0), oppClear=m.oppList.reduce((s,p)=>s+p.clearances,0);
-    const myTk=m.myList.reduce((s,p)=>s+p.tk,0), oppTk=m.oppList.reduce((s,p)=>s+p.tk,0);
+    const myDef=m.myList.reduce((s,p)=>s+p.interceptions+p.clearances+p.tk,0), oppDef=m.oppList.reduce((s,p)=>s+p.interceptions+p.clearances+p.tk,0);
     const mySave=m.myList.reduce((s,p)=>s+p.saves,0), oppSave=m.oppList.reduce((s,p)=>s+p.saves,0);
-    const myRat=m.myList.length? (m.myList.reduce((s,p)=>s+p.rating,0)/m.myList.length).toFixed(1):'0.0';
-    const oppRat=m.oppList.length? (m.oppList.reduce((s,p)=>s+p.rating,0)/m.oppList.length).toFixed(1):'0.0';
-    div.innerHTML=`<div class="matchRow" onclick="document.getElementById('${id}').classList.toggle('hidden')"><div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · xG ${myXG.toFixed(2)}-${oppXG.toFixed(2)} xA ${myXA.toFixed(2)}-${oppXA.toFixed(2)} · ${m.myList.length}人 vs ${m.oppList.length}人</div></div><div class="score">${m.sf}-${m.sa}<div class="mono" style="font-size:10px">xG ${myXG.toFixed(1)}</div></div></div><div id="${id}" class="hidden"><div class="agg10"><div><b>${myGoals}-${oppGoals}</b><span>入球</span></div><div><b>${myAssists}-${oppAssists}</b><span>助攻</span></div><div><b>${myShot}-${oppShot}</b><span>射框</span></div><div><b>${myShots}-${oppShots}</b><span>射門</span></div><div><b>${myXG.toFixed(2)}-${oppXG.toFixed(2)}</b><span>xG預期入球</span></div><div><b>${myXA.toFixed(2)}-${oppXA.toFixed(2)}</b><span>xA預期助攻</span></div><div><b>${myXGI.toFixed(2)}-${oppXGI.toFixed(2)}</b><span>xGI預期參與</span></div><div><b>${myPass}-${oppPass}</b><span>成功傳球</span></div><div><b>${myKey}-${oppKey}</b><span>關鍵傳球</span></div><div><b>${myInt}-${oppInt}</b><span>攔截</span></div><div><b>${myClear}-${oppClear}</b><span>解圍</span></div><div><b>${myTk}-${oppTk}</b><span>剷球</span></div></div><div class="compareGrid"><div><div class="teamHead"><b><span class="teamTag my">我隊</span> ${m.myList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>射門</th><th>xG</th><th>xA</th><th>xGI</th><th>成功傳球</th><th>關鍵傳球</th><th>評分</th></tr>${m.myList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.shots}</td><td>${p.xg.toFixed(2)}</td><td>${p.xa.toFixed(2)}</td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div><div><div class="teamHead"><b><span class="teamTag opp">對手</span> ${m.oppList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>射門</th><th>xG</th><th>xA</th><th>xGI</th><th>成功傳球</th><th>關鍵傳球</th><th>評分</th></tr>${m.oppList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.shots}</td><td>${p.xg.toFixed(2)}</td><td>${p.xa.toFixed(2)}</td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div></div></div>`;
+    const id='d'+idx; const isOpen=prevOpen.has(id)||openMatches.has(id);
+    const div=document.createElement('div'); div.className='card';
+    div.innerHTML=`<div class="matchRow" onclick="toggleMatch('${id}')">
+      <div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · xG ${myXG.toFixed(2)}-${oppXG.toFixed(2)} · 防守 ${myDef}-${oppDef} · ${state.key} ${state.dir==='desc'?'▼':'▲'}</div></div><div class="score">${m.sf}-${m.sa}</div></div>
+      <div id="${id}" data-detail class="${isOpen?'':'hidden'}">
+        <div class="agg"><div><b>${m.myList.reduce((s,p)=>s+p.goals,0)}-${m.oppList.reduce((s,p)=>s+p.goals,0)}</b><span>入球</span></div><div><b>${m.myList.reduce((s,p)=>s+p.assists,0)}-${m.oppList.reduce((s,p)=>s+p.assists,0)}</b><span>助攻</span></div><div><b>${m.myList.reduce((s,p)=>s+p.shotOn,0)}-${m.oppList.reduce((s,p)=>s+p.shotOn,0)}</b><span>中龍</span></div><div><b>${myXG.toFixed(2)}-${oppXG.toFixed(2)}</b><span>xG</span></div><div><b>${(m.myList.reduce((s,p)=>s+p.xa,0)).toFixed(2)}-${(m.oppList.reduce((s,p)=>s+p.xa,0)).toFixed(2)}</b><span>xA</span></div><div><b>${(m.myList.reduce((s,p)=>s+p.xgi,0)).toFixed(2)}-${(m.oppList.reduce((s,p)=>s+p.xgi,0)).toFixed(2)}</b><span>xGI</span></div><div><b>${myDef}-${oppDef}</b><span>總防守</span></div><div><b>${m.myList.reduce((s,p)=>s+p.keyPass,0)}-${m.oppList.reduce((s,p)=>s+p.keyPass,0)}</b><span>威脅傳球</span></div><div><b>${mySave}-${oppSave}</b><span>撲救</span></div></div>
+        <div class="segControl" data-match="${idx}">
+          <button data-team="my" class="${teamView==='my'?'active':''}" onclick="switchTeam(${idx},'my')">LinKing ${m.myList.length}人</button>
+          <button data-team="opp" class="${teamView==='opp'?'active':''}" onclick="switchTeam(${idx},'opp')">${m.opp} ${m.oppList.length}人</button>
+          <button data-team="both" class="${teamView==='both'?'active':''}" onclick="switchTeam(${idx},'both')">並排對比</button>
+        </div>
+        <div class="matchTeamPane ${teamView==='my'?'active':''}" data-match="${idx}" data-pane="my">
+          <div class="tableTitle"><span class="teamTag my">LinKing FC</span> 我方</div>
+          <div class="tableWrap"><table class="table">${makeHeaders(idx,state.key,state.dir)}${makeRows(mySorted)}</table></div>
+        </div>
+        <div class="matchTeamPane ${teamView==='opp'?'active':''}" data-match="${idx}" data-pane="opp">
+          <div class="tableTitle"><span class="teamTag opp">OPP</span> ${m.opp}</div>
+          <div class="tableWrap"><table class="table">${makeHeaders(idx,state.key,state.dir)}${makeRows(oppSorted)}</table></div>
+        </div>
+        <div class="matchTeamPane ${teamView==='both'?'active':''} bothGrid" data-match="${idx}" data-pane="both">
+          <div style="min-width:0"><div class="tableTitle"><span class="teamTag my">LinKing FC</span> 我方</div><div class="tableWrap"><table class="table">${makeHeaders(idx,state.key,state.dir)}${makeRows(mySorted)}</table></div></div>
+          <div style="min-width:0"><div class="tableTitle"><span class="teamTag opp">OPP</span> ${m.opp}</div><div class="tableWrap"><table class="table">${makeHeaders(idx,state.key,state.dir)}${makeRows(oppSorted)}</table></div></div>
+        </div>
+      </div>`;
     wrap.appendChild(div);
   });
 }
-function renderPlayers(){
-  const q=document.getElementById('qP')?.value.toLowerCase()||''; let list=CAREER.filter(p=>!q||p.name.toLowerCase().includes(q));
-  if(sortKey==='games') list=list.sort((a,b)=>b.gamesPlayed-a.gamesPlayed);
-  if(sortKey==='goals') list=list.sort((a,b)=>b.goals-a.goals);
-  if(sortKey==='rating') list=list.sort((a,b)=>b.ratingAve-a.ratingAve);
-  if(sortKey==='red') list=list.sort((a,b)=>b.redCards-a.redCards);
-  if(sortKey==='fouls') list=list.sort((a,b)=>(b.fouls||0)-(a.fouls||0));
-  document.getElementById('plist').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>場次</th><th>入球</th><th>助攻</th><th>評分</th><th>紅牌</th><th>黃牌</th><th>犯規</th><th>MOTM</th></tr>${list.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.favoritePosition)}">${posCN(p.favoritePosition)}</span></td><td>${p.gamesPlayed}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.ratingAve.toFixed(2)}</td><td>${p.redCards}</td><td>${p.yellowCards||0}</td><td>${p.fouls||0}</td><td>${p.manOfTheMatch}</td></tr>`).join('')}</table></div>`;
-  document.getElementById('board').innerHTML=`<div class="tableWrap"><table class="table"><tr><th>#</th><th>球員</th><th>入球</th><th>場次</th><th>紅牌</th><th>犯規</th></tr>${list.slice(0,20).map((p,i)=>`<tr><td>${i+1}</td><td><b style="color:#fff">${p.name}</b></td><td>${p.goals}</td><td>${p.gamesPlayed}</td><td>${p.redCards}</td><td>${p.fouls||0}</td></tr>`).join('')}</table></div>`;
+window.toggleMatch=(id)=>{ const el=document.getElementById(id); if(!el) return; el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) openMatches.add(id); else openMatches.delete(id); };
+window.sortMatch=(idx,key)=>{ if(key==='name'||key==='posCN') return; const cur=matchSortState[idx]||{key:'rating',dir:'desc'}; if(cur.key===key) cur.dir=cur.dir==='desc'?'asc':'desc'; else {cur.key=key;cur.dir='desc';} matchSortState[idx]=cur; renderMatches(); };
+window.switchTeam=(idx,team)=>{ matchTeamView[idx]=team; const panes=document.querySelectorAll(`[data-match="${idx}"][data-pane]`); panes.forEach(p=>{ p.classList.toggle('active', p.getAttribute('data-pane')===team); }); const btns=document.querySelectorAll(`.segControl[data-match="${idx}"] button`); btns.forEach(b=>{ b.classList.toggle('active', b.getAttribute('data-team')===team); }); };
+function renderBoard(){
+  const q=document.getElementById('qP')?.value.toLowerCase()||''; const posF=document.getElementById('filterPos')?.value||'all';
+  let list=MERGED.filter(p=>{ if(q&&!p.name.toLowerCase().includes(q)) return false; if(posF!=='all'&&p.posCN!==posF) return false; return true; });
+  list=list.sort((a,b)=>{ let av=a[sortKey], bv=b[sortKey]; if(typeof av==='string') av=0; if(typeof bv==='string') bv=0; if(sortDir==='desc') return bv-av; else return av-bv; });
+  const headers=[ {k:'name',t:'球員',sort:false}, {k:'posCN',t:'位置',sort:false}, {k:'gamesPlayed',t:'場次'}, {k:'goals',t:'入球'}, {k:'assists',t:'助攻'}, {k:'xg',t:'xG'}, {k:'xa',t:'xA'}, {k:'xgi',t:'xGI'}, {k:'ratingAvg',t:'評分'}, {k:'passPct',t:'傳球%'}, {k:'keyPass',t:'威脅傳球'}, {k:'interceptions',t:'攔截'}, {k:'clearances',t:'解圍'}, {k:'tk',t:'剷球'}, {k:'totalDef',t:'總防守'}, {k:'saves',t:'撲救'}, {k:'cleanGK',t:'零封GK'}, {k:'redCards',t:'紅'}, {k:'fouls',t:'犯規'} ];
+  let html=`<div class="tableWrap"><table class="table"><tr>${headers.map(h=> h.sort===false? `<th>${h.t}</th>` : `<th data-k="${h.k}" onclick="sortBoard('${h.k}')" class="${sortKey===h.k?'sorted':''}">${h.t}<span class="sort-hint">${sortKey===h.k?(sortDir==='desc'?'▼':'▲'):''}</span></th>`).join('')}</tr>`;
+  html+=list.map((p,i)=>`<tr><td><b style="color:#fff">${i+1}. ${p.name}</b></td><td><span class="posTag ${p.posClass}">${p.posCN}</span></td><td>${p.gamesPlayed||'-'}</td><td>${p.goals||'-'}</td><td>${p.assists||'-'}</td><td>${v2(p.xg)}</td><td>${v2(p.xa)}</td><td><b style="color:#fff">${v2(p.xgi)}</b></td><td>${p.ratingAvg? p.ratingAvg.toFixed(2):'-'}</td><td>${p.passPct? p.passPct+'%':'-'}</td><td>${v(p.keyPass)}</td><td>${v(p.interceptions)}</td><td>${v(p.clearances)}</td><td>${v(p.tk)}</td><td><b>${v(p.totalDef)}</b></td><td>${p.saves? `<b style="color:#fde68a">${p.saves}</b>`: '-'}</td><td>${v(p.cleanGK||p.cleanDef)}</td><td>${p.redCards? `<span style="color:#f87171">${p.redCards}</span>`: '-'}</td><td>${v(p.fouls)}</td></tr>`).join(''); html+=`</table></div>`; document.getElementById('board').innerHTML=html;
 }
-window.nav=(k)=>{ document.getElementById('view-matches').classList.toggle('hidden',k!=='matches'); document.getElementById('view-players').classList.toggle('hidden',k!=='players'); document.getElementById('view-board').classList.toggle('hidden',k!=='board'); document.getElementById('b-m').classList.toggle('active',k==='matches'); document.getElementById('b-p').classList.toggle('active',k==='players'); document.getElementById('b-d').classList.toggle('active',k==='board'); };
+window.sortBoard=(k)=>{ if(sortKey===k){ sortDir=sortDir==='desc'?'asc':'desc'; } else { sortKey=k; sortDir='desc'; } renderBoard(); };
+window.nav=(k)=>{ document.getElementById('view-matches').classList.toggle('hidden',k!=='matches'); document.getElementById('view-players').classList.toggle('hidden',k!=='players'); document.getElementById('b-m').classList.toggle('active',k==='matches'); document.getElementById('b-p').classList.toggle('active',k==='players'); };
 document.getElementById('qOpp')?.addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); FIL=ALL.filter(m=>!q||m.opp.toLowerCase().includes(q)); renderMatches(); });
 document.getElementById('qRes')?.addEventListener('change',e=>{ const v=e.target.value; FIL=v==='all'?ALL.slice():ALL.filter(m=>m.res===v); renderMatches(); });
-document.getElementById('qP')?.addEventListener('input',renderPlayers);
-document.getElementById('qSort')?.addEventListener('change',e=>{ sortKey=e.target.value; renderPlayers(); });
+document.getElementById('sortMatches')?.addEventListener('change',renderMatches);
+document.getElementById('qP')?.addEventListener('input',renderBoard);
+document.getElementById('filterPos')?.addEventListener('change',renderBoard);
 load();
+window.addEventListener('resize',()=>{ /* keep both on desktop if user resized */ });
 </script>
 </body>
 </html>
