@@ -1,188 +1,114 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LinKing FC 41026 - 戰績網</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LinKing FC 41026 - 戰績網 實測版</title>
 <style>
-:root{--bg:#f6f7fb;--card:#ffffff;--line:#e8eaf0;--text:#12131a;--muted:#6b7280;--win:#16a34a;--loss:#dc2626;--draw:#ca8a04}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
-a{color:inherit}
-.header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.header-inner{max-width:1280px;margin:0 auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
-.badge{width:36px;height:36px;border-radius:12px;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+:root{--bg:#f6f7fb;--card:#fff;--line:#e8eaf0;--text:#12131a;--muted:#6b7280;--win:#16a34a;--loss:#dc2626;--draw:#ca8a04}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui;background:var(--bg);color:var(--text);font-size:14px}
+.header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.inner{max-width:1280px;margin:0 auto;padding:12px 16px}
 .main{max-width:1280px;margin:0 auto;padding:16px;display:grid;grid-template-columns:1.65fr .9fr;gap:16px}
 @media(max-width:980px){.main{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
-.card h3{margin:0 0 12px 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kpi div{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fcfcff}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.kpi div{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fcfcff}
 .kpi b{font-size:20px;display:block}
-.kpi span{font-size:11px;color:var(--muted)}
-.pill{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:24px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line)}
-.pill.W{background:#ecfdf5;color:var(--win);border-color:#a7f3d0}
-.pill.L{background:#fef2f2;color:var(--loss);border-color:#fecaca}
-.pill.D{background:#fffbeb;color:var(--draw);border-color:#fde68a}
-.table{width:100%;border-collapse:collapse}
-.table th{font-size:11px;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:600}
-.table td{padding:10px 6px;border-bottom:1px solid #f0f1f5;font-size:13px}
-.table tr:hover{background:#f6f7fb}
-.btn{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}
-.btn:hover{background:#12131a;color:#fff}
-.btn-black{background:#12131a;color:#fff;border-color:#12131a}
-.input{height:32px;border:1px solid var(--line);border-radius:999px;padding:0 12px;font-size:12px;width:100%;background:#fff;outline:none}
-.input:focus{box-shadow:0 0 0 2px rgba(18,19,26,.08)}
-.row-expand{background:#fcfcff}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--muted)}
-.footer{border-top:1px solid var(--line);background:#fff;margin-top:16px;padding:14px 16px;font-size:11px;color:var(--muted);text-align:center}
-.form-dots{display:flex;gap:6px}
-.form-dots span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px}
+.mono{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)}
+.pill{display:inline-flex;min-width:26px;height:22px;align-items:center;justify-content:center;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line)}
+.pill.W{background:#ecfdf5;color:var(--win);border-color:#a7f3d0}.pill.L{background:#fef2f2;color:var(--loss);border-color:#fecaca}.pill.D{background:#fffbeb;color:var(--draw);border-color:#fde68a}
+.table{width:100%;border-collapse:collapse}.table th{font-size:11px;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line)}.table td{padding:10px 8px;border-bottom:1px solid #f0f1f5;font-size:13px}.table tr:hover{background:#f6f7fb}
+.btn{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;cursor:pointer}.btn:hover{background:#12131a;color:#fff}
+.input{height:32px;border:1px solid var(--line);border-radius:999px;padding:0 12px;font-size:12px;width:100%;background:#fff}
+.badge{width:36px;height:36px;border-radius:12px;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
 </style>
 </head>
 <body>
-<div class="header"><div class="header-inner">
-<div style="display:flex;gap:10px;align-items:center"><div class="badge">LK</div><div><div style="font-weight:800">LinKing FC <span style="color:var(--muted);font-weight:500">41026 · 第5年</span></div><div class="mono">MAX_KEEP 3650 · 每日10場一年 · curl_cffi</div></div></div>
-<div style="font-size:11px;color:var(--muted)">GitHub Pages + Firebase 備份</div>
-</div></div>
+<div class="header"><div class="inner" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:10px;align-items:center"><div class="badge">LK</div><div><div style="font-weight:800">LinKing FC 41026</div><div class="mono" id="status">讀取 data/matches.json...</div></div></div><div class="mono">3650累計 · curl_cffi chrome110</div></div></div>
 <div class="main">
 <div style="display:flex;flex-direction:column;gap:16px">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3>最近戰績</h3><div id="formDots" class="form-dots"></div></div>
-    <div class="kpi" id="kpi"></div>
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <input id="oppSearch" class="input" placeholder="搜尋對手，例如 Eternal" style="max-width:220px">
-      <select id="typeFilter" class="input" style="max-width:120px"><option value="all">全部類型</option><option value="聯賽">聯賽</option><option value="友誼賽">友誼</option><option value="季後賽">季後賽</option><option value="friendlyMatch">friendly</option><option value="leagueMatch">league</option></select>
-      <button class="btn" id="exportCsv">匯出 CSV</button>
-      <button class="btn" id="exportJson">匯出 JSON</button>
-      <button class="btn" id="exportDiscord">複製 Discord</button>
-      <span id="countInfo" class="mono" style="margin-left:auto;align-self:center"></span>
-    </div>
-  </div>
-  <div class="card">
-    <h3>賽程 · <span id="rangeInfo" class="mono"></span></h3>
-    <div style="overflow:auto">
-      <table class="table" id="matchTable"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>類型</th><th>操作</th></tr></thead><tbody></tbody></table>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="prev">上一頁</button><span id="pageInfo" class="mono" style="align-self:center"></span><button class="btn" id="next">下一頁</button></div>
-  </div>
+<div class="card"><div id="kpi" class="kpi"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="oppSearch" class="input" placeholder="搜對手" style="max-width:200px"><select id="typeFilter" class="input" style="max-width:120px"><option value="all">全部</option><option value="聯賽">聯賽</option><option value="leagueMatch">league</option><option value="friendly">友誼</option><option value="playoff">季後賽</option></select><button class="btn" id="exportCsv">匯出 CSV</button><span class="mono" id="cnt"></span></div></div>
+<div class="card"><h3 style="margin:0 0 10px;font-size:12px">賽程 <span class="mono" id="range"></span></h3><div style="overflow:auto"><table class="table" id="mt"><thead><tr><th>日期</th><th>對手</th><th>比分</th><th>賽果</th><th>類型</th><th>操作</th></tr></thead><tbody></tbody></table></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="prev">上一頁</button><span class="mono" id="pageInfo" style="align-self:center"></span><button class="btn" id="next">下一頁</button></div></div>
 </div>
-<div style="display:flex;flex-direction:column;gap:16px">
-  <div class="card">
-    <div style="display:flex;justify-content:space-between"><h3>球員 · Squad</h3><span id="playerCount" class="mono"></span></div>
-    <input id="playerSearch" class="input" placeholder="搜尋球員" style="margin-bottom:10px">
-    <div style="display:flex;gap:6px;margin-bottom:10px">
-      <select id="sortBy" class="input" style="max-width:110px"><option value="goals">入球</option><option value="assists">助攻</option><option value="games">場數</option><option value="rating">評分</option></select>
-    </div>
-    <div id="playerList"></div>
-  </div>
-  <div class="card"><h3>球員使用提示</h3><div style="font-size:11px;color:var(--muted);line-height:1.7">點擊賽程展開該場入球/助攻/攔截/截傳球分開顯示。<br>匯出 CSV 含 DATE timestamp，Excel 開唔亂碼。<br>網站每30分自動更新，3650場滾動，舊數據自動入 archive。</div></div>
+<div class="card"><h3 style="margin:0 0 10px;font-size:12px">球員 · Squad <span class="mono" id="pcnt"></span></h3><input id="pSearch" class="input" placeholder="搜球員" style="margin-bottom:10px"><div id="plist"></div></div>
 </div>
-</div>
-<div class="footer">LinKing FC 41026 · MAX_KEEP 3650 · curl_cffi chrome110 · GitHub Actions + Firebase · 實用主義設計</div>
 <script>
-let ALL_MATCHES=[], PLAYERS=[], filtered=[], page=0, pageSize=50;
-const $ = s=>document.querySelector(s);
-function fmtDate(ts){ if(!ts) return '-'; const d=new Date(ts*1000); return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` }
-function parseMatches(raw){
-  // raw can be {matches:[] } or [] or EA raw
-  let list = Array.isArray(raw) ? raw : (raw.matches || []);
-  return list.map(m=>{
-    const ts = m.timestamp || m.matchTime || m.time || 0;
-    const opp = m.opponentName || m.opponent || (m.clubInfo && (m.clubInfo.name || m.clubInfo.clubName)) || m.vs || '對手';
-    const sf = m.goalsFor ?? m.scoreFor ?? m.clubGoals ?? m.ourGoals ?? m.result?.goalsFor ?? 0;
-    const sa = m.goalsAgainst ?? m.scoreAgainst ?? m.opponentGoals ?? m.result?.goalsAgainst ?? 0;
-    const res = m.result || (sf>sa?'W':sf<sa?'L':'D');
-    const type = m._matchTypeName || m.matchType || m.type || '聯賽';
-    const id = String(m.matchId || m.id || ts+Math.random());
-    return {id, ts:Number(ts), opponent:opp, sf:Number(sf), sa:Number(sa), result:res, type, raw:m}
-  }).sort((a,b)=>b.ts-a.ts)
+const CLUB_ID='41026';
+let ALL=[], FIL=[], page=0, PS=50;
+function parseEA(raw){
+  let arr = Array.isArray(raw) ? raw : (raw.matches || raw.data || []);
+  return arr.map(m=>{
+    let ts = Number(m.timestamp||m.matchTime||m.time||m.startTime||0);
+    // EA clubs dict
+    let sf=0,sa=0, oppName='對手', type=m._matchTypeName||m.matchType||m.matchTypeName||'聯賽', res='D', oppId='';
+    if(m.clubs){
+      const keys=Object.keys(m.clubs);
+      const myKey = keys.find(k=>String(k)===String(CLUB_ID)) || keys[0];
+      const oppKey = keys.find(k=>String(k)!==String(myKey)) || keys[1];
+      if(myKey && m.clubs[myKey]){
+        const my=m.clubs[myKey]; sf=Number(my.goals ?? my.score ?? my.result?.goalsFor ?? 0); sa=Number(my.goalsAgainst ?? my.result?.goalsAgainst ?? my.goalsConceded ?? 0);
+        if(sa===0 && oppKey && m.clubs[oppKey]) sa=Number(m.clubs[oppKey].goals ?? 0);
+        oppName = oppKey ? (m.clubs[oppKey].clubName || m.clubs[oppKey].name || m.clubs[oppKey].clubInfo?.name || '對手') : oppName;
+        oppId=oppKey||'';
+        res = my.result || (sf>sa?'W':sf<sa?'L':'D');
+        if(my.outcome) res = my.outcome==='won'?'W':my.outcome==='lost'?'L':'D';
+      }
+    } else {
+      sf=Number(m.goalsFor||m.clubGoals||m.ourGoals||m.scoreFor||0); sa=Number(m.goalsAgainst||m.opponentGoals||m.scoreAgainst||0);
+      oppName=m.opponentName||m.opponent||m.opponentClubName||oppName;
+      res=m.result|| (sf>sa?'W':sf<sa?'L':'D');
+    }
+    const id=String(m.matchId||m.id||ts+Math.random());
+    // Fix timestamp if ms
+    if(ts>1e12) ts=Math.floor(ts/1000);
+    return {id, ts, oppName, sf, sa, res: (res[0]||'D').toUpperCase().replace('WON','W').replace('LOST','L').slice(0,1) , type, oppId, raw:m};
+  }).filter(x=>x.ts>0).sort((a,b)=>b.ts-a.ts);
 }
 function parsePlayers(raw){
-  let list = Array.isArray(raw) ? raw : (raw.players || raw.members || []);
-  return list.map(p=>({
-    name: p.name || p.playerName || p.personaName || 'Unknown',
-    games: p.gamesPlayed || p.matches || p.games || 0,
-    goals: p.goals||0, assists: p.assists||0, rating: Number(p.rating||0),
-    passesMade: p.passesMade||0, passPct: p.passSuccessRate||p.passPct||0,
-    tackles: p.tacklesMade||0, interceptions: p.interceptions||0, pos: p.position||''
-  })).sort((a,b)=>b.goals-a.goals)
+  let list = Array.isArray(raw) ? raw : (raw.players||raw.members||raw.data||[]);
+  return list.map(p=>({name:p.name||p.playerName||p.personaName||'Unknown', games:p.gamesPlayed||p.matches||0, goals:p.goals||0, assists:p.assists||0, rating:Number(p.rating||0), pos:p.position||''})).sort((a,b)=>b.goals-a.goals);
 }
+let PLAYERS=[];
 async function load(){
   try{
-    const mRes = await fetch('./data/matches.json?ts='+Date.now()); if(mRes.ok){ const j=await mRes.json(); ALL_MATCHES=parseMatches(j); }
-  }catch{}
+    const r=await fetch('./data/matches.json?ts='+Date.now()); if(r.ok){ const j=await r.json(); ALL=parseEA(j); document.getElementById('status').textContent=`已載入 ${ALL.length} 場 · ${j.method||'curl_cffi'}`; }
+  }catch(e){ document.getElementById('status').textContent='matches.json 讀取失敗，檢查 data/ 是否存在'; }
   try{
-    const pRes = await fetch('./data/players.json?ts='+Date.now()); if(pRes.ok){ const j=await pRes.json(); PLAYERS=parsePlayers(j); }
+    const r=await fetch('./data/players.json?ts='+Date.now()); if(r.ok){ const j=await r.json(); PLAYERS=parsePlayers(j); }
   }catch{}
-  // fallback mock if empty
-  if(ALL_MATCHES.length===0){ ALL_MATCHES=[{id:'demo',ts:Math.floor(Date.now()/1000),opponent:'Eternal Blue FC',sf:4,sa:1,result:'W',type:'聯賽',raw:{}}] }
-  if(PLAYERS.length===0){ PLAYERS=[{name:'K. Lee',games:23,goals:18,assists:7,rating:8.2,passesMade:312,passPct:84,tackles:12,interceptions:8,pos:'ST'}] }
-  applyFilter();
-  renderPlayers();
-}
-function applyFilter(){
-  const q = $('#oppSearch').value.trim().toLowerCase();
-  const t = $('#typeFilter').value;
-  filtered = ALL_MATCHES.filter(m=>{
-    if(q && !m.opponent.toLowerCase().includes(q)) return false;
-    if(t!=='all'){
-      const mt = (m.type||'').toLowerCase();
-      if(!mt.includes(t.toLowerCase()) && !m.type.includes(t)) return false;
-    }
-    return true;
-  });
-  page=0; renderKPI(); renderTable();
+  FIL=ALL.slice(); renderKPI(); renderTable(); renderPlayers();
 }
 function renderKPI(){
-  const w=ALL_MATCHES.filter(m=>m.result==='W').length, d=ALL_MATCHES.filter(m=>m.result==='D').length, l=ALL_MATCHES.filter(m=>m.result==='L').length;
-  const gf=ALL_MATCHES.reduce((s,m)=>s+m.sf,0), ga=ALL_MATCHES.reduce((s,m)=>s+m.sa,0);
-  $('#kpi').innerHTML=`<div><b>${w}</b><span>勝 W</span></div><div><b>${d}</b><span>和 D</span></div><div><b>${l}</b><span>負 L</span></div><div><b>${gf}-${ga} (${gf-ga>=0?'+':''}${gf-ga})</b><span>得失球</span></div>`;
-  const recent=ALL_MATCHES.slice(0,5);
-  $('#formDots').innerHTML=recent.map(m=>`<span style="background:${m.result==='W'?'#16a34a':m.result==='L'?'#dc2626':'#ca8a04'}">${m.result}</span>`).join('');
-  $('#countInfo').textContent=`顯示 ${filtered.length} / 總 ${ALL_MATCHES.length} 場`;
+  const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length;
+  const gf=ALL.reduce((s,m)=>s+m.sf,0), ga=ALL.reduce((s,m)=>s+m.sa,0);
+  document.getElementById('kpi').innerHTML=`<div><b>${w}</b><span>勝</span></div><div><b>${d}</b><span>和</span></div><div><b>${l}</b><span>負</span></div><div><b>${gf}-${ga}</b><span>得失 ${gf-ga>=0?'+':''}${gf-ga}</span></div>`;
+  document.getElementById('cnt').textContent=`${FIL.length}/${ALL.length}場`;
 }
+function fmt(ts){ if(!ts) return '-'; const d=new Date(ts*1000); return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` }
 let expanded=null;
 function renderTable(){
-  const start=page*pageSize, end=start+pageSize;
-  const slice=filtered.slice(start,end);
-  $('#rangeInfo').textContent=`${start+1}-${Math.min(end,filtered.length)} / ${filtered.length}`;
-  $('#pageInfo').textContent=`第 ${page+1} 頁 / ${Math.max(1,Math.ceil(filtered.length/pageSize))} 頁`;
-  const tbody=$('#matchTable tbody');
-  tbody.innerHTML='';
+  const start=page*PS, slice=FIL.slice(start,start+PS);
+  document.getElementById('range').textContent=`${start+1}-${Math.min(start+PS,FIL.length)}/${FIL.length}`;
+  document.getElementById('pageInfo').textContent=`第 ${page+1} / ${Math.max(1,Math.ceil(FIL.length/PS))} 頁`;
+  const tb=document.querySelector('#mt tbody'); tb.innerHTML='';
   slice.forEach(m=>{
-    const tr=document.createElement('tr'); tr.innerHTML=`<td><div>${fmtDate(m.ts)}</div><div class="mono">DATE ${m.ts}</div></td><td><b>${m.opponent}</b></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.result}">${m.result}</span></td><td>${m.type}</td><td><button class="btn btn-small" data-id="${m.id}">查看</button> <button class="btn btn-copy" data-copy="${m.id}">複製</button></td>`;
-    tbody.appendChild(tr);
-    if(expanded===m.id){
-      const er=document.createElement('tr'); er.className='row-expand'; er.innerHTML=`<td colspan="6"><div class="mono">matchId ${m.id} · ${fmtDate(m.ts)} · vs ${m.opponent} · ${m.sf}-${m.sa}</div><div style="margin-top:6px;font-size:12px">入球 / 助攻 / 攔截 / 截傳球 分開數據（待串 players.json 詳細）</div></td>`; tbody.appendChild(er);
-    }
+    const tr=document.createElement('tr'); tr.innerHTML=`<td><div>${fmt(m.ts)}</div><div class="mono">DATE ${m.ts}</div></td><td><b>${m.oppName}</b><div class="mono">ID ${m.oppId||''}</div></td><td><b>${m.sf}-${m.sa}</b></td><td><span class="pill ${m.res}">${m.res}</span></td><td>${m.type}</td><td><button class="btn" data-id="${m.id}">查看</button> <button class="btn" data-c="${m.id}">複製</button></td>`;
+    tb.appendChild(tr);
+    if(expanded===m.id){ const er=document.createElement('tr'); er.innerHTML=`<td colspan="6"><div class="mono">matchId ${m.id} · vs ${m.oppName} · ${m.sf}-${m.sa} · clubs ${JSON.stringify(Object.keys(m.raw.clubs||{}))}</div></td>`; tb.appendChild(er); }
   });
-  tbody.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ expanded=expanded===b.dataset.id?null:b.dataset.id; renderTable(); });
-  tbody.querySelectorAll('button[data-copy]').forEach(b=>b.onclick=()=>{
-    const m=ALL_MATCHES.find(x=>x.id===b.dataset.copy); const icon=m.result==='W'?'🟢':m.result==='L'?'🔴':'🟡'; const txt=`${icon} ${fmtDate(m.ts)} vs ${m.opponent} ${m.sf}-${m.sa} | DATE ${m.ts}`; navigator.clipboard.writeText(txt); b.textContent='已複製'; setTimeout(()=>b.textContent='複製',1000);
-  });
+  tb.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{ expanded=expanded===b.dataset.id?null:b.dataset.id; renderTable(); });
+  tb.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{ const m=ALL.find(x=>x.id===b.dataset.c); const ic=m.res==='W'?'🟢':m.res==='L'?'🔴':'🟡'; const txt=`${ic} ${fmt(m.ts)} vs ${m.oppName} ${m.sf}-${m.sa} | DATE ${m.ts} | ${m.type}`; navigator.clipboard.writeText(txt); b.textContent='已複製'; setTimeout(()=>b.textContent='複製',1000); });
 }
 function renderPlayers(){
-  const q=$('#playerSearch').value.trim().toLowerCase();
-  const sort=$('#sortBy').value;
-  let list=PLAYERS.filter(p=>!q||p.name.toLowerCase().includes(q));
-  list.sort((a,b)=>{ if(sort==='goals') return b.goals-a.goals; if(sort==='assists') return b.assists-a.assists; if(sort==='games') return b.games-a.games; return b.rating-a.rating; });
-  $('#playerCount').textContent=`${list.length}人`;
-  $('#playerList').innerHTML=list.map(p=>`<div style="display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid #f0f1f5"><div style="width:32px;height:32px;border-radius:50%;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">${p.name.slice(0,2).toUpperCase()}</div><div style="flex:1"><div style="display:flex;gap:6px"><b style="font-size:13px">${p.name}</b><span style="font-size:10px;border:1px solid #e8eaf0;border-radius:999px;padding:0 6px;background:#f6f7fb">${p.pos||'--'}</span><span style="margin-left:auto;font-weight:700">${p.rating? p.rating.toFixed(1):'-'}</span></div><div style="font-size:11px;color:#6b7280">${p.games}場 · <b style="color:#12131a">${p.goals}球</b> · ${p.assists}助 · 攔截 ${p.tackles} · 截傳 ${p.interceptions}</div></div></div>`).join('');
+  const q=document.getElementById('pSearch').value.toLowerCase(); let list=PLAYERS.filter(p=>!q||p.name.toLowerCase().includes(q));
+  document.getElementById('pcnt').textContent=`${list.length}人`; document.getElementById('plist').innerHTML=list.map(p=>`<div style="display:flex;gap:8px;padding:8px;border-bottom:1px solid #f0f1f5"><div style="width:30px;height:30px;border-radius:50%;background:#12131a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">${p.name.slice(0,2).toUpperCase()}</div><div><b style="font-size:13px">${p.name}</b> <span class="mono">${p.pos}</span><div class="mono">${p.games}場 · ${p.goals}球 · ${p.assists}助</div></div></div>`).join('');
 }
-function toCsv(rows){ const bom='\uFEFF'; const header=['DATE','timestamp','對手','比分','賽果','類型','入球','失球']; const lines=[header.join(',')]; rows.forEach(m=>{ lines.push([`"${fmtDate(m.ts)}"`,m.ts,`"${m.opponent.replace(/"/g,'""')}"`,`"${m.sf}-${m.sa}"`,m.result,`"${m.type}"`,m.sf,m.sa].join(',')); }); return bom+lines.join('\n'); }
-function download(name,content,type){ const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
-$('#oppSearch').addEventListener('input',applyFilter);
-$('#typeFilter').addEventListener('change',applyFilter);
-$('#playerSearch').addEventListener('input',renderPlayers);
-$('#sortBy').addEventListener('change',renderPlayers);
-$('#prev').onclick=()=>{ if(page>0){ page--; renderTable(); } };
-$('#next').onclick=()=>{ if((page+1)*pageSize<filtered.length){ page++; renderTable(); } };
-$('#exportCsv').onclick=()=>{ const csv=toCsv(filtered); download(`LinKingFC_${filtered.length}場_${new Date().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8'); };
-$('#exportJson').onclick=()=>{ download(`LinKingFC_${ALL_MATCHES.length}場.json`,JSON.stringify({matches:ALL_MATCHES,players:PLAYERS,count:ALL_MATCHES.length,updated:Date.now(),maxKeep:3650},null,2),'application/json'); };
-$('#exportDiscord').onclick=()=>{
-  const lines=filtered.slice(0,20).map(m=>{ const ic=m.result==='W'?'🟢':m.result==='L'?'🔴':'🟡'; return `${ic} ${fmtDate(m.ts)} vs ${m.opponent} ${m.sf}-${m.sa} | DATE ${m.ts}`; });
-  const txt='```\n'+lines.join('\n')+'\n```'; navigator.clipboard.writeText(txt); alert('已複製 Discord 格式（前20場）到剪貼簿');
-};
+document.getElementById('oppSearch').addEventListener('input',e=>{ const q=e.target.value.toLowerCase(); FIL=ALL.filter(m=>!q||m.oppName.toLowerCase().includes(q)); page=0; renderKPI(); renderTable(); });
+document.getElementById('typeFilter').addEventListener('change',e=>{ const t=e.target.value; FIL= t==='all'?ALL.slice():ALL.filter(m=> (m.type||'').toLowerCase().includes(t.toLowerCase()) ); page=0; renderKPI(); renderTable(); });
+document.getElementById('pSearch').addEventListener('input',renderPlayers);
+document.getElementById('prev').onclick=()=>{ if(page>0){ page--; renderTable(); } };
+document.getElementById('next').onclick=()=>{ if((page+1)*PS<FIL.length){ page++; renderTable(); } };
+document.getElementById('exportCsv').onclick=()=>{ const rows=FIL; const bom='\uFEFF'; const head=['DATE','timestamp','對手','比分','賽果','類型','入球','失球','對手ID','matchId']; const lines=[head.join(',')]; rows.forEach(m=>{ lines.push([`"${fmt(m.ts)}"`,m.ts,`"${m.oppName.replace(/"/g,'""')}"`,`"${m.sf}-${m.sa}"`,m.res,`"${m.type}"`,m.sf,m.sa,m.oppId,m.id].join(',')); }); const blob=new Blob([bom+lines.join('\n')],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`LinKingFC_${rows.length}場_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
 load();
 </script>
 </body>
