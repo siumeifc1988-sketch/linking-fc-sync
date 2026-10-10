@@ -1,4 +1,4 @@
-name: LinKing FC Sync - Full (curl_cffi chrome110 + Firebase 3650)
+name: LinKing FC Sync - Full (chrome110 + Firebase 3650)
 
 on:
   schedule:
@@ -33,15 +33,18 @@ jobs:
         run: |
           python scripts/fetch_ea_PLUS.py
 
-      - name: Commit data
+      - name: Commit data with rebase
         run: |
           git config user.name "linking-fc-bot"
           git config user.email "bot@linking.fc"
+          # 關鍵：先拉最新 remote，避免你手動上傳 index.html 同 bot 搶 push
+          git pull --rebase origin main || git pull origin main || echo "pull rebase try"
           git add data/matches.json data/players.json data/summary.json data/archive/ || true
           git diff --cached --quiet && echo "無新數據" && exit 0
           COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
           git commit -m "auto: ${COUNT}場 sync $(date -u +'%Y-%m-%d %H:%M UTC') [chrome110+firebase]"
-          git push
+          # push 重試 3 次
+          for i in 1 2 3; do git push && break || { echo "push fail retry $i"; git pull --rebase origin main; sleep 2; }; done
 
       - name: Deploy note
-        run: echo "data 已更新，GitHub Pages 會自動部署，Firebase 已同步到 matches/ + clubs/41026/matches"
+        run: echo "data 已更新，GitHub Pages 自動部署"
