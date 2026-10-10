@@ -120,32 +120,46 @@ def parse_members(raw):
     for p in members[:150]:
         if not isinstance(p, dict):
             continue
+        # EA career/stats 官方欄位較少，但有啲舊會仍有 redCards / yellowCards / fouls，全部盡量抓
+        def gi(k): 
+            try: return int(float(str(p.get(k) or 0)))
+            except: return 0
+        def gf(k):
+            try: return float(p.get(k) or 0)
+            except: return 0
+        # 紅牌、黃牌、犯規 - EA有時叫 fouls / foulsCommitted / foulsAgainst / yellowCards / yellowReds
         cleaned.append({
             "name": p.get("name") or p.get("proName") or "Unknown",
             "proName": p.get("proName") or "",
-            "gamesPlayed": int(p.get("gamesPlayed") or 0),
-            "winRate": int(p.get("winRate") or 0),
-            "goals": int(p.get("goals") or 0),
-            "assists": int(p.get("assists") or 0),
-            "cleanSheetsDef": int(p.get("cleanSheetsDef") or 0),
-            "cleanSheetsGK": int(p.get("cleanSheetsGK") or 0),
-            "shotSuccessRate": float(p.get("shotSuccessRate") or 0),
-            "passesMade": int(p.get("passesMade") or 0),
-            "passSuccessRate": float(p.get("passSuccessRate") or 0),
-            "ratingAve": float(p.get("ratingAve") or p.get("rating") or 0),
-            "tacklesMade": int(p.get("tacklesMade") or 0),
-            "tackleSuccessRate": float(p.get("tackleSuccessRate") or 0),
-            "manOfTheMatch": int(p.get("manOfTheMatch") or 0),
-            "redCards": int(p.get("redCards") or 0),
+            "gamesPlayed": gi("gamesPlayed"),
+            "winRate": gi("winRate"),
+            "goals": gi("goals"),
+            "assists": gi("assists"),
+            "cleanSheetsDef": gi("cleanSheetsDef"),
+            "cleanSheetsGK": gi("cleanSheetsGK"),
+            "shotSuccessRate": gf("shotSuccessRate"),
+            "passesMade": gi("passesMade"),
+            "passSuccessRate": gf("passSuccessRate"),
+            "ratingAve": gf("ratingAve") or gf("rating"),
+            "tacklesMade": gi("tacklesMade"),
+            "tackleSuccessRate": gf("tackleSuccessRate"),
+            "manOfTheMatch": gi("manOfTheMatch"),
+            # 紀律
+            "redCards": gi("redCards") or gi("redcards"),
+            "yellowCards": gi("yellowCards") or gi("yellowcards") or gi("yellows"),
+            "yellowReds": gi("yellowReds"),
+            "fouls": gi("fouls") or gi("foulsCommitted") or gi("foulCommitted"),
+            "foulsAgainst": gi("foulsAgainst"),
             "favoritePosition": p.get("favoritePosition") or p.get("position") or "",
             "proPos": p.get("proPos") or "",
             "proOverall": str(p.get("proOverall") or p.get("proOverallStr") or ""),
             "proNationality": str(p.get("proNationality") or ""),
             "prevGoals": p.get("prevGoals") or 0,
+            "_raw_keys": list(p.keys())[:30]  # debug用，睇下EA實際回咗咩欄位
         })
     return sorted(cleaned, key=lambda x: (x["ratingAve"], x["goals"]), reverse=True)
 
-# 6a. 今季
+# 6a. 今季 (保留，方便對比，但前端已改為只用生涯)
 url_season = f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={CLUB_ID}"
 raw_season = cffi_get(url_season)
 time.sleep(1)
