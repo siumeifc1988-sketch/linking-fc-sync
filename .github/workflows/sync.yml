@@ -37,7 +37,8 @@ jobs:
         run: |
           git config user.name "linking-fc-bot"
           git config user.email "bot@linking.fc"
-          git add data/matches.json data/players.json data/players_career.json data/summary.json data/archive/ || true
+          git add -A data/ || true
+          mkdir -p data/archive
           git diff --cached --quiet && echo "無新數據" && exit 0
           COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
           git commit -m "auto: ${COUNT}場 sync $(date -u +'%Y-%m-%d %H:%M UTC') [chrome110+firebase+career]"
