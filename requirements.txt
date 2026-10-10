@@ -2,3 +2,4 @@ curl-cffi>=0.8.0
 requests==2.31.0
 pandas==2.2.2
 fc-clubs-api==0.3.0
+firebase-admin==6.5.0
