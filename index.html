@@ -31,7 +31,7 @@
 .matchMeta{font-size:11px;color:#888}
 .teamHead{display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px 0}
 .teamHead b{font-size:14px;color:#fff}
-.agg10{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.agg10{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:10px 0}
 .agg10 div{background:#1e1e1e;border:1px solid #262626;border-radius:12px;padding:10px;text-align:center}
 .agg10 b{display:block;color:#fff;font-size:14px}
 .agg10 span{font-size:11px;color:#888}
@@ -40,14 +40,14 @@
 @media(max-width:900px){.compareGrid{grid-template-columns:1fr}}
 .teamTag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;margin-left:6px}
 .my{background:#fff;color:#000}.opp{background:#2a2a2a;color:#aaa}
-</style>
+.badge{display:inline-block;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:800}.badge-xg{background:#1a2a1a;color:#4ade80}.badge-xa{background:#1a1a2a;color:#60a5fa}.badge-xgi{background:#2a1a2a;color:#fbbf24}</style>
 </head>
 <body>
 <div class="h"><b style="color:#fff">LinKing FC 41026</b><span class="mono" id="st"></span></div>
 <div class="card"><div class="kpi" id="kpi"></div></div>
 <div id="view-matches"><div class="card"><div style="display:flex;gap:8px"><input id="qOpp" class="input" placeholder="搜對手"><select id="qRes" class="input" style="max-width:90px"><option value="all">全部</option><option value="W">勝</option><option value="L">負</option><option value="D">和</option></select></div></div><div id="mlist"></div><div style="height:130px"></div></div>
 <div id="view-players" class="hidden">
-<div class="card"><div style="display:flex;gap:8px"><input id="qP" class="input" placeholder="搜球員"><select id="qSort" class="input" style="max-width:110px"><option value="games">場次</option><option value="goals">入球</option><option value="rating">評分</option><option value="red">紅牌</option><option value="fouls">犯規</option></select></div><div id="plist" style="margin-top:12px"></div></div><div style="height:130px"></div></div>
+<div class="card"><div style="display:flex;gap:8px"><input id="qP" class="input" placeholder="搜球員"><select id="qSort" class="input" style="max-width:110px"><option value="games">場次</option><option value="xg">xG</option><option value="xa">xA</option><option value="xgi">xGI</option><option value="goals">入球</option><option value="rating">評分</option><option value="red">紅牌</option><option value="fouls">犯規</option></select></div><div id="plist" style="margin-top:12px"></div></div><div style="height:130px"></div></div>
 <div id="view-board" class="hidden"><div class="card"><div id="board"></div></div><div style="height:130px"></div></div>
 <div class="bottom"><button id="b-m" class="active" onclick="nav('matches')">⚽ 近10場</button><button id="b-p" onclick="nav('players')">👥 生涯</button><button id="b-d" onclick="nav('board')">📊 榜單</button></div>
 <script type="module">
@@ -66,18 +66,38 @@ function parsePlayer(p){
   const passAtt = Number(p.passattempts||p.passAttempts||0);
   const pm = succ || passesMade || 0;
   const pa = passAtt || (succ + (a[153]||0)) || pm;
+  const shots = Number(p.shots||a[100]||0);
+  const shotOn = Number(a[101]||p.shotsOn||0);
+  const shotOff = Math.max(0, shots - shotOn);
+  const insideBox = Number(a[106]||0);
+  const outsideBox = Number(a[107]||Math.max(0, shots - insideBox));
+  // xG 用已有資料估算 - 仿英超 StatsBomb 簡化版
+  let xg=0;
+  if(insideBox>0){ xg = shotOn*0.35 + (insideBox - shotOn)*0.12 + outsideBox*0.04; }
+  else { xg = shotOn*0.32 + shotOff*0.06; }
+  xg = Math.max(0, xg);
+  // xA 用關鍵傳球 + 助攻
+  const keyPass = Number(a[216]||p.keyPasses||0);
+  const assists = Number(p.assists||0);
+  const xa = keyPass*0.12 + assists*0.15;
+  const xgi = xg + xa;
+  const goals = Number(p.goals||0);
   return {
     name:p.playername||p.name||'Unknown',
     pos:p.pos||p.position||'',
     posCN:posCN(p.pos||p.position||''),
     rating:Number(p.rating||0),
-    goals:Number(p.goals||0),
-    assists:Number(p.assists||0),
-    shotOn:a[101]||Number(p.shotsOn||0)||0,
-    shots:Number(p.shots||a[100]||0),
+    goals:goals,
+    assists:assists,
+    shotOn:shotOn,
+    shots:shots,
+    xg:Number(xg.toFixed(2)),
+    xa:Number(xa.toFixed(2)),
+    xgi:Number(xgi.toFixed(2)),
+    xgDiff:Number((goals - xg).toFixed(2)),
     pm:pm,
     pa:pa,
-    keyPass:a[216]||Number(p.keyPasses||0)||0,
+    keyPass:keyPass,
     interceptions:a[24]||Number(p.interceptions||0)||0,
     clearances:a[30]||0,
     tk:Number(p.tacklesmade||p.tacklesMade||0),
@@ -118,7 +138,7 @@ async function load(){
     document.getElementById('mlist').innerHTML=`<div class="card" style="color:#f87171">Firebase 載入失敗: ${err.message}<br>請檢查 Firestore 規則</div>`;
   }
 }
-function renderKPI(){{ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失</div>`; }
+function renderKPI(){ const w=ALL.filter(m=>m.res==='W').length,d=ALL.filter(m=>m.res==='D').length,l=ALL.filter(m=>m.res==='L').length; const gf=ALL.reduce((s,m)=>s+m.sf,0),ga=ALL.reduce((s,m)=>s+m.sa,0); const xg=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xg||0),0),0), xga=ALL.reduce((s,m)=>s+(m.oppList||[]).reduce((a,p)=>a+(p.xg||0),0),0); const xa=ALL.reduce((s,m)=>s+(m.myList||[]).reduce((a,p)=>a+(p.xa||0),0),0); document.getElementById('kpi').innerHTML=`<div><b>${w}</b>勝</div><div><b>${d}</b>和</div><div><b>${l}</b>負</div><div><b>${gf}-${ga}</b>得失<br><span class="mono">xG ${xg.toFixed(1)}-${xga.toFixed(1)} xA ${xa.toFixed(1)}</span></div>`; }
 function renderMatches(){
   const wrap=document.getElementById('mlist'); wrap.innerHTML='';
   FIL.forEach((m,idx)=>{
@@ -126,6 +146,10 @@ function renderMatches(){
     const myGoals=m.myList.reduce((s,p)=>s+p.goals,0), oppGoals=m.oppList.reduce((s,p)=>s+p.goals,0);
     const myAssists=m.myList.reduce((s,p)=>s+p.assists,0), oppAssists=m.oppList.reduce((s,p)=>s+p.assists,0);
     const myShot=m.myList.reduce((s,p)=>s+p.shotOn,0), oppShot=m.oppList.reduce((s,p)=>s+p.shotOn,0);
+    const myShots=m.myList.reduce((s,p)=>s+p.shots,0), oppShots=m.oppList.reduce((s,p)=>s+p.shots,0);
+    const myXG=m.myList.reduce((s,p)=>s+p.xg,0), oppXG=m.oppList.reduce((s,p)=>s+p.xg,0);
+    const myXA=m.myList.reduce((s,p)=>s+p.xa,0), oppXA=m.oppList.reduce((s,p)=>s+p.xa,0);
+    const myXGI=m.myList.reduce((s,p)=>s+p.xgi,0), oppXGI=m.oppList.reduce((s,p)=>s+p.xgi,0);
     const myPass=m.myList.reduce((s,p)=>s+p.pm,0), oppPass=m.oppList.reduce((s,p)=>s+p.pm,0);
     const myKey=m.myList.reduce((s,p)=>s+p.keyPass,0), oppKey=m.oppList.reduce((s,p)=>s+p.keyPass,0);
     const myInt=m.myList.reduce((s,p)=>s+p.interceptions,0), oppInt=m.oppList.reduce((s,p)=>s+p.interceptions,0);
@@ -134,7 +158,7 @@ function renderMatches(){
     const mySave=m.myList.reduce((s,p)=>s+p.saves,0), oppSave=m.oppList.reduce((s,p)=>s+p.saves,0);
     const myRat=m.myList.length? (m.myList.reduce((s,p)=>s+p.rating,0)/m.myList.length).toFixed(1):'0.0';
     const oppRat=m.oppList.length? (m.oppList.reduce((s,p)=>s+p.rating,0)/m.oppList.length).toFixed(1):'0.0';
-    div.innerHTML=`<div class="matchRow" onclick="document.getElementById('${id}').classList.toggle('hidden')"><div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · ${m.myList.length}人 vs ${m.oppList.length}人</div></div><div class="score">${m.sf}-${m.sa}</div></div><div id="${id}" class="hidden"><div class="agg10"><div><b>${myGoals}-${oppGoals}</b><span>入球</span></div><div><b>${myAssists}-${oppAssists}</b><span>助攻</span></div><div><b>${myShot}-${oppShot}</b><span>射框</span></div><div><b>${myPass}-${oppPass}</b><span>成功傳球</span></div><div><b>${myKey}-${oppKey}</b><span>關鍵傳球</span></div><div><b>${myInt}-${oppInt}</b><span>攔截</span></div><div><b>${myClear}-${oppClear}</b><span>解圍</span></div><div><b>${myTk}-${oppTk}</b><span>剷球</span></div><div><b>${mySave}-${oppSave}</b><span>撲救</span></div><div><b>${myRat}-${oppRat}</b><span>評分</span></div></div><div class="compareGrid"><div><div class="teamHead"><b><span class="teamTag my">我隊</span> ${m.myList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>成功傳球</th><th>關鍵傳球</th><th>攔截</th><th>解圍</th><th>剷球</th><th>撲救</th><th>評分</th></tr>${m.myList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.interceptions}</td><td>${p.clearances}</td><td>${p.tk}</td><td>${p.saves}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div><div><div class="teamHead"><b><span class="teamTag opp">對手</span> ${m.oppList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>成功傳球</th><th>關鍵傳球</th><th>攔截</th><th>解圍</th><th>剷球</th><th>撲救</th><th>評分</th></tr>${m.oppList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.interceptions}</td><td>${p.clearances}</td><td>${p.tk}</td><td>${p.saves}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div></div></div>`;
+    div.innerHTML=`<div class="matchRow" onclick="document.getElementById('${id}').classList.toggle('hidden')"><div><div class="matchOpp">${m.opp} <span class="pill ${m.res}">${m.res}</span></div><div class="matchMeta">${fmt(m.ts)} · xG ${myXG.toFixed(2)}-${oppXG.toFixed(2)} xA ${myXA.toFixed(2)}-${oppXA.toFixed(2)} · ${m.myList.length}人 vs ${m.oppList.length}人</div></div><div class="score">${m.sf}-${m.sa}<div class="mono" style="font-size:10px">xG ${myXG.toFixed(1)}</div></div></div><div id="${id}" class="hidden"><div class="agg10"><div><b>${myGoals}-${oppGoals}</b><span>入球</span></div><div><b>${myAssists}-${oppAssists}</b><span>助攻</span></div><div><b>${myShot}-${oppShot}</b><span>射框</span></div><div><b>${myShots}-${oppShots}</b><span>射門</span></div><div><b>${myXG.toFixed(2)}-${oppXG.toFixed(2)}</b><span>xG預期入球</span></div><div><b>${myXA.toFixed(2)}-${oppXA.toFixed(2)}</b><span>xA預期助攻</span></div><div><b>${myXGI.toFixed(2)}-${oppXGI.toFixed(2)}</b><span>xGI預期參與</span></div><div><b>${myPass}-${oppPass}</b><span>成功傳球</span></div><div><b>${myKey}-${oppKey}</b><span>關鍵傳球</span></div><div><b>${myInt}-${oppInt}</b><span>攔截</span></div><div><b>${myClear}-${oppClear}</b><span>解圍</span></div><div><b>${myTk}-${oppTk}</b><span>剷球</span></div></div><div class="compareGrid"><div><div class="teamHead"><b><span class="teamTag my">我隊</span> ${m.myList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>射門</th><th>xG</th><th>xA</th><th>xGI</th><th>成功傳球</th><th>關鍵傳球</th><th>評分</th></tr>${m.myList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.shots}</td><td>${p.xg.toFixed(2)}</td><td>${p.xa.toFixed(2)}</td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div><div><div class="teamHead"><b><span class="teamTag opp">對手</span> ${m.oppList.length}人</b></div><div class="tableWrap"><table class="table"><tr><th>球員</th><th>位置</th><th>入球</th><th>助攻</th><th>射框</th><th>射門</th><th>xG</th><th>xA</th><th>xGI</th><th>成功傳球</th><th>關鍵傳球</th><th>評分</th></tr>${m.oppList.map(p=>`<tr><td><b style="color:#fff">${p.name}</b></td><td><span class="posTag ${posClass(p.pos)}">${p.posCN}</span></td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shotOn}</td><td>${p.shots}</td><td>${p.xg.toFixed(2)}</td><td>${p.xa.toFixed(2)}</td><td><b style="color:#fff">${p.xgi.toFixed(2)}</b></td><td>${p.pm}/${p.pa}</td><td>${p.keyPass}</td><td>${p.rating.toFixed(1)}</td></tr>`).join('')}</table></div></div></div></div>`;
     wrap.appendChild(div);
   });
 }
