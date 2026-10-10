@@ -28,13 +28,27 @@ HEADERS = {
 }
 
 def cffi_get(url):
-    try:
-        r = curl_requests.get(url, headers=HEADERS, impersonate="chrome124", timeout=30)
-        print(f"GET {url} -> {r.status_code} len={len(r.text)}")
-        if r.status_code == 200 and r.text:
-            return r.json()
-    except Exception as e:
-        print(f"失敗 {url}: {e}")
+    # curl-cffi 0.6.2 只支援到 chrome110，0.10+ 才有 chrome124，兼容處理
+    for imp in ["chrome110", "chrome120", "chrome124", "chrome"]:
+        try:
+            r = curl_requests.get(url, headers=HEADERS, impersonate=imp, timeout=30)
+            print(f"GET {url} [{imp}] -> {r.status_code} len={len(r.text) if r.text else 0}")
+            if r.status_code == 200 and r.text:
+                try:
+                    return r.json()
+                except:
+                    # 有時 EA 回空或非 JSON
+                    return None
+            if r.status_code in [403, 429]:
+                time.sleep(1)
+                continue
+        except Exception as e:
+            # "Impersonating xxx is not supported" 就試下一個
+            if "not supported" in str(e).lower() or "unsupported" in str(e).lower():
+                print(f"imp {imp} 不支援，試下一個: {e}")
+                continue
+            print(f"失敗 {url} [{imp}]: {e}")
+            time.sleep(0.8)
     return None
 
 Path("data/archive").mkdir(parents=True, exist_ok=True)
@@ -88,7 +102,7 @@ json.dump({
     "count": len(recent),
     "updated": int(time.time()),
     "maxKeep": MAX_KEEP,
-    "method": "curl_cffi chrome124"
+    "method": "curl_cffi chrome110-compatible"
 }, open("data/matches.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"[3] data/matches.json {len(recent)}場 {os.path.getsize('data/matches.json')//1024}KB")
 
