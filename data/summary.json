@@ -1,0 +1,12 @@
+{
+  "updated": 1791602544,
+  "clubId": "41026",
+  "clubName": "LinKing FC",
+  "source": "fc27-clubs-api (big data, 不入raw)",
+  "mode": "bigdata - 即查即用",
+  "clubInfoError": "'FC27API' object has no attribute 'get_club_info'",
+  "compareExample": {
+    "how": "api.search_club('對手名') -> get_club_matches() -> 對比 W/D/L, GF/GA",
+    "code": "club_id = api.find_club_id('Eternal Blue FC'); df = api.get_club_matches(club_id)"
+  }
+}

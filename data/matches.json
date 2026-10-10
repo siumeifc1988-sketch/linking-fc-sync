@@ -7466,6 +7466,8 @@
       "_matchType": "leagueMatch"
     }
   ],
-  "updated": 1791584895,
-  "count": 10
+  "count": 10,
+  "updated": 1791602542,
+  "maxKeep": 3650,
+  "method": "curl_cffi chrome124"
 }
