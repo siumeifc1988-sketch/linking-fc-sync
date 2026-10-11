@@ -345,7 +345,7 @@
     {
       "name": "WESKER_MAHON",
       "proName": "",
-      "gamesPlayed": 87,
+      "gamesPlayed": 92,
       "winRate": 0,
       "goals": 0,
       "assists": 1,
@@ -363,8 +363,8 @@
       "yellowReds": 0,
       "fouls": 0,
       "foulsAgainst": 0,
-      "favoritePosition": "midfielder",
-      "proPos": "14",
+      "favoritePosition": "defender",
+      "proPos": "5",
       "proOverall": "",
       "proNationality": "",
       "prevGoals": "0",
@@ -496,6 +496,6 @@
     }
   ],
   "count": 13,
-  "updated": 1791733915,
+  "updated": 1791748353,
   "type": "career"
 }
