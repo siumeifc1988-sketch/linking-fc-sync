@@ -193,9 +193,9 @@
     {
       "name": "ZyAMarco",
       "proName": "",
-      "gamesPlayed": 169,
+      "gamesPlayed": 170,
       "winRate": 0,
-      "goals": 73,
+      "goals": 74,
       "assists": 47,
       "cleanSheetsDef": 0,
       "cleanSheetsGK": 0,
@@ -215,7 +215,7 @@
       "proPos": "25",
       "proOverall": "",
       "proNationality": "",
-      "prevGoals": "3",
+      "prevGoals": "1",
       "_raw_keys": [
         "name",
         "proPos",
@@ -496,6 +496,6 @@
     }
   ],
   "count": 13,
-  "updated": 1791695568,
+  "updated": 1791696248,
   "type": "career"
 }
