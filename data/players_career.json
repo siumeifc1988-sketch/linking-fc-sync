@@ -193,10 +193,10 @@
     {
       "name": "ZyAMarco",
       "proName": "",
-      "gamesPlayed": 171,
+      "gamesPlayed": 180,
       "winRate": 0,
-      "goals": 76,
-      "assists": 48,
+      "goals": 83,
+      "assists": 49,
       "cleanSheetsDef": 0,
       "cleanSheetsGK": 0,
       "shotSuccessRate": 0.0,
@@ -205,7 +205,7 @@
       "ratingAve": 7.5,
       "tacklesMade": 0,
       "tackleSuccessRate": 0.0,
-      "manOfTheMatch": 30,
+      "manOfTheMatch": 32,
       "redCards": 0,
       "yellowCards": 0,
       "yellowReds": 0,
@@ -215,7 +215,7 @@
       "proPos": "25",
       "proOverall": "",
       "proNationality": "",
-      "prevGoals": "2",
+      "prevGoals": "1",
       "_raw_keys": [
         "name",
         "proPos",
@@ -496,6 +496,6 @@
     }
   ],
   "count": 13,
-  "updated": 1791698227,
+  "updated": 1791709711,
   "type": "career"
 }
