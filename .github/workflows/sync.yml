@@ -1,8 +1,10 @@
+
 name: linking-fc-sync
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # 每30分鐘，你而家嗰個太密會撞
+    # 舊設定統一 - 每2小時跑一次，唔用每30分鐘，避免撞 (你舊註解：太密會撞)
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -35,9 +37,8 @@ jobs:
 
       - name: Pull latest (overwrite local data)
         run: |
-          # 本地 data 係衍生數據，直接用遠程為準，避免 JSON conflict
           git checkout -- data/ || true
-          git pull --rebase origin main || git pull origin main --no-rebase
+          git pull --rebase origin main || git pull origin main --no-rebase || true
 
       - name: Fetch EA and upload Firebase
         env:
@@ -46,12 +47,19 @@ jobs:
         run: |
           python scripts/fetch_ea_PLUS.py
 
+      - name: Build player_10_agg Event Code FULL (217/215/6/0/105/219/177)
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          python scripts/build_player_10_agg_EVENT_CODE.py
+
       - name: Commit & Push
         run: |
           git add -A data/ || true
           git diff --cached --quiet && echo "無新數據" && exit 0
           COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
-          git commit -m "auto: ${COUNT}場 sync $(date -u +'%Y-%m-%d %H:%M UTC') [chrome110+firebase+career]"
+          AGG=$(python -c "import json; print(json.load(open('data/players_agg.json')).get('count',0))" 2>/dev/null || echo "?")
+          git commit -m "auto: ${COUNT}場 ${AGG}人 Event Code FULL sync $(date -u +'%Y-%m-%d %H:%M UTC') [unified]"
           for i in 1 2 3; do
             git push && break || {
               echo "push retry $i"
