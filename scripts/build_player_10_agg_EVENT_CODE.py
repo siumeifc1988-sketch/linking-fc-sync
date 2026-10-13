@@ -1,14 +1,7 @@
 
 """
-scripts/build_player_10_agg_EVENT_CODE.py
-讀 data/matches.json (你現有 3650場去重)，用你提供嘅 FC27 Event Code 對照表建立 player_10_agg
-輸出: data/players_agg.json (FULL) + 上傳 舊 Firebase football-signup-64bd9 player_10_agg
-
-Event Code 對照:
-射門 217=中龍 218=唔中龍 13/14禁區內 18/19禁區外 214入球 11助攻 202被撲救
-傳球 215成功 216失敗 24-37短中長前後橫 143一腳 144轉邊 147花式 152直塞 153越位
-防守 0成功搶斷 1失敗 229站立 230滑剷 6截傳 156封堵 265/266爭頂 108-110奪回 105-107丟波
-走位 111正確 219失誤 175無好選擇 176好選擇 177最好選擇
+scripts/build_player_10_agg_EVENT_CODE.py - FIX 0 問題
+讀 data/matches.json，兼容 string/int key，EA API 有時係 "217" 字串
 """
 import json, os, time
 from pathlib import Path
@@ -17,16 +10,28 @@ CLUB_ID = "41026"
 
 def gi(p, *keys):
     for k in keys:
-        if k in p and p[k] is not None:
-            try: return int(float(p[k]))
-            except: pass
+        # 試 int, str, 和 "event_x" 格式
+        for cand in [k, str(k), f"event_{k}"]:
+            if cand in p and p[cand] is not None:
+                try: return int(float(p[cand]))
+                except: pass
+            # 有時 stats 在 p["stats"] 入面
+            if "stats" in p and isinstance(p["stats"], dict):
+                if cand in p["stats"] and p["stats"][cand] is not None:
+                    try: return int(float(p["stats"][cand]))
+                    except: pass
     return 0
 
 def gf(p, *keys):
     for k in keys:
-        if k in p and p[k] is not None:
-            try: return float(p[k])
-            except: pass
+        for cand in [k, str(k)]:
+            if cand in p and p[cand] is not None:
+                try: return float(p[cand])
+                except: pass
+            if "stats" in p and isinstance(p["stats"], dict):
+                if cand in p["stats"]:
+                    try: return float(p["stats"][cand])
+                    except: pass
     return 0.0
 
 EVENT_CODES = {
@@ -51,35 +56,40 @@ EVENT_CODES = {
     "99_失誤嚴重度1": 99, "100_失誤嚴重度2": 100, "101_失誤嚴重度3": 101, "102_失誤嚴重度4": 102, "103_失誤嚴重度5": 103,
     "212_回饋多用波": 212, "207_回饋揀啱傳球": 207, "175_回饋無好選擇": 175, "176_回饋好選擇": 176, "177_回饋最好選擇": 177,
     "182_回饋應該傳去第二度": 182, "183_回饋選擇傳球": 183,
-    "96_紅牌觸發": 96, "104_越位": 104,
 }
 
 Path("data").mkdir(exist_ok=True)
 
-# 1. 讀你現有 data/matches.json
-matches_path = "data/matches.json"
-if not os.path.exists(matches_path):
-    print("data/matches.json 不存在，先跑 fetch_ea_PLUS.py")
-    exit(1)
-
-data = json.load(open(matches_path, encoding="utf-8"))
+data = json.load(open("data/matches.json", encoding="utf-8"))
 matches = data.get("matches", [])
-print(f"[1] 讀 {len(matches)} 場 from {matches_path}")
+print(f"[1] 讀 {len(matches)} 場")
 
-# 去重 by matchId (你 fetch_ea_PLUS.py 已做，但再保險)
+# DEBUG: 印第一場第一個球員有咩 key
+if matches:
+    m0 = matches[0]
+    clubs = m0.get("clubs", {})
+    cd = clubs.get(CLUB_ID) or clubs.get(int(CLUB_ID)) or {}
+    players = cd.get("players", {}) or m0.get("players", {})
+    if players:
+        pid0 = list(players.keys())[0]
+        p0 = players[pid0]
+        print(f"[DEBUG] 第一場 player {p0.get('playername')} keys sample: {list(p0.keys())[:50]}")
+        if "stats" in p0:
+            print(f"[DEBUG] stats keys: {list(p0['stats'].keys())[:50]}")
+
 unique = {}
 for m in matches:
     mid = str(m.get("matchId") or m.get("id") or "")
     if not mid: continue
     unique[mid]=m
-print(f"[2] 去重後 {len(unique)} 場 unique，保證唔會一場變兩場")
+print(f"[2] 去重 {len(unique)} 場")
 
 agg_map={}
 for mid, m in unique.items():
     clubs = m.get("clubs", {})
-    club_data = clubs.get(CLUB_ID) or clubs.get(int(CLUB_ID)) or clubs.get(str(CLUB_ID)) or {}
-    if not club_data: club_data=m
-    players = club_data.get("players", {}) or m.get("players", {})
+    cd = clubs.get(CLUB_ID) or clubs.get(int(CLUB_ID)) or clubs.get(str(CLUB_ID)) or {}
+    if not cd: cd=m
+    players = cd.get("players", {}) or m.get("players", {})
     for pid, p in players.items():
         name = p.get("playername") or p.get("name") or str(pid)
         if name not in agg_map:
@@ -92,9 +102,7 @@ for mid, m in unique.items():
             }
             for k in EVENT_CODES:
                 agg_map[name][k]=0
-                # 同時存 event_xxx 方便舊 bot
-                code = EVENT_CODES[k]
-                agg_map[name][f"event_{code}"]=0
+                agg_map[name][f"event_{EVENT_CODES[k]}"]=0
             agg_map[name]["總射門"]=0
             agg_map[name]["禁區內"]=0
             agg_map[name]["禁區外"]=0
@@ -108,10 +116,9 @@ for mid, m in unique.items():
             g[k]=g.get(k,0)+v
             g[f"event_{code}"]=g.get(f"event_{code}",0)+v
 
-        # 衍生
-        g["總射門"]= (g.get("217_中龍",0) + g.get("218_唔中龍",0))
-        g["禁區內"]= (g.get("13_中龍_禁區內",0) + g.get("14_唔中_禁區內",0))
-        g["禁區外"]= (g.get("18_中龍_禁區外",0) + g.get("19_唔中_禁區外",0))
+        g["總射門"]= g.get("217_中龍",0) + g.get("218_唔中龍",0)
+        g["禁區內"]= g.get("13_中龍_禁區內",0) + g.get("14_唔中_禁區內",0)
+        g["禁區外"]= g.get("18_中龍_禁區外",0) + g.get("19_唔中_禁區外",0)
         g["goals"]= g.get("214_入球",0)
         g["assists"]= g.get("11_助攻",0)
         g["passes"]= g.get("215_成功傳球",0)
@@ -121,21 +128,17 @@ for mid, m in unique.items():
         g["event_105"]= g.get("105_防守三區丟波",0)
         g["event_219"]= g.get("219_走位失誤總數",0)
         g["event_177"]= g.get("177_回饋最好選擇",0)
-        g["event_105_後場丟波"]= g["event_105"]
-        g["event_219_走位失誤"]= g["event_219"]
-        g["event_177_最佳選擇"]= g["event_177"]
 
-        g["rating_sum"]= g.get("rating_sum",0) + gf(p, "rating", "overallRating", "ratingAve")
+        g["rating_sum"]= g.get("rating_sum",0) + gf(p, "rating", "overallRating", "ratingAve", "mom")
         g["avg_rating"]= g["rating_sum"]/g["matches"] if g["matches"] else 0
 
 out = sorted(agg_map.values(), key=lambda x: x["matches"], reverse=True)
-Path("data/players_agg.json").write_text(json.dumps({"players": out, "count": len(out), "matches": len(unique), "updated": int(time.time()), "type": "event_code_full"}, ensure_ascii=False, indent=2), encoding="utf-8")
-print(f"[3] data/players_agg.json {len(out)} 球員, {len(unique)}場")
-
-# 同時出舊 Firebase 格式 player_10_agg.json (方便你 V300 bot)
+Path("data/players_agg.json").write_text(json.dumps({"players": out, "count": len(out), "matches": len(unique), "updated": int(time.time()), "type": "event_code_full_fix0"}, ensure_ascii=False, indent=2), encoding="utf-8")
 Path("data/player_10_agg.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+print(f"[3] data/players_agg.json {len(out)}人 {len(unique)}場")
+for p in out[:5]:
+    print(f"  {p['player_name']}: {p['matches']}場 G{p['goals']} 217={p['217_中龍']} 215={p['215_成功傳球']} 105={p['105_防守三區丟波']} 219={p['219_走位失誤總數']} 177={p['177_回饋最好選擇']}")
 
-# 上傳 Firebase 舊有 football-signup-64bd9 (如果有 key)
 try:
     if os.getenv("FIREBASE_SERVICE_ACCOUNT") or os.path.exists("firebase-key.json"):
         import firebase_admin
@@ -151,24 +154,18 @@ try:
             cred = credentials.Certificate(cred_dict)
         else:
             cred = credentials.Certificate("firebase-key.json")
-
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
-
         db = firestore.client()
-        # 舊 Firebase 舊有 football-signup-64bd9 係用另一個 project？呢度用同一個 service account 都得，collection 係 player_10_agg
-        # 如果你有舊 API_KEY 方式，sync.yml 會用 REST patch，呢度用 admin SDK
         for player in out:
             doc_id = player["player_name"].replace("/","_").replace(" ","_")[:100]
             db.collection("player_10_agg").document(doc_id).set(player, merge=True)
-        print(f"[4] Firestore player_10_agg {len(out)}人 OK (新 project linking-fc)")
-
-        # 同時上傳到 clubs/41026/members_agg
+        print(f"[4] Firestore player_10_agg {len(out)}人 OK")
         for player in out:
             doc_id = player["player_name"].replace("/","_").replace(" ","_")[:100]
             db.collection("clubs").document(CLUB_ID).collection("members_agg").document(doc_id).set(player, merge=True)
         print(f"[5] clubs/41026/members_agg OK")
 except Exception as e:
-    print(f"Firebase 舊有跳過: {e}")
+    print(f"Firebase 跳過: {e}")
 
-print("=== Event Code FULL 完成 ===")
+print("=== FIX0 完成 ===")
