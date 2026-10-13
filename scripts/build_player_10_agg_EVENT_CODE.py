@@ -1,38 +1,41 @@
 
 """
-scripts/build_player_10_agg_EVENT_CODE.py - FIX 0 問題
-讀 data/matches.json，兼容 string/int key，EA API 有時係 "217" 字串
+scripts/build_player_10_agg_EVENT_CODE.py - FINAL FIX
+根據 fc27-clubs-api 官方文件：
+- matches[].players["41026"][playerId] 係球員
+- Event Code 喺 match_event_aggregate_0/1/2/3 入面，格式 "215:21,216:5,217:3"
+參考：https://github.com/1erkandogan/fc27-clubs-api/blob/main/docs/match-events.md
 """
 import json, os, time
 from pathlib import Path
 
-CLUB_ID = "41026"
+CLUB_ID_STR = "41026"
+CLUB_ID_INT = 41026
 
-def gi(p, *keys):
-    for k in keys:
-        # 試 int, str, 和 "event_x" 格式
-        for cand in [k, str(k), f"event_{k}"]:
-            if cand in p and p[cand] is not None:
-                try: return int(float(p[cand]))
-                except: pass
-            # 有時 stats 在 p["stats"] 入面
-            if "stats" in p and isinstance(p["stats"], dict):
-                if cand in p["stats"] and p["stats"][cand] is not None:
-                    try: return int(float(p["stats"][cand]))
-                    except: pass
-    return 0
+def parse_event_aggregates(player):
+    """parse 0:1,215:21,217:3 -> {215:21, 217:3} """
+    result = {}
+    for i in range(4):
+        key = f"match_event_aggregate_{i}"
+        raw = player.get(key, "") or ""
+        if not raw:
+            continue
+        # raw 係 string "0:2,1:1,215:21"
+        for pair in raw.split(","):
+            pair=pair.strip()
+            if not pair or ":" not in pair:
+                continue
+            try:
+                eid_str, cnt_str = pair.split(":", 1)
+                eid = int(eid_str.strip())
+                cnt = int(cnt_str.strip())
+                result[eid] = result.get(eid, 0) + cnt
+            except:
+                continue
+    return result
 
-def gf(p, *keys):
-    for k in keys:
-        for cand in [k, str(k)]:
-            if cand in p and p[cand] is not None:
-                try: return float(p[cand])
-                except: pass
-            if "stats" in p and isinstance(p["stats"], dict):
-                if cand in p["stats"]:
-                    try: return float(p["stats"][cand])
-                    except: pass
-    return 0.0
+def gi_event(ev_dict, code):
+    return ev_dict.get(code, 0) or ev_dict.get(str(code), 0)
 
 EVENT_CODES = {
     "217_中龍": 217, "218_唔中龍": 218,
@@ -62,36 +65,64 @@ Path("data").mkdir(exist_ok=True)
 
 data = json.load(open("data/matches.json", encoding="utf-8"))
 matches = data.get("matches", [])
-print(f"[1] 讀 {len(matches)} 場")
+print(f"[1] 讀 {len(matches)} 場 from data/matches.json")
 
-# DEBUG: 印第一場第一個球員有咩 key
+# DEBUG 第一場結構
 if matches:
     m0 = matches[0]
-    clubs = m0.get("clubs", {})
-    cd = clubs.get(CLUB_ID) or clubs.get(int(CLUB_ID)) or {}
-    players = cd.get("players", {}) or m0.get("players", {})
-    if players:
-        pid0 = list(players.keys())[0]
-        p0 = players[pid0]
-        print(f"[DEBUG] 第一場 player {p0.get('playername')} keys sample: {list(p0.keys())[:50]}")
-        if "stats" in p0:
-            print(f"[DEBUG] stats keys: {list(p0['stats'].keys())[:50]}")
+    print(f"[DEBUG] m0 keys: {list(m0.keys())[:20]}")
+    print(f"[DEBUG] m0 has players: {'players' in m0}, clubs: {'clubs' in m0}")
+    if "players" in m0:
+        print(f"[DEBUG] m0.players keys (clubIds): {list(m0['players'].keys())[:10]}")
+        cp = m0["players"].get(CLUB_ID_STR) or m0["players"].get(CLUB_ID_INT) or {}
+        if cp:
+            pid0 = next(iter(cp.keys()), None)
+            if pid0:
+                p0 = cp[pid0]
+                print(f"[DEBUG] 第一球員 ID {pid0} name={p0.get('playername')} keys sample: {list(p0.keys())[:20]}")
+                print(f"[DEBUG] match_event_aggregate_0 sample: {str(p0.get('match_event_aggregate_0','')[:150])}")
+                ev = parse_event_aggregates(p0)
+                print(f"[DEBUG] parsed events sample: {dict(list(ev.items())[:20])}")
 
 unique = {}
 for m in matches:
     mid = str(m.get("matchId") or m.get("id") or "")
     if not mid: continue
     unique[mid]=m
-print(f"[2] 去重 {len(unique)} 場")
+print(f"[2] 去重後 {len(unique)} 場 unique")
 
 agg_map={}
 for mid, m in unique.items():
-    clubs = m.get("clubs", {})
-    cd = clubs.get(CLUB_ID) or clubs.get(int(CLUB_ID)) or clubs.get(str(CLUB_ID)) or {}
-    if not cd: cd=m
-    players = cd.get("players", {}) or m.get("players", {})
-    for pid, p in players.items():
+    # 新結構：players[clubId][playerId]
+    players_by_club = m.get("players", {})
+    club_players = None
+    if isinstance(players_by_club, dict):
+        club_players = players_by_club.get(CLUB_ID_STR) or players_by_club.get(CLUB_ID_INT)
+        # 有時 clubId 係 int key 轉 string，試晒
+        if not club_players:
+            for k,v in players_by_club.items():
+                if str(k)==CLUB_ID_STR:
+                    club_players=v
+                    break
+    # 舊結構兼容：clubs[clubId].players
+    if not club_players:
+        clubs = m.get("clubs", {})
+        if isinstance(clubs, dict):
+            cd = clubs.get(CLUB_ID_STR) or clubs.get(CLUB_ID_INT)
+            if cd and isinstance(cd, dict):
+                club_players = cd.get("players", {})
+
+    if not club_players or not isinstance(club_players, dict):
+        continue
+
+    for pid, p in club_players.items():
+        if not isinstance(p, dict):
+            continue
         name = p.get("playername") or p.get("name") or str(pid)
+        # 過濾 clubId 誤當 player
+        if str(name)==CLUB_ID_STR or str(pid)==CLUB_ID_STR:
+            continue
+
         if name not in agg_map:
             agg_map[name]={
                 "player_name": name,
@@ -104,15 +135,15 @@ for mid, m in unique.items():
                 agg_map[name][k]=0
                 agg_map[name][f"event_{EVENT_CODES[k]}"]=0
             agg_map[name]["總射門"]=0
-            agg_map[name]["禁區內"]=0
-            agg_map[name]["禁區外"]=0
             agg_map[name]["goals"]=0
             agg_map[name]["assists"]=0
+
+        ev = parse_event_aggregates(p)
 
         g=agg_map[name]
         g["matches"]+=1
         for k, code in EVENT_CODES.items():
-            v = gi(p, code)
+            v = gi_event(ev, code)
             g[k]=g.get(k,0)+v
             g[f"event_{code}"]=g.get(f"event_{code}",0)+v
 
@@ -129,15 +160,19 @@ for mid, m in unique.items():
         g["event_219"]= g.get("219_走位失誤總數",0)
         g["event_177"]= g.get("177_回饋最好選擇",0)
 
-        g["rating_sum"]= g.get("rating_sum",0) + gf(p, "rating", "overallRating", "ratingAve", "mom")
+        try:
+            rating = float(p.get("rating") or p.get("overallRating") or 0)
+        except:
+            rating=0
+        g["rating_sum"]= g.get("rating_sum",0) + rating
         g["avg_rating"]= g["rating_sum"]/g["matches"] if g["matches"] else 0
 
 out = sorted(agg_map.values(), key=lambda x: x["matches"], reverse=True)
-Path("data/players_agg.json").write_text(json.dumps({"players": out, "count": len(out), "matches": len(unique), "updated": int(time.time()), "type": "event_code_full_fix0"}, ensure_ascii=False, indent=2), encoding="utf-8")
+Path("data/players_agg.json").write_text(json.dumps({"players": out, "count": len(out), "matches": len(unique), "updated": int(time.time()), "type": "event_code_final_parse_aggregate"}, ensure_ascii=False, indent=2), encoding="utf-8")
 Path("data/player_10_agg.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
 print(f"[3] data/players_agg.json {len(out)}人 {len(unique)}場")
-for p in out[:5]:
-    print(f"  {p['player_name']}: {p['matches']}場 G{p['goals']} 217={p['217_中龍']} 215={p['215_成功傳球']} 105={p['105_防守三區丟波']} 219={p['219_走位失誤總數']} 177={p['177_回饋最好選擇']}")
+for p in out[:10]:
+    print(f"  {p['player_name']}: {p['matches']}場 G{p['goals']} A{p['assists']} 217={p['217_中龍']} 215={p['215_成功傳球']} 6={p['6_截傳球']} 105={p['105_防守三區丟波']} 219={p['219_走位失誤總數']} 177={p['177_回饋最好選擇']} rating={p['avg_rating']:.2f}")
 
 try:
     if os.getenv("FIREBASE_SERVICE_ACCOUNT") or os.path.exists("firebase-key.json"):
@@ -163,9 +198,11 @@ try:
         print(f"[4] Firestore player_10_agg {len(out)}人 OK")
         for player in out:
             doc_id = player["player_name"].replace("/","_").replace(" ","_")[:100]
-            db.collection("clubs").document(CLUB_ID).collection("members_agg").document(doc_id).set(player, merge=True)
+            db.collection("clubs").document(CLUB_ID_STR).collection("members_agg").document(doc_id).set(player, merge=True)
         print(f"[5] clubs/41026/members_agg OK")
 except Exception as e:
+    import traceback
     print(f"Firebase 跳過: {e}")
+    traceback.print_exc()
 
-print("=== FIX0 完成 ===")
+print("=== FINAL FIX 完成 - 而家應該唔係 0 ===")
