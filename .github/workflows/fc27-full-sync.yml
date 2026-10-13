@@ -16,26 +16,28 @@ jobs:
           python-version: '3.11'
 
       - name: Install deps
-        run: |
-          pip install curl_cffi firebase-admin
+        run: pip install curl_cffi firebase-admin -r requirements.txt
+
+      - name: Debug list
+        run: ls -la && ls -la scripts/ && ls -la data/ || echo "no data"
 
       - name: Fetch EA matches + members
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
-        run: |
-          python fetch_ea_PLUS.py
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: python scripts/fetch_ea_PLUS.py
 
       - name: Build player_10_agg EVENT CODE
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          python build_player_10_agg_EVENT_CODE.py
+        run: python scripts/build_player_10_agg_EVENT_CODE.py
 
       - name: Commit data
         run: |
           git config user.name "fc27-bot"
           git config user.email "bot@linkingfc.com"
           git add data/matches.json data/players.json data/players_career.json data/players_agg.json data/player_10_agg.json || true
-          git diff --staged --quiet || git commit -m "sync $(date -u +%F) $(jq.count data/matches.json) matches"
+          git add data/ || true
+          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ) $(jq '.count // length' data/matches.json 2>/dev/null || echo 0) matches"
           git push
