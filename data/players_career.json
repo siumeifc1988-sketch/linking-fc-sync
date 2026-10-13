@@ -79,10 +79,10 @@
     {
       "name": "mingroy",
       "proName": "",
-      "gamesPlayed": 94,
+      "gamesPlayed": 99,
       "winRate": 0,
-      "goals": 70,
-      "assists": 60,
+      "goals": 76,
+      "assists": 61,
       "cleanSheetsDef": 0,
       "cleanSheetsGK": 0,
       "shotSuccessRate": 0.0,
@@ -91,7 +91,7 @@
       "ratingAve": 7.7,
       "tacklesMade": 0,
       "tackleSuccessRate": 0.0,
-      "manOfTheMatch": 17,
+      "manOfTheMatch": 18,
       "redCards": 0,
       "yellowCards": 0,
       "yellowReds": 0,
@@ -101,7 +101,7 @@
       "proPos": "25",
       "proOverall": "",
       "proNationality": "",
-      "prevGoals": "0",
+      "prevGoals": "3",
       "_raw_keys": [
         "name",
         "proPos",
@@ -496,6 +496,6 @@
     }
   ],
   "count": 13,
-  "updated": 1791910948,
+  "updated": 1791924722,
   "type": "career"
 }
