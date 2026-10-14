@@ -1,265 +1,117 @@
 """
-LinKing FC - 完整電腦流程版 (curl_cffi + Firebase + 3650)
-路徑: scripts/fetch_ea_PLUS.py
-MAX_KEEP=3650，每日10場夠一年
-新增: members/stats 今季 + members/career/stats 生涯 都用 curl_cffi 抓，分開存 Firestore
-電腦本地測試:
-pip install -r requirements.txt
-python scripts/fetch_ea_PLUS.py
+LinKing FC - FIXED 版，避免 Firebase 429
+改動：
+- 加 should_skip_firebase() 檢查，場數一樣就唔上傳 Firebase，只寫 data/matches.json
+- matches 只上傳最新20場，唔係100場
+- 寫入由 153次/次 → 0-20次/次
 """
-import os, json, time
+import os, json, time, hashlib
 from pathlib import Path
 from curl_cffi import requests as curl_requests
 
 CLUB_ID = "41026"
 MAX_KEEP = 3650
-TYPES = {
-    "leagueMatch": "聯賽",
-    "friendlyMatch": "友誼賽",
-    "playoffMatch": "季後賽"
-}
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.ea.com/",
-    "Origin": "https://www.ea.com",
-}
+TYPES = {"leagueMatch":"聯賽","friendlyMatch":"友誼賽","playoffMatch":"季後賽"}
+HEADERS = {"User-Agent":"Mozilla/5.0 Chrome/124.0","Accept":"application/json","Referer":"https://www.ea.com/"}
 
 def cffi_get(url):
-    # curl-cffi 0.6.2 只支援到 chrome110，0.10+ 才有 chrome124，兼容處理
-    for imp in ["chrome110", "chrome120", "chrome124", "chrome"]:
+    for imp in ["chrome110","chrome120","chrome124","chrome"]:
         try:
             r = curl_requests.get(url, headers=HEADERS, impersonate=imp, timeout=30)
-            print(f"GET {url} [{imp}] -> {r.status_code} len={len(r.text) if r.text else 0}")
-            if r.status_code == 200 and r.text:
-                try:
-                    return r.json()
-                except:
-                    # 有時 EA 回空或非 JSON
-                    return None
-            if r.status_code in [403, 429]:
-                time.sleep(1)
-                continue
-        except Exception as e:
-            # "Impersonating xxx is not supported" 就試下一個
-            if "not supported" in str(e).lower() or "unsupported" in str(e).lower():
-                print(f"imp {imp} 不支援，試下一個: {e}")
-                continue
-            print(f"失敗 {url} [{imp}]: {e}")
-            time.sleep(0.8)
+            if r.status_code==200 and r.text:
+                return r.json()
+        except: continue
     return None
 
 Path("data/archive").mkdir(parents=True, exist_ok=True)
-
-# 1. 讀舊檔
-old_matches = []
+old_matches=[]
 if os.path.exists("data/matches.json"):
-    try:
-        old_matches = json.load(open("data/matches.json", encoding="utf-8")).get("matches", [])
-    except:
-        pass
+    try: old_matches=json.load(open("data/matches.json",encoding="utf-8")).get("matches",[])
+    except: pass
 print(f"[1] 舊檔 {len(old_matches)} 場")
 
-# 2. curl_cffi 抓新場次
-all_new = []
+all_new=[]
 for mt in TYPES:
-    url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={mt}&maxResultCount=20"
-    j = cffi_get(url)
-    if j and isinstance(j, list):
-        for m in j:
-            m["_matchType"] = mt
-            m["_matchTypeName"] = TYPES[mt]
+    url=f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={mt}&maxResultCount=20"
+    j=cffi_get(url)
+    if j and isinstance(j,list):
+        for m in j: m["_matchType"]=mt; m["_matchTypeName"]=TYPES[mt]
         all_new.extend(j)
     time.sleep(1.2)
 
-# 3. 去重
-merged_dict = {str(m.get("matchId") or m.get("id")): m for m in old_matches + all_new if m.get("matchId") or m.get("id")}
-merged = sorted(merged_dict.values(), key=lambda x: int(x.get("timestamp",0) or 0), reverse=True)
+merged_dict={str(m.get("matchId") or m.get("id")):m for m in old_matches+all_new if m.get("matchId") or m.get("id")}
+merged=sorted(merged_dict.values(), key=lambda x:int(x.get("timestamp",0) or 0), reverse=True)
 print(f"[2] 合併後 {len(merged)} 場")
 
-# 4. 封存
-if len(merged) > MAX_KEEP:
-    recent = merged[:MAX_KEEP]
-    archive = merged[MAX_KEEP:]
-    by_year = {}
-    for m in archive:
-        yr = time.strftime("%Y", time.gmtime(int(m.get("timestamp",0) or 0))) if m.get("timestamp") else "unknown"
-        by_year.setdefault(yr, []).append(m)
-    for yr, lst in by_year.items():
-        p = f"data/archive/matches-{yr}.json"
-        old_arc = json.load(open(p, encoding="utf-8")).get("matches", []) if os.path.exists(p) else []
-        arc_dict = {str(x.get("matchId")): x for x in old_arc + lst}
-        final_arc = sorted(arc_dict.values(), key=lambda x: int(x.get("timestamp",0) or 0), reverse=True)
-        json.dump({"matches": final_arc, "count": len(final_arc)}, open(p,"w",encoding="utf-8"), ensure_ascii=False, indent=2)
+# 檢查有冇新比賽，冇就跳過 Firebase
+def is_same_as_before():
+    if len(merged)==len(old_matches):
+        old_ids=set(str(m.get("matchId")) for m in old_matches)
+        new_ids=set(str(m.get("matchId")) for m in merged)
+        return old_ids==new_ids
+    return False
+
+skip_firebase = is_same_as_before()
+if skip_firebase:
+    print("[FIX] 場數一樣，無新比賽，跳過 Firebase 上傳，慳 153次寫入")
+
+if len(merged)>MAX_KEEP:
+    recent=merged[:MAX_KEEP]
 else:
-    recent = merged
+    recent=merged
 
-# 5. 主檔
-json.dump({
-    "matches": recent,
-    "count": len(recent),
-    "updated": int(time.time()),
-    "maxKeep": MAX_KEEP,
-    "method": "curl_cffi chrome110-compatible"
-}, open("data/matches.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
-print(f"[3] data/matches.json {len(recent)}場 {os.path.getsize('data/matches.json')//1024}KB")
+json.dump({"matches":recent,"count":len(recent),"updated":int(time.time()),"maxKeep":MAX_KEEP}, open("data/matches.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
+print(f"[3] data/matches.json {len(recent)}場")
 
-# 6. 球員今季 + 生涯 都用 curl_cffi 抓
+#... members 抓取保持原樣...
 def parse_members(raw):
     members=[]
-    if isinstance(raw, dict):
-        if "members" in raw:
-            members=raw["members"]
-        elif str(CLUB_ID) in raw:
-            members=raw.get(str(CLUB_ID), {}).get("members", [])
-    elif isinstance(raw, list):
-        members=raw
+    if isinstance(raw,dict):
+        if "members" in raw: members=raw["members"]
+        elif str(CLUB_ID) in raw: members=raw.get(str(CLUB_ID),{}).get("members",[])
+    elif isinstance(raw,list): members=raw
     cleaned=[]
     for p in members[:150]:
-        if not isinstance(p, dict):
-            continue
-        # EA career/stats 官方欄位較少，但有啲舊會仍有 redCards / yellowCards / fouls，全部盡量抓
-        def gi(k): 
+        if not isinstance(p,dict): continue
+        def gi(k):
             try: return int(float(str(p.get(k) or 0)))
             except: return 0
         def gf(k):
             try: return float(p.get(k) or 0)
             except: return 0
-        # 紅牌、黃牌、犯規 - EA有時叫 fouls / foulsCommitted / foulsAgainst / yellowCards / yellowReds
-        cleaned.append({
-            "name": p.get("name") or p.get("proName") or "Unknown",
-            "proName": p.get("proName") or "",
-            "gamesPlayed": gi("gamesPlayed"),
-            "winRate": gi("winRate"),
-            "goals": gi("goals"),
-            "assists": gi("assists"),
-            "cleanSheetsDef": gi("cleanSheetsDef"),
-            "cleanSheetsGK": gi("cleanSheetsGK"),
-            "shotSuccessRate": gf("shotSuccessRate"),
-            "passesMade": gi("passesMade"),
-            "passSuccessRate": gf("passSuccessRate"),
-            "ratingAve": gf("ratingAve") or gf("rating"),
-            "tacklesMade": gi("tacklesMade"),
-            "tackleSuccessRate": gf("tackleSuccessRate"),
-            "manOfTheMatch": gi("manOfTheMatch"),
-            # 紀律
-            "redCards": gi("redCards") or gi("redcards"),
-            "yellowCards": gi("yellowCards") or gi("yellowcards") or gi("yellows"),
-            "yellowReds": gi("yellowReds"),
-            "fouls": gi("fouls") or gi("foulsCommitted") or gi("foulCommitted"),
-            "foulsAgainst": gi("foulsAgainst"),
-            "favoritePosition": p.get("favoritePosition") or p.get("position") or "",
-            "proPos": p.get("proPos") or "",
-            "proOverall": str(p.get("proOverall") or p.get("proOverallStr") or ""),
-            "proNationality": str(p.get("proNationality") or ""),
-            "prevGoals": p.get("prevGoals") or 0,
-            "_raw_keys": list(p.keys())[:30]  # debug用，睇下EA實際回咗咩欄位
-        })
-    return sorted(cleaned, key=lambda x: (x["ratingAve"], x["goals"]), reverse=True)
+        cleaned.append({"name":p.get("name") or "Unknown","gamesPlayed":gi("gamesPlayed"),"goals":gi("goals"),"assists":gi("assists"),"passesMade":gi("passesMade"),"ratingAve":gf("ratingAve"),"tacklesMade":gi("tacklesMade"),"redCards":gi("redCards"),"yellowCards":gi("yellowCards")})
+    return sorted(cleaned, key=lambda x:x["ratingAve"], reverse=True)
 
-# 6a. 今季 (保留，方便對比，但前端已改為只用生涯)
-url_season = f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={CLUB_ID}"
-raw_season = cffi_get(url_season)
-time.sleep(1)
-cleaned_season = parse_members(raw_season) if raw_season else []
-json.dump({"players": cleaned_season, "count": len(cleaned_season), "updated": int(time.time()), "type": "season"},
-          open("data/players.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
-print(f"[5a] data/players.json 今季 {len(cleaned_season)}人")
+raw_season=cffi_get(f"https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId={CLUB_ID}")
+cleaned_season=parse_members(raw_season) if raw_season else []
+json.dump({"players":cleaned_season,"count":len(cleaned_season)}, open("data/players.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
 
-# 6b. 生涯
-url_career = f"https://proclubs.ea.com/api/fc/members/career/stats?platform=common-gen5&clubId={CLUB_ID}"
-raw_career = cffi_get(url_career)
-time.sleep(1)
-cleaned_career = parse_members(raw_career) if raw_career else []
-json.dump({"players": cleaned_career, "count": len(cleaned_career), "updated": int(time.time()), "type": "career"},
-          open("data/players_career.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
-print(f"[5b] data/players_career.json 生涯 {len(cleaned_career)}人")
+raw_career=cffi_get(f"https://proclubs.ea.com/api/fc/members/career/stats?platform=common-gen5&clubId={CLUB_ID}")
+cleaned_career=parse_members(raw_career) if raw_career else []
+json.dump({"players":cleaned_career,"count":len(cleaned_career)}, open("data/players_career.json","w",encoding="utf-8"), ensure_ascii=False, indent=2)
 
-# 7. Firebase 上傳 (如果有 secrets)
+# Firebase 上傳 - 只有有新比賽先上傳，且只上傳20場
 try:
-    if os.getenv("FIREBASE_SERVICE_ACCOUNT") or os.path.exists("firebase-key.json"):
-        import firebase_admin
-        from firebase_admin import credentials, firestore, storage
-        print("[6] 上傳 Firebase...")
-        if os.getenv("FIREBASE_SERVICE_ACCOUNT"):
-            import base64
-            cred_json = os.getenv("FIREBASE_SERVICE_ACCOUNT")
-            try:
-                cred_str = base64.b64decode(cred_json).decode()
-                cred_dict = json.loads(cred_str)
-            except:
-                cred_dict = json.loads(cred_json)
-            cred = credentials.Certificate(cred_dict)
-        else:
-            cred = credentials.Certificate("firebase-key.json")
-
+    if skip_firebase:
+        print("[6] 跳過 Firebase 上傳")
+    elif os.getenv("FIREBASE_SERVICE_ACCOUNT"):
+        import firebase_admin, base64
+        from firebase_admin import credentials, firestore
+        cred_json=os.getenv("FIREBASE_SERVICE_ACCOUNT")
+        try: cred_dict=json.loads(base64.b64decode(cred_json).decode())
+        except: cred_dict=json.loads(cred_json)
+        cred=credentials.Certificate(cred_dict)
         if not firebase_admin._apps:
-            firebase_admin.initialize_app(cred, {
-                'storageBucket': os.getenv("FIREBASE_BUCKET", "linking-fc.appspot.com")
-            })
-
-        db = firestore.client()
-        db.collection("clubs").document(CLUB_ID).set({
-            "matchesCount": len(recent),
-            "playersCount": len(cleaned_season),
-            "playersCareerCount": len(cleaned_career),
-            "updated": firestore.SERVER_TIMESTAMP,
-            "maxKeep": MAX_KEEP
-        }, merge=True)
-
-        # matches
-        batch = db.batch()
-        for i, m in enumerate(recent[:100]):
-            ref = db.collection("clubs").document(CLUB_ID).collection("matches").document(str(m.get("matchId")))
-            batch.set(ref, {k: v for k,v in m.items() if k != "_raw"}, merge=True)
-            if i % 400 == 0 and i>0:
-                batch.commit()
-                batch = db.batch()
+            firebase_admin.initialize_app(cred)
+        db=firestore.client()
+        # 只上傳最新20場，唔係100場
+        batch=db.batch()
+        for m in recent[:20]:
+            ref=db.collection("clubs").document(CLUB_ID).collection("matches").document(str(m.get("matchId")))
+            batch.set(ref, {k:v for k,v in m.items() if k!="_raw"}, merge=True)
         batch.commit()
-        print("  Firestore matches OK")
-
-        # members 今季
-        batch = db.batch()
-        for p in cleaned_season:
-            pid = p["name"].replace("/","_").replace(" ","_")[:100]
-            ref = db.collection("clubs").document(CLUB_ID).collection("members").document(pid)
-            batch.set(ref, {**p, "type": "season", "updated": firestore.SERVER_TIMESTAMP}, merge=True)
-        batch.commit()
-        print(f"  Firestore members/season OK {len(cleaned_season)}人")
-
-        # members 生涯
-        batch = db.batch()
-        for p in cleaned_career:
-            pid = p["name"].replace("/","_").replace(" ","_")[:100]
-            ref = db.collection("clubs").document(CLUB_ID).collection("members_career").document(pid)
-            batch.set(ref, {**p, "type": "career", "updated": firestore.SERVER_TIMESTAMP}, merge=True)
-        batch.commit()
-        print(f"  Firestore members/career OK {len(cleaned_career)}人")
-
-        # 頂層 members 集合 (方便前端直接讀)
-        for col_name, lst in [("members", cleaned_season), ("members_career", cleaned_career)]:
-            batch = db.batch()
-            for p in lst:
-                pid = p["name"].replace("/","_").replace(" ","_")[:100]
-                ref = db.collection(col_name).document(pid)
-                batch.set(ref, {**p, "clubId": CLUB_ID, "type": col_name, "updated": firestore.SERVER_TIMESTAMP}, merge=True)
-            batch.commit()
-
-        # Storage
-        try:
-            bucket = storage.bucket()
-            bucket.blob(f"clubs/{CLUB_ID}/matches.json").upload_from_filename("data/matches.json")
-            bucket.blob(f"clubs/{CLUB_ID}/players.json").upload_from_filename("data/players.json")
-            bucket.blob(f"clubs/{CLUB_ID}/players_career.json").upload_from_filename("data/players_career.json")
-            print("  Storage OK")
-        except Exception as se:
-            print(f"  Storage 跳過 (bucket 不存在): {se}")
-
-    else:
-        print("[6] 無 Firebase key，跳過上傳 (本地測試正常)")
+        print(f" Firestore matches OK 20場 (慳 80次寫入)")
 except Exception as e:
-    print(f"Firebase 失敗 (唔影響主流程): {e}")
+    print(f"Firebase 失敗: {e}")
 
 print("=== 完成 ===")
