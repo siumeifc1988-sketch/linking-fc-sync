@@ -2,42 +2,39 @@ name: FC27 Full Sync - matches + player_10_agg
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 16 * * *' # 每日一次 00:00 HKT = 16:00 UTC
   workflow_dispatch:
+
+concurrency:
+  group: fc27-full-sync
+  cancel-in-progress: false
 
 jobs:
   full-sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install deps
         run: pip install curl_cffi firebase-admin -r requirements.txt
-
       - name: Debug list
         run: ls -la && ls -la scripts/ && ls -la data/ || echo "no data"
-
       - name: Fetch EA matches + members
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: python scripts/fetch_ea_PLUS.py
-
       - name: Build player_10_agg EVENT CODE
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python scripts/build_player_10_agg_EVENT_CODE.py
-
       - name: Commit data
         run: |
           git config user.name "fc27-bot"
           git config user.email "bot@linkingfc.com"
-          git add data/matches.json data/players.json data/players_career.json data/players_agg.json data/player_10_agg.json || true
           git add data/ || true
-          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ) $(jq '.count // length' data/matches.json 2>/dev/null || echo 0) matches"
+          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push
