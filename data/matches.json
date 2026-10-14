@@ -27095,7 +27095,6 @@
     }
   ],
   "count": 38,
-  "updated": 1791961123,
-  "maxKeep": 3650,
-  "method": "curl_cffi chrome110-compatible"
+  "updated": 1791962441,
+  "maxKeep": 3650
 }
