@@ -1,69 +1,40 @@
-
-name: linking-fc-sync
+name: FC27 Full Sync - matches + player_10_agg
 
 on:
   schedule:
-    # 舊設定統一 - 每2小時跑一次，唔用每30分鐘，避免撞 (你舊註解：太密會撞)
-    - cron: '0 */2 * * *'
+    - cron: '0 16 * * *'  # 每日一次 00:00 HKT = 16:00 UTC
   workflow_dispatch:
 
 concurrency:
-  group: linking-fc-sync
+  group: fc27-full-sync
   cancel-in-progress: false
 
 jobs:
-  sync:
+  full-sync:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install deps
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Configure git
-        run: |
-          git config user.name "linking-fc-bot"
-          git config user.email "bot@linking.fc"
-
-      - name: Pull latest (overwrite local data)
-        run: |
-          git checkout -- data/ || true
-          git pull --rebase origin main || git pull origin main --no-rebase || true
-
-      - name: Fetch EA and upload Firebase
+        run: pip install curl_cffi firebase-admin -r requirements.txt
+      - name: Debug list
+        run: ls -la && ls -la scripts/ && ls -la data/ || echo "no data"
+      - name: Fetch EA matches + members
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
-        run: |
-          python scripts/fetch_ea_PLUS.py
-
-      - name: Build player_10_agg Event Code FULL (217/215/6/0/105/219/177)
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: python scripts/fetch_ea_PLUS.py
+      - name: Build player_10_agg EVENT CODE
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: python scripts/build_player_10_agg_EVENT_CODE.py
+      - name: Commit data
         run: |
-          python scripts/build_player_10_agg_EVENT_CODE.py
-
-      - name: Commit & Push
-        run: |
-          git add -A data/ || true
-          git diff --cached --quiet && echo "無新數據" && exit 0
-          COUNT=$(python -c "import json; print(json.load(open('data/matches.json')).get('count',0))" 2>/dev/null || echo "?")
-          AGG=$(python -c "import json; print(json.load(open('data/players_agg.json')).get('count',0))" 2>/dev/null || echo "?")
-          git commit -m "auto: ${COUNT}場 ${AGG}人 Event Code FULL sync $(date -u +'%Y-%m-%d %H:%M UTC') [unified]"
-          for i in 1 2 3; do
-            git push && break || {
-              echo "push retry $i"
-              git pull --rebase origin main
-              sleep 2
-            }
-          done
+          git config user.name "fc27-bot"
+          git config user.email "bot@linkingfc.com"
+          git add data/ || true
+          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
