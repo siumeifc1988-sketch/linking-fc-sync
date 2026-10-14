@@ -1,0 +1,26 @@
+name: rebuild-player-match-stats
+
+on:
+  workflow_dispatch:  # 手動按掣跑
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install deps
+        run: pip install google-cloud-firestore
+
+      - name: Write service account
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > serviceAccount.json
+
+      - name: Rebuild player_match_stats from data/matches.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./serviceAccount.json
+        run: |
+          python scripts/rebuild_player_match_stats.py
