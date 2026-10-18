@@ -1,0 +1,37 @@
+name: One-time Firebase to GitHub Migration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run migration
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: |
+          # 如果沒有 secrets，用 fallback 舊 project
+          if [ -z "$FIREBASE_PROJECT_ID" ]; then
+            echo "Using fallback football-signup-64bd9"
+            export FIREBASE_PROJECT_ID="football-signup-64bd9"
+            export FIREBASE_API_KEY="AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70"
+          fi
+          node migrate-firebase-to-github.mjs
+
+      - name: Commit migrated data
+        run: |
+          git config user.name "pepe-bot-migration"
+          git config user.email "migration@linking.fc"
+          git add data/matches.json data/migration_report.json
+          git diff --staged --quiet || git commit -m "migrate: Firebase ${{ github.run_id }} matches -> GitHub cumulative"
+          git push
