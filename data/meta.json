@@ -1,12 +1,13 @@
 {
   "totalMatches": 76,
   "parsedMatches": 76,
-  "lastUpdated": "2026-10-18T09:50:19.468Z",
+  "lastUpdated": "2026-10-18T09:54:41.958Z",
   "lastMatchId": "111598436050137",
-  "lastFetchCounts": {
-    "league": 0,
-    "friendly": 0,
-    "playoff": 0
+  "version": "V600-RECALC",
+  "dedupInfo": {
+    "original": 76,
+    "deduped": 76,
+    "removed": 0
   },
-  "version": "V600-DETAILED"
+  "note": "去重重算: 76 -> 76, 移除 0 重複"
 }
