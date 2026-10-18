@@ -1,5 +1,701 @@
 [
   {
+    "matchId": "111598436050137",
+    "timestamp": 1792257554,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 4
+      },
+      "opponent": {
+        "goals": 4,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 4,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792257554,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111252888640167",
+    "timestamp": 1792256114,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 3
+      },
+      "opponent": {
+        "goals": 3,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 3,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792256114,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111284705660492",
+    "timestamp": 1792254864,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 1,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1792254864,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111090988460312",
+    "timestamp": 1792253063,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 4
+      },
+      "opponent": {
+        "goals": 4,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 4,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792253063,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111312289790361",
+    "timestamp": 1792251820,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792251820,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111130655080412",
+    "timestamp": 1792250696,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 4
+      },
+      "opponent": {
+        "goals": 4,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 4,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792250696,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111262109450292",
+    "timestamp": 1792249461,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 2,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792249461,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "111212091680061",
+    "timestamp": 1792248368,
+    "clubs": {
+      "41026": {
+        "goals": 4,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 4,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792248368,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107992657370292",
+    "timestamp": 1792172053,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 1,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792172053,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "108070381210246",
+    "timestamp": 1792170881,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792170881,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107856500730101",
+    "timestamp": 1792169729,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 3
+      },
+      "opponent": {
+        "goals": 3,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 3,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792169729,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "108114048340076",
+    "timestamp": 1792168484,
+    "clubs": {
+      "41026": {
+        "goals": 5,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 5,
+    "sa": 2,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792168484,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107878155720266",
+    "timestamp": 1792167067,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792167067,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107448998910491",
+    "timestamp": 1792165623,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 1,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792165623,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107672583040443",
+    "timestamp": 1792164182,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792164182,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "107464746980041",
+    "timestamp": 1792163359,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792163359,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104600407880309",
+    "timestamp": 1792081592,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792081592,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104578291490307",
+    "timestamp": 1792080392,
+    "clubs": {
+      "41026": {
+        "goals": 4,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 4,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792080392,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104624136690341",
+    "timestamp": 1792079124,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 4
+      },
+      "opponent": {
+        "goals": 4,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 4,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1792079124,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104492156150436",
+    "timestamp": 1792077915,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792077915,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104178953290297",
+    "timestamp": 1792076670,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792076670,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "104070909460022",
+    "timestamp": 1792075495,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1792075495,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "101112318950137",
+    "timestamp": 1791997550,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 4
+      },
+      "opponent": {
+        "goals": 4,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 4,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1791997550,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "101000464170480",
+    "timestamp": 1791996331,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 2,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1791996331,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "100814708310498",
+    "timestamp": 1791995222,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 0,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1791995222,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "100764672030188",
+    "timestamp": 1791993802,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791993802,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "100870253340390",
+    "timestamp": 1791992466,
+    "clubs": {
+      "41026": {
+        "goals": 4,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 4,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791992466,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "100688522670350",
+    "timestamp": 1791991185,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 2,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1791991185,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "100848034520495",
+    "timestamp": 1791989842,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791989842,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
     "matchId": "97332994780075",
     "timestamp": 1791907784,
     "timeAgo": {
@@ -27091,5 +27787,221 @@
     },
     "_matchType": "leagueMatch",
     "_matchTypeName": "聯賽"
+  },
+  {
+    "matchId": "80010601330450",
+    "timestamp": 1791475245,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 2,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1791475245,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "80024472180385",
+    "timestamp": 1791474044,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791474044,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "80094205780423",
+    "timestamp": 1791473574,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791473574,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "79804721890257",
+    "timestamp": 1791472356,
+    "clubs": {
+      "41026": {
+        "goals": 3,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 3,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791472356,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "79692796560068",
+    "timestamp": 1791470962,
+    "clubs": {
+      "41026": {
+        "goals": 6,
+        "goalsAgainst": 1
+      },
+      "opponent": {
+        "goals": 1,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 6,
+    "sa": 1,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791470962,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "79974018680350",
+    "timestamp": 1791469706,
+    "clubs": {
+      "41026": {
+        "goals": 4,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 4,
+    "sa": 0,
+    "opp": "對手",
+    "res": "W",
+    "ts": 1791469706,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "76470521930129",
+    "timestamp": 1791392151,
+    "clubs": {
+      "41026": {
+        "goals": 2,
+        "goalsAgainst": 2
+      },
+      "opponent": {
+        "goals": 2,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 2,
+    "sa": 2,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1791392151,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "76224918210018",
+    "timestamp": 1791390984,
+    "clubs": {
+      "41026": {
+        "goals": 1,
+        "goalsAgainst": 3
+      },
+      "opponent": {
+        "goals": 3,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 1,
+    "sa": 3,
+    "opp": "對手",
+    "res": "L",
+    "ts": 1791390984,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
+  },
+  {
+    "matchId": "76386358240291",
+    "timestamp": 1791389774,
+    "clubs": {
+      "41026": {
+        "goals": 0,
+        "goalsAgainst": 0
+      },
+      "opponent": {
+        "goals": 0,
+        "details": {
+          "name": "對手"
+        }
+      }
+    },
+    "sf": 0,
+    "sa": 0,
+    "opp": "對手",
+    "res": "D",
+    "ts": 1791389774,
+    "myList": [],
+    "_isMinimal": true,
+    "_truncated": true
   }
 ]
