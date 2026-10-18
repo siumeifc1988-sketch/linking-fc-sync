@@ -1,12 +1,6 @@
 {
   "totalMatches": 0,
-  "last10Count": 0,
-  "lastUpdated": "2026-10-18T10:04:07.112Z",
-  "lastFetchCounts": {
-    "league": 0,
-    "friendly": 0,
-    "playoff": 0
-  },
-  "version": "V700-LATEST-30-PLAYER-10",
-  "note": "真相模式：不累計，只取EA最新30場，球員只計近10場"
+  "lastUpdated": "0場 curl_cffi 403",
+  "version": "curl_cffi-403",
+  "note": "EA 0場"
 }
