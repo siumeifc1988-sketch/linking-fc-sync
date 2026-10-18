@@ -1,4 +1,4 @@
-name: EA Sync V700 - 只取最新30場 球員只計10場
+name: EA Sync - 抓新 league10 + friendly10 + playoff10 = 最新30場
 
 on:
   schedule:
@@ -19,160 +19,104 @@ jobs:
           node-version: 20
       - run: mkdir -p data/aggregated .github/scripts
 
-      - name: 建立 V700 最新版 sync
+      - name: 建立 10+10+10 同步
         run: |
           cat > .github/scripts/sync.mjs <<'JS'
           import fs from 'fs';
           const CLUB_ID = '41026';
           const EA_PROXY_URL = process.env.EA_PROXY_URL || '';
-          const EA_HEADERS = {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json',
-            'Referer': 'https://www.ea.com/',
-            'Origin': 'https://www.ea.com'
-          };
+          const HEADERS = {'User-Agent':'Mozilla/5.0','Accept':'application/json','Referer':'https://www.ea.com/','Origin':'https://www.ea.com'};
           async function fetchWithRetry(url){
-            if(EA_PROXY_URL){
-              try{
-                const pu = EA_PROXY_URL.includes('?') ? `${EA_PROXY_URL}${encodeURIComponent(url)}` : `${EA_PROXY_URL}?url=${encodeURIComponent(url)}`;
-                const r = await fetch(pu, {headers:EA_HEADERS, signal:AbortSignal.timeout(10000)});
-                if(r.ok) return await r.json();
-              }catch{}
-            }
-            try{
-              const r = await fetch(url, {headers:EA_HEADERS, signal:AbortSignal.timeout(8000)});
-              if(r.ok) return await r.json();
-            }catch{}
+            if(EA_PROXY_URL){ try{ const pu = EA_PROXY_URL.includes('?') ? `${EA_PROXY_URL}${encodeURIComponent(url)}` : `${EA_PROXY_URL}?url=${encodeURIComponent(url)}`; const r=await fetch(pu,{headers:HEADERS,signal:AbortSignal.timeout(10000)}); if(r.ok) return await r.json(); }catch{} }
+            try{ const r=await fetch(url,{headers:HEADERS,signal:AbortSignal.timeout(8000)}); if(r.ok) return await r.json(); }catch{}
             for(const p of [(u)=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`, (u)=>`https://corsproxy.io/?${encodeURIComponent(u)}`]){
-              try{
-                const r = await fetch(p(url), {headers:EA_HEADERS, signal:AbortSignal.timeout(12000)});
-                if(!r.ok) continue;
-                const txt = await r.text(); if(!txt) continue;
-                const j = JSON.parse(txt);
-                return j.contents ? JSON.parse(j.contents) : j;
-              }catch{}
+              try{ const r=await fetch(p(url),{headers:HEADERS,signal:AbortSignal.timeout(12000)}); if(!r.ok) continue; const txt=await r.text(); if(!txt) continue; const j=JSON.parse(txt); return j.contents ? JSON.parse(j.contents) : j; }catch{}
             }
-            throw new Error('All fetch failed');
+            throw new Error('fetch fail');
           }
-          async function fetchMatches(type){
-            const eaType = type==='league'?'leagueMatch':type==='friendly'?'friendlyMatch':'playoffMatch';
-            const url = `https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds=${CLUB_ID}&matchType=${eaType}&maxResultCount=10`;
-            try{
-              const data = await fetchWithRetry(url);
-              let list = data[CLUB_ID] || data[Number(CLUB_ID)] || data.matches || [];
-              if(!Array.isArray(list)) list=[];
-              console.log(`EA ${type} -> ${list.length}`);
-              return list.map(m=> ({...m, _matchType: type})); // 標記來源
-            }catch(e){ console.error(`fetch ${type} fail`, e.message); return []; }
+          async function fetchMatches(matchType, count=10){
+            const url=`https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds=${CLUB_ID}&matchType=${matchType}&maxResultCount=${count}`;
+            try{ const data=await fetchWithRetry(url); let list=data[CLUB_ID]||data[Number(CLUB_ID)]||data.matches||[]; if(!Array.isArray(list)) list=[]; console.log(`EA ${matchType} -> ${list.length}`); return list.map(m=>({...m,_matchType:matchType})); }catch(e){ console.log(`${matchType} fail ${e.message}`); return []; }
           }
-
-          // --- 解析邏輯 ---
-          function safe(n){ const v=Number(n); return isNaN(v)||!isFinite(v)?0:v; }
-          function decodeAgg(s){const m={}; if(!s) return m; s.split(',').forEach(p=>{const kv=p.split(':'); if(kv.length!=2) return; const k=Number(kv[0]),v=Number(kv[1]); if(!isNaN(k)&&v!=null) m[k]=v;}); return m;}
-          function posCN(pos){ if(!pos) return '未知'; pos=String(pos).toLowerCase(); if(pos.includes('goal')) return '門將'; if(pos.includes('def')) return '後衛'; if(pos.includes('mid')) return '中場'; if(pos.includes('for')||pos.includes('striker')||pos.includes('wing')||pos.includes('forward')) return '前鋒'; return pos; }
+          function safe(n){const v=Number(n);return isNaN(v)||!isFinite(v)?0:v;}
+          function decodeAgg(s){const m={};if(!s)return m;s.split(',').forEach(p=>{const kv=p.split(':');if(kv.length!=2)return;const k=Number(kv[0]),v=Number(kv[1]);if(!isNaN(k)&&v!=null)m[k]=v;});return m;}
+          function posCN(pos){if(!pos)return'未知';pos=String(pos).toLowerCase();if(pos.includes('goal'))return'門將';if(pos.includes('def'))return'後衛';if(pos.includes('mid'))return'中場';if(pos.includes('for')||pos.includes('striker')||pos.includes('wing')||pos.includes('forward'))return'前鋒';return pos;}
           function parsePlayerV4(p){
             const a=decodeAgg(p.match_event_aggregate_0||p.aggregate||'');
-            const succ=safe(a[215]); const pm=succ||safe(p.passesmade||p.passesMade)||0;
-            const pa=safe(p.passattempts||p.passAttempts)||(succ+safe(a[153]))||pm;
-            const shots=safe(p.shots||a[100]); const shotOn=safe(a[101]||p.shotsOn);
-            const insideBox=safe(a[106]); const outsideBox=safe(a[107]||Math.max(0,shots-insideBox));
-            let xg=0; if(insideBox>0){ xg=shotOn*0.35+Math.max(0,insideBox-shotOn)*0.12+outsideBox*0.04; } else { xg=shotOn*0.32+Math.max(0,shots-shotOn)*0.06; }
-            return {name:p.playername||p.name||'Unknown', pos:p.pos||p.position||'', posCN:posCN(p.pos||p.position||''), rating:safe(p.rating), goals:safe(p.goals), assists:safe(p.assists), xg:Number(Math.max(0,xg).toFixed(2)), xa:Number((safe(a[216])*0.12+safe(p.assists)*0.15).toFixed(2)), xgi:0, pm, pa, keyPass:safe(a[216]||p.keyPasses), interceptions:safe(a[24]||p.interceptions), clearances:safe(a[30]), blocks:safe(a[31]), tk:safe(p.tacklesmade||p.tacklesMade||a[22]), saves:safe(p.saves||a[14]), gc:safe(a[15])};
+            const succ=safe(a[215]);const pm=succ||safe(p.passesmade||p.passesMade)||0;const pa=safe(p.passattempts||p.passAttempts)||(succ+safe(a[153]))||pm;
+            const shots=safe(p.shots||a[100]);const shotOn=safe(a[101]||p.shotsOn);const insideBox=safe(a[106]);const outsideBox=safe(a[107]||Math.max(0,shots-insideBox));
+            let xg=0;if(insideBox>0){xg=shotOn*0.35+Math.max(0,insideBox-shotOn)*0.12+outsideBox*0.04;}else{xg=shotOn*0.32+Math.max(0,shots-shotOn)*0.06;}
+            return {name:p.playername||p.name||'Unknown',pos:p.pos||p.position||'',posCN:posCN(p.pos||p.position||''),rating:safe(p.rating),goals:safe(p.goals),assists:safe(p.assists),xg:Number(Math.max(0,xg).toFixed(2)),xa:Number((safe(a[216])*0.12+safe(p.assists)*0.15).toFixed(2)),pm,pa,keyPass:safe(a[216]||p.keyPasses),interceptions:safe(a[24]||p.interceptions),clearances:safe(a[30]),blocks:safe(a[31]),tk:safe(p.tacklesmade||p.tacklesMade||a[22])};
           }
           function parseDocV4(d){
-            let ts=Number(d.timestamp||0); if(ts>1e12) ts=Math.floor(ts/1000); if(!ts||isNaN(ts)) return null;
-            let clubs=d.clubs||{}; let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name?.includes('Double')||c.details?.name?.includes('LinKing'))||{}; let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||''; let other=clubs[otherKey]||{};
-            let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0); if(isNaN(sf)) sf=0; if(isNaN(sa)) sa=0;
-            let opp=other.details?.name||'對手'; let res=sf>sa?'W':sf<sa?'L':'D';
-            let players=d.players||{}; let myRaw=players[CLUB_ID]||{};
-            if(Array.isArray(myRaw)) myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p]));
+            let ts=Number(d.timestamp||0);if(ts>1e12)ts=Math.floor(ts/1000);if(!ts||isNaN(ts))return null;
+            let clubs=d.clubs||{};let my=clubs[CLUB_ID]||Object.values(clubs).find(c=>c.details?.name?.includes('Double')||c.details?.name?.includes('LinKing'))||{};let otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||'';let other=clubs[otherKey]||{};
+            let sf=parseInt(my.goals||0),sa=parseInt(my.goalsAgainst||0);if(isNaN(sf))sf=0;if(isNaN(sa))sa=0;
+            let opp=other.details?.name||'對手';let res=sf>sa?'W':sf<sa?'L':'D';
+            let players=d.players||{};let myRaw=players[CLUB_ID]||{};if(Array.isArray(myRaw))myRaw=Object.fromEntries(myRaw.map((p,i)=>[p.playerId||i,p]));
             let myList=Object.values(myRaw).map(parsePlayerV4).map(p=>{p.xgi=Number((p.xg+p.xa).toFixed(2));return p;}).filter(p=>p.name!=='Unknown').sort((a,b)=>b.rating-a.rating);
-            return {ts,sf,sa,opp,res,myList, raw:d, _matchType:d._matchType||'unknown', timestamp:d.timestamp||ts};
+            return {ts,sf,sa,opp,res,myList,raw:d,timestamp:d.timestamp||ts,_matchType:d._matchType};
           }
-
-          function fingerprint(m){
-            const ts = Math.floor((m.timestamp||m.ts||0)/60)*60;
-            const clubs = m.clubs||{};
-            const my = clubs[CLUB_ID]||Object.values(clubs)[0]||{};
-            const otherKey = Object.keys(clubs).find(k=>k!==CLUB_ID)||'';
-            const sf = parseInt(my.goals||0); const sa = parseInt(my.goalsAgainst||0);
-            return `${ts}_${otherKey}_${sf}-${sa}`;
-          }
-
+          function fingerprint(m){const ts=Math.floor((m.timestamp||m.ts||0)/60)*60;const clubs=m.clubs||{};const my=clubs[CLUB_ID]||Object.values(clubs)[0]||{};const otherKey=Object.keys(clubs).find(k=>k!==CLUB_ID)||'';const sf=parseInt(my.goals||0);const sa=parseInt(my.goalsAgainst||0);return `${ts}_${otherKey}_${sf}-${sa}`;}
+          function loadExisting(){try{if(fs.existsSync('data/matches.json')){const arr=JSON.parse(fs.readFileSync('data/matches.json','utf8'));return Array.isArray(arr)?arr:(arr.matches||[]);}}catch{}return [];}
           async function main(){
-            console.log('=== V700 真相模式：只取最新30場，不累計，球員只計近10場 ===');
+            console.log('=== 抓新：league10 + friendly10 + playoff10 = 最新30場 ===');
             const [league, friendly, playoff] = await Promise.all([
-              fetchMatches('league'),
-              fetchMatches('friendly'),
-              fetchMatches('playoff')
+              fetchMatches('leagueMatch',10),
+              fetchMatches('friendlyMatch',10),
+              fetchMatches('playoffMatch',10)
             ]);
-            const allLatest = [...league, ...friendly, ...playoff];
-            console.log(`EA 合計最新 ${allLatest.length} 場 (league ${league.length} + friendly ${friendly.length} + playoff ${playoff.length})`);
+            const allLatest=[...league,...friendly,...playoff];
+            console.log(`EA 合計 ${allLatest.length}場 (league ${league.length}+friendly ${friendly.length}+playoff ${playoff.length})`);
 
-            // 去重 (最新30內都可能重複)
-            const byFp = new Map();
-            for(const m of allLatest){
-              const fp = fingerprint(m);
-              if(!byFp.has(fp) || (m.timestamp||0) > (byFp.get(fp).timestamp||0)) byFp.set(fp, m);
+            if(allLatest.length===0){
+              console.log('⚠️ EA 0場 (403)，保留舊檔唔覆蓋');
+              const existing=loadExisting();
+              if(existing.length===0){ console.log('舊檔都係0，無嘢做'); return; }
+              // 用舊檔重建board
+              const parsed=[];for(const d of existing){const pd=parseDocV4(d);if(pd)parsed.push(pd);}parsed.sort((a,b)=>b.ts-a.ts);
+              const aggMap={};parsed.forEach(m=>{m.myList.forEach(p=>{
+                if(!aggMap[p.name])aggMap[p.name]={xg:0,xa:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,games:0,ratingSum:0,ratingCnt:0,pos:p.pos,posCN:p.posCN};
+                const o=aggMap[p.name];o.xg+=p.xg||0;o.xa+=p.xa||0;o.goals+=p.goals||0;o.assists+=p.assists||0;o.pm+=p.pm||0;o.pa+=p.pa||0;o.keyPass+=p.keyPass||0;o.interceptions+=p.interceptions||0;o.clearances+=p.clearances||0;o.blocks+=p.blocks||0;o.tk+=p.tk||0;o.games+=1;if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;}
+              });});
+              const players=Object.keys(aggMap).map(name=>{const a=aggMap[name];const avg=a.ratingCnt?(a.ratingSum/a.ratingCnt):0;return{name,pos:a.pos,posCN:a.posCN,games:a.games,goals:a.goals,assists:a.assists,xg:Number(a.xg.toFixed(2)),xa:Number(a.xa.toFixed(2)),pm:a.pm,pa:a.pa,passPct:a.pa?Math.round(a.pm/a.pa*100):0,keyPass:a.keyPass,interceptions:a.interceptions,clearances:a.clearances,blocks:a.blocks,tk:a.tk,totalDef:a.interceptions+a.clearances+a.blocks+a.tk,avgRating:avg?Number(avg.toFixed(2)):0};}).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists));
+              const board={players,totalMatches:existing.length,lastUpdated:new Date().toISOString(),version:'10-10-10-FALLBACK',source:`EA 0場 fallback 保留舊${existing.length}場`};
+              const meta={totalMatches:existing.length,lastUpdated:new Date().toISOString(),lastFetchCounts:{league:0,friendly:0,playoff:0},version:'10-10-10-FALLBACK',note:'EA 403 fallback 保留舊檔'};
+              fs.mkdirSync('data/aggregated',{recursive:true});
+              fs.writeFileSync('data/aggregated/board.json',JSON.stringify(board,null,2));
+              fs.writeFileSync('data/meta.json',JSON.stringify(meta,null,2));
+              console.log(`✅ Fallback 保留舊${existing.length}場`);
+              return;
             }
-            const deduped = [...byFp.values()].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-            console.log(`去重後最新 ${deduped.length} 場`);
 
-            // 解析
-            const parsed = [];
-            for(const d of deduped){
-              const pd = parseDocV4(d);
-              if(pd) parsed.push(pd);
-            }
-            console.log(`解析成功 ${parsed.length}`);
+            // 去重 (30場內都可能重複)
+            const byFp=new Map();for(const m of allLatest){const fp=fingerprint(m);if(!byFp.has(fp)||(m.timestamp||0)>(byFp.get(fp).timestamp||0))byFp.set(fp,m);}
+            const deduped=[...byFp.values()].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+            console.log(`去重後 ${deduped.length}場`);
 
-            // 球員只計近10場 (按時間排，取最近10場)
-            const last10 = parsed.slice(0,10);
-            console.log(`球員統計只計最近 ${last10.length} 場 (你要的 player只計10場)`);
+            const parsed=[];for(const d of deduped){const pd=parseDocV4(d);if(pd)parsed.push(pd);}
+            parsed.sort((a,b)=>b.ts-a.ts);
 
-            const aggMap={};
-            last10.forEach(m=>{ m.myList.forEach(p=>{
-              if(!aggMap[p.name]) aggMap[p.name]={xg:0,xa:0,xgi:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,saves:0,gc:0,games:0,ratingSum:0,ratingCnt:0,pos:p.pos,posCN:p.posCN};
-              const o=aggMap[p.name]; o.xg+=p.xg||0; o.xa+=p.xa||0; o.xgi+=p.xgi||0; o.goals+=p.goals||0; o.assists+=p.assists||0; o.pm+=p.pm||0; o.pa+=p.pa||0; o.keyPass+=p.keyPass||0; o.interceptions+=p.interceptions||0; o.clearances+=p.clearances||0; o.blocks+=p.blocks||0; o.tk+=p.tk||0; o.saves+=p.saves||0; o.gc+=p.gc||0; o.games+=1; if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;}
+            const aggMap={};parsed.forEach(m=>{m.myList.forEach(p=>{
+              if(!aggMap[p.name])aggMap[p.name]={xg:0,xa:0,goals:0,assists:0,pm:0,pa:0,keyPass:0,interceptions:0,clearances:0,blocks:0,tk:0,games:0,ratingSum:0,ratingCnt:0,pos:p.pos,posCN:p.posCN};
+              const o=aggMap[p.name];o.xg+=p.xg||0;o.xa+=p.xa||0;o.goals+=p.goals||0;o.assists+=p.assists||0;o.pm+=p.pm||0;o.pa+=p.pa||0;o.keyPass+=p.keyPass||0;o.interceptions+=p.interceptions||0;o.clearances+=p.clearances||0;o.blocks+=p.blocks||0;o.tk+=p.tk||0;o.games+=1;if(p.rating){o.ratingSum+=p.rating;o.ratingCnt+=1;}
             });});
+            const players=Object.keys(aggMap).map(name=>{const a=aggMap[name];const avg=a.ratingCnt?(a.ratingSum/a.ratingCnt):0;return{name,pos:a.pos,posCN:a.posCN,games:a.games,goals:a.goals,assists:a.assists,xg:Number(a.xg.toFixed(2)),xa:Number(a.xa.toFixed(2)),pm:a.pm,pa:a.pa,passPct:a.pa?Math.round(a.pm/a.pa*100):0,keyPass:a.keyPass,interceptions:a.interceptions,clearances:a.clearances,blocks:a.blocks,tk:a.tk,totalDef:a.interceptions+a.clearances+a.blocks+a.tk,avgRating:avg?Number(avg.toFixed(2)):0};}).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists));
 
-            const players=Object.keys(aggMap).map(name=>{
-              const a=aggMap[name]; const avg=a.ratingCnt?(a.ratingSum/a.ratingCnt):0;
-              return {name,pos:a.pos,posCN:a.posCN,games:a.games,goals:a.goals,assists:a.assists,xg:Number(a.xg.toFixed(2)),xa:Number(a.xa.toFixed(2)),xgi:Number(a.xgi.toFixed(2)),pm:a.pm,pa:a.pa,passPct:a.pa?Math.round(a.pm/a.pa*100):0,keyPass:a.keyPass,interceptions:a.interceptions,clearances:a.clearances,blocks:a.blocks,tk:a.tk,totalDef:a.interceptions+a.clearances+a.blocks+a.tk,saves:a.saves,gc:a.gc,avgRating:avg?Number(avg.toFixed(2)):0};
-            }).sort((a,b)=> (b.goals+b.assists)-(a.goals+a.assists));
-
-            const board = {
-              players,
-              totalMatches: deduped.length, // 最新30場總數
-              last10Matches: last10.length, // 球員統計基於
-              lastUpdated: new Date().toISOString(),
-              version: 'V700-LATEST-30-PLAYER-10',
-              source: `最新 ${deduped.length}場 (league ${league.length}+friendly ${friendly.length}+playoff ${playoff.length}) | 球員只計近10場`
-            };
-
-            const meta = {
-              totalMatches: deduped.length,
-              last10Count: last10.length,
-              lastUpdated: new Date().toISOString(),
-              lastFetchCounts: {league: league.length, friendly: friendly.length, playoff: playoff.length},
-              version: 'V700-LATEST-30-PLAYER-10',
-              note: '真相模式：不累計，只取EA最新30場，球員只計近10場'
-            };
+            const board={players,totalMatches:deduped.length,lastUpdated:new Date().toISOString(),version:'10-10-10',source:`最新${deduped.length}場 (league${league.length}+friendly${friendly.length}+playoff${playoff.length})`};
+            const meta={totalMatches:deduped.length,lastUpdated:new Date().toISOString(),lastFetchCounts:{league:league.length,friendly:friendly.length,playoff:playoff.length},version:'10-10-10',note:`抓新 league10+friendly10+playoff10 = 最新${deduped.length}場`};
 
             fs.mkdirSync('data/aggregated',{recursive:true});
-            // 真相模式：matches.json 只存最新30場，不再累計76
-            fs.writeFileSync('data/matches.json', JSON.stringify(deduped,null,2));
-            fs.writeFileSync('data/aggregated/board.json', JSON.stringify(board,null,2));
-            fs.writeFileSync('data/meta.json', JSON.stringify(meta,null,2));
-
-            console.log(`✅ 真相完成: matches.json ${deduped.length}場 (覆蓋,非累計), board ${players.length}人 (只計${last10.length}場)`);
-            players.forEach(p=> console.log(`  ${p.name} ${p.games}場 ${p.goals}G${p.assists}A ⭐${p.avgRating} xG${p.xg}`));
+            fs.writeFileSync('data/matches.json',JSON.stringify(deduped,null,2));
+            fs.writeFileSync('data/aggregated/board.json',JSON.stringify(board,null,2));
+            fs.writeFileSync('data/meta.json',JSON.stringify(meta,null,2));
+            console.log(`✅ 完成: 最新${deduped.length}場 (league${league.length}+friendly${friendly.length}+playoff${playoff.length}), ${players.length}人`);
+            players.slice(0,10).forEach(p=>console.log(`  ${p.name} ${p.games}場 ${p.goals}G${p.assists}A ⭐${p.avgRating}`));
           }
-
           await main();
           JS
 
-      - name: 執行真相同步
+      - name: 執行抓新 10+10+10
         env:
           EA_PROXY_URL: ${{ secrets.EA_PROXY_URL }}
         run: node .github/scripts/sync.mjs
@@ -182,4 +126,4 @@ jobs:
           git config user.name "pepe-bot"
           git config user.email "pepe-bot@users.noreply.github.com"
           git add data/matches.json data/meta.json data/aggregated/board.json || true
-          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: V700 真相模式 最新30場 球員10場 [skip ci]" && git push)
+          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: 抓新 league10+friendly10+playoff10 最新30場 [skip ci]" && git push)
