@@ -1,4 +1,4 @@
-name: One-time Firebase to GitHub Migration
+name: One-time Firebase to GitHub Migration (INLINE FIXED)
 
 on:
   workflow_dispatch:
@@ -6,6 +6,8 @@ on:
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,23 +17,121 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run migration
+      - name: Migrate Firebase matches -> GitHub data/matches.json
         env:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
         run: |
-          # 如果沒有 secrets，用 fallback 舊 project
+          # fallback 舊 project
           if [ -z "$FIREBASE_PROJECT_ID" ]; then
             echo "Using fallback football-signup-64bd9"
             export FIREBASE_PROJECT_ID="football-signup-64bd9"
             export FIREBASE_API_KEY="AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70"
           fi
-          node migrate-firebase-to-github.mjs
 
-      - name: Commit migrated data
+          node <<'NODE'
+          import fs from 'fs';
+
+          const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "football-signup-64bd9";
+          const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyC3UOT0RyPs6ELCzZOEUXAWn9ysp_-Tw70";
+          const OUTPUT = "data/matches.json";
+          const PAGE_SIZE = 300;
+
+          async function fetchAllFirebaseMatches() {
+            let allDocs = [];
+            let pageToken = "";
+            let page = 0;
+            while (true) {
+              page++;
+              let url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/matches?pageSize=${PAGE_SIZE}&orderBy=timestamp%20desc&key=${API_KEY}`;
+              if (pageToken) url += `&pageToken=${encodeURIComponent(pageToken)}`;
+              console.log(`[Firebase] Page ${page} fetching...`);
+              const res = await fetch(url);
+              if (!res.ok) {
+                const t = await res.text();
+                console.error(`Failed ${res.status} ${t.slice(0,500)}`);
+                if (page === 1) throw new Error(`Firebase fetch failed: ${res.status}`);
+                break;
+              }
+              const j = await res.json();
+              const docs = j.documents || [];
+              console.log(`Got ${docs.length} docs`);
+              allDocs = allDocs.concat(docs);
+              if (!j.nextPageToken) break;
+              pageToken = j.nextPageToken;
+              if (page >= 20) break; // 最多 6000場
+            }
+            return allDocs;
+          }
+
+          function parseDocs(docs) {
+            const matches = [];
+            for (const doc of docs) {
+              try {
+                const f = doc.fields || {};
+                if (f.raw && f.raw.stringValue) {
+                  const raw = JSON.parse(f.raw.stringValue);
+                  // 有啲係 { clubs, timestamp } 有啲係直接 EA match
+                  matches.push(raw.clubs ? raw : { clubs: raw.clubs || {}, ...raw });
+                }
+              } catch (e) {}
+            }
+            console.log(`Parsed ${matches.length} matches`);
+            return matches;
+          }
+
+          function dedup(matches) {
+            const map = new Map();
+            for (const m of matches) {
+              const id = m.matchId || m.id || m.timestamp || m.ts;
+              if (!id) continue;
+              if (!map.has(String(id))) map.set(String(id), m);
+            }
+            return [...map.values()].sort((a,b)=>(b.timestamp||b.ts||0)-(a.timestamp||a.ts||0));
+          }
+
+          const docs = await fetchAllFirebaseMatches();
+          console.log(`Total Firebase docs: ${docs.length}`);
+          const fbMatches = parseDocs(docs);
+
+          let existing = [];
+          if (fs.existsSync(OUTPUT)) {
+            try {
+              const j = JSON.parse(fs.readFileSync(OUTPUT,'utf8'));
+              existing = Array.isArray(j) ? j : j.matches || [];
+              console.log(`Existing GitHub file: ${existing.length}場`);
+            } catch(e){}
+          }
+
+          const merged = dedup([...existing, ...fbMatches]);
+          console.log(`Final merged: ${merged.length}場 (Firebase ${fbMatches.length} + Existing ${existing.length})`);
+
+          if (merged.length>0){
+            const first = merged[merged.length-1];
+            const last = merged[0];
+            console.log(`Range: ${new Date((first.timestamp||0)*1000).toISOString()} -> ${new Date((last.timestamp||0)*1000).toISOString()}`);
+          }
+
+          fs.mkdirSync("data",{recursive:true});
+          fs.writeFileSync(OUTPUT, JSON.stringify(merged,null,2));
+          fs.writeFileSync("data/migration_report.json", JSON.stringify({
+            total: merged.length,
+            firebase: fbMatches.length,
+            existing: existing.length,
+            migratedAt: new Date().toISOString()
+          },null,2));
+
+          console.log(`✅ Written to ${OUTPUT}`);
+          NODE
+
+      - name: Commit and push
         run: |
           git config user.name "pepe-bot-migration"
           git config user.email "migration@linking.fc"
           git add data/matches.json data/migration_report.json
-          git diff --staged --quiet || git commit -m "migrate: Firebase ${{ github.run_id }} matches -> GitHub cumulative"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "migrate: Firebase -> GitHub cumulative $(date -u +%Y-%m-%d)"
+            git push
+          fi
