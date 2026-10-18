@@ -1,8 +1,6 @@
-name: EA Sync - curl_cffi 版 抓新 10+10+10
+name: EA Sync - curl_cffi FIXED 解析 10+10+10
 
 on:
-  schedule:
-    - cron: '0 19 * * *' # HKT 03:00
   workflow_dispatch:
 
 jobs:
@@ -17,279 +15,190 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: 安裝 curl_cffi
-        run: |
+      - run: |
           pip install --upgrade pip
           pip install curl_cffi
-
-      - name: 建立 curl_cffi 抓取腳本
-        run: |
+      - run: |
           cat > /tmp/fetch_ea.py <<'PY'
-          import json, os, math, re
+          import json, os, math
           from curl_cffi import requests
 
           CLUB_ID = "41026"
           HEADERS = {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "application/json",
             "Referer": "https://www.ea.com/",
             "Origin": "https://www.ea.com",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124"',
-            "Sec-Ch-Ua-Mobile": "?0",
-            "Sec-Ch-Ua-Platform": '"Windows"',
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-origin"
+            "User-Agent": "Mozilla/5.0"
           }
 
           def fetch_matches(match_type, count=10):
               url = f"https://proclubs.ea.com/api/fc/clubs/matches?platform=common-gen5&clubIds={CLUB_ID}&matchType={match_type}&maxResultCount={count}"
               try:
-                  # 用 chrome124 指紋，繞過 EA 403
                   r = requests.get(url, headers=HEADERS, impersonate="chrome124", timeout=20)
                   print(f"[curl_cffi] {match_type} status={r.status_code} len={len(r.text)}")
-                  if r.status_code == 200:
-                      data = r.json()
-                      lst = data.get(CLUB_ID) or data.get(int(CLUB_ID)) or data.get("matches") or []
-                      if not isinstance(lst, list):
-                          lst = []
-                      print(f"EA {match_type} -> {len(lst)} 場")
-                      for m in lst:
-                          m["_matchType"] = match_type
-                      return lst
-                  else:
-                      print(f"EA {match_type} 失敗 status {r.status_code} body {r.text[:200]}")
+                  if r.status_code != 200:
+                      print(f"  body {r.text[:300]}")
                       return []
+                  data = r.json()
+                  # EA 有時直接返 list，有時返 dict {clubId: [...]}
+                  lst = []
+                  if isinstance(data, list):
+                      lst = data
+                  elif isinstance(data, dict):
+                      # 1. 用 clubId key
+                      if CLUB_ID in data:
+                          lst = data[CLUB_ID]
+                      elif int(CLUB_ID) in data:
+                          lst = data[int(CLUB_ID)]
+                      elif "matches" in data:
+                          lst = data["matches"]
+                      else:
+                          # 有時 data 係 { "41026": [...] } 但 key 係 int
+                          # 試第一個 value 係 list
+                          for v in data.values():
+                              if isinstance(v, list):
+                                  lst = v
+                                  break
+                  print(f"EA {match_type} -> {len(lst)} 場")
+                  for m in lst:
+                      if isinstance(m, dict):
+                          m["_matchType"] = match_type
+                  return lst if isinstance(lst, list) else []
               except Exception as e:
+                  import traceback
                   print(f"{match_type} 例外 {e}")
+                  traceback.print_exc()
                   return []
 
           def safe(n):
               try:
-                  v = float(n)
-                  if math.isnan(v) or math.isinf(v):
-                      return 0
-                  return v
+                  v=float(n)
+                  return 0 if math.isnan(v) or math.isinf(v) else v
               except:
                   return 0
-
           def decode_agg(s):
-              m = {}
-              if not s:
-                  return m
+              m={}
+              if not s: return m
               for p in s.split(','):
-                  kv = p.split(':')
-                  if len(kv) != 2:
-                      continue
-                  try:
-                      k = int(kv[0]); v = float(kv[1])
-                      m[k] = v
-                  except:
-                      continue
+                  kv=p.split(':')
+                  if len(kv)!=2: continue
+                  try: m[int(kv[0])]=float(kv[1])
+                  except: pass
               return m
-
           def pos_cn(pos):
-              if not pos:
-                  return "未知"
-              pos = str(pos).lower()
-              if "goal" in pos:
-                  return "門將"
-              if "def" in pos:
-                  return "後衛"
-              if "mid" in pos:
-                  return "中場"
-              if any(x in pos for x in ["for","striker","wing","forward"]):
-                  return "前鋒"
+              if not pos: return "未知"
+              pos=str(pos).lower()
+              if "goal" in pos: return "門將"
+              if "def" in pos: return "後衛"
+              if "mid" in pos: return "中場"
+              if any(x in pos for x in ["for","striker","wing","forward"]): return "前鋒"
               return pos
-
           def parse_player_v4(p):
-              a = decode_agg(p.get("match_event_aggregate_0") or p.get("aggregate") or "")
-              succ = safe(a.get(215,0))
-              pm = succ or safe(p.get("passesmade") or p.get("passesMade") or 0)
-              pa = safe(p.get("passattempts") or p.get("passAttempts") or 0) or (succ + safe(a.get(153,0))) or pm
-              shots = safe(p.get("shots") or a.get(100,0))
-              shot_on = safe(a.get(101,0) or p.get("shotsOn",0))
-              inside = safe(a.get(106,0))
-              outside = safe(a.get(107,0) or max(0, shots - inside))
-              xg = 0
-              if inside > 0:
-                  xg = shot_on*0.35 + max(0, inside-shot_on)*0.12 + outside*0.04
-              else:
-                  xg = shot_on*0.32 + max(0, shots-shot_on)*0.06
-              return {
-                  "name": p.get("playername") or p.get("name") or "Unknown",
-                  "pos": p.get("pos") or p.get("position") or "",
-                  "posCN": pos_cn(p.get("pos") or p.get("position") or ""),
-                  "rating": safe(p.get("rating",0)),
-                  "goals": int(safe(p.get("goals",0))),
-                  "assists": int(safe(p.get("assists",0))),
-                  "xg": round(max(0,xg),2),
-                  "xa": round(safe(a.get(216,0))*0.12 + safe(p.get("assists",0))*0.15,2),
-                  "pm": int(pm), "pa": int(pa),
-                  "keyPass": int(safe(a.get(216,0) or p.get("keyPasses",0))),
-                  "interceptions": int(safe(a.get(24,0) or p.get("interceptions",0))),
-                  "clearances": int(safe(a.get(30,0))),
-                  "blocks": int(safe(a.get(31,0))),
-                  "tk": int(safe(p.get("tacklesmade") or p.get("tacklesMade") or a.get(22,0))),
-                  "shots": int(shots), "shotOn": int(shot_on)
-              }
-
+              a=decode_agg(p.get("match_event_aggregate_0") or p.get("aggregate") or "")
+              succ=safe(a.get(215,0)); pm=succ or safe(p.get("passesmade") or p.get("passesMade") or 0)
+              pa=safe(p.get("passattempts") or p.get("passAttempts") or 0) or (succ+safe(a.get(153,0))) or pm
+              shots=safe(p.get("shots") or a.get(100,0)); shot_on=safe(a.get(101,0) or p.get("shotsOn",0))
+              inside=safe(a.get(106,0)); outside=safe(a.get(107,0) or max(0,shots-inside))
+              xg=shot_on*0.35+max(0,inside-shot_on)*0.12+outside*0.04 if inside>0 else shot_on*0.32+max(0,shots-shot_on)*0.06
+              return {"name":p.get("playername") or p.get("name") or "Unknown","pos":p.get("pos") or p.get("position") or "","posCN":pos_cn(p.get("pos") or p.get("position") or ""),"rating":safe(p.get("rating",0)),"goals":int(safe(p.get("goals",0))),"assists":int(safe(p.get("assists",0))),"xg":round(max(0,xg),2),"xa":round(safe(a.get(216,0))*0.12+safe(p.get("assists",0))*0.15,2),"pm":int(pm),"pa":int(pa),"keyPass":int(safe(a.get(216,0) or p.get("keyPasses",0))),"interceptions":int(safe(a.get(24,0) or p.get("interceptions",0))),"clearances":int(safe(a.get(30,0))),"blocks":int(safe(a.get(31,0))),"tk":int(safe(p.get("tacklesmade") or p.get("tacklesMade") or a.get(22,0))),"shots":int(shots),"shotOn":int(shot_on)}
           def parse_doc_v4(d):
-              ts = d.get("timestamp",0)
+              ts=d.get("timestamp",0)
               try:
-                  ts = int(ts)
-                  if ts > 1e12:
-                      ts = ts//1000
-              except:
-                  return None
-              if not ts:
-                  return None
-              clubs = d.get("clubs",{})
-              my = clubs.get(CLUB_ID) or next((c for c in clubs.values() if "Double" in str(c.get("details",{}).get("name","")) or "LinKing" in str(c.get("details",{}).get("name",""))), {})
-              other_key = next((k for k in clubs.keys() if k != CLUB_ID), "")
-              other = clubs.get(other_key, {})
-              sf = int(my.get("goals",0) or 0)
-              sa = int(my.get("goalsAgainst",0) or 0)
-              opp = other.get("details",{}).get("name","對手")
-              res = "W" if sf>sa else "L" if sf<sa else "D"
-              players = d.get("players",{})
-              my_raw = players.get(CLUB_ID) or {}
-              if isinstance(my_raw, list):
-                  my_raw = {p.get("playerId",i): p for i,p in enumerate(my_raw)}
-              my_list = []
+                  ts=int(ts)
+                  if ts>1e12: ts//=1000
+              except: return None
+              if not ts: return None
+              clubs=d.get("clubs",{}); my=clubs.get(CLUB_ID) or next((c for c in clubs.values() if "Double" in str(c.get("details",{}).get("name","")) or "LinKing" in str(c.get("details",{}).get("name",""))),{})
+              other_key=next((k for k in clubs.keys() if k!=CLUB_ID),""); other=clubs.get(other_key,{})
+              sf=int(my.get("goals",0) or 0); sa=int(my.get("goalsAgainst",0) or 0); opp=other.get("details",{}).get("name","對手"); res="W" if sf>sa else "L" if sf<sa else "D"
+              players=d.get("players",{}); my_raw=players.get(CLUB_ID) or {}
+              if isinstance(my_raw,list): my_raw={p.get("playerId",i):p for i,p in enumerate(my_raw)}
+              my_list=[]
               for p_raw in my_raw.values():
-                  pp = parse_player_v4(p_raw)
-                  if pp["name"] != "Unknown":
-                      pp["xgi"] = round(pp["xg"]+pp["xa"],2)
+                  pp=parse_player_v4(p_raw)
+                  if pp["name"]!="Unknown":
+                      pp["xgi"]=round(pp["xg"]+pp["xa"],2)
                       my_list.append(pp)
-              my_list.sort(key=lambda x: x["rating"], reverse=True)
-              return {"ts": ts, "sf": sf, "sa": sa, "opp": opp, "res": res, "myList": my_list, "raw": d, "timestamp": d.get("timestamp",ts), "_matchType": d.get("_matchType","unknown")}
-
+              my_list.sort(key=lambda x:x["rating"],reverse=True)
+              return {"ts":ts,"sf":sf,"sa":sa,"opp":opp,"res":res,"myList":my_list,"raw":d,"timestamp":d.get("timestamp",ts),"_matchType":d.get("_matchType","unknown")}
           def fingerprint(m):
-              ts = int((m.get("timestamp",0) or 0)//60*60)
-              clubs = m.get("clubs",{})
-              my = clubs.get(CLUB_ID) or next(iter(clubs.values()),{})
-              other_key = next((k for k in clubs.keys() if k != CLUB_ID), "")
-              sf = int(my.get("goals",0) or 0)
-              sa = int(my.get("goalsAgainst",0) or 0)
-              return f"{ts}_{other_key}_{sf}-{sa}"
-
+              ts=int((m.get("timestamp",0) or 0)//60*60); clubs=m.get("clubs",{}); my=clubs.get(CLUB_ID) or next(iter(clubs.values()),{}); other_key=next((k for k in clubs.keys() if k!=CLUB_ID),""); sf=int(my.get("goals",0) or 0); sa=int(my.get("goalsAgainst",0) or 0); return f"{ts}_{other_key}_{sf}-{sa}"
           def load_existing():
-              p = "data/matches.json"
+              p="data/matches.json"
               if os.path.exists(p):
                   try:
                       with open(p,'r',encoding='utf-8') as f:
-                          arr = json.load(f)
-                          return arr if isinstance(arr, list) else arr.get("matches",[])
-                  except:
-                      return []
+                          arr=json.load(f)
+                          return arr if isinstance(arr,list) else arr.get("matches",[])
+                  except: return []
               return []
 
-          # 主流程
-          print("=== curl_cffi 版 抓新 league10+friendly10+playoff10 ===")
-          league = fetch_matches("leagueMatch",10)
-          friendly = fetch_matches("friendlyMatch",10)
-          playoff = fetch_matches("playoffMatch",10)
-
-          all_latest = league + friendly + playoff
+          print("=== curl_cffi FIXED 版 抓新 league10+friendly10+playoff10 ===")
+          league=fetch_matches("leagueMatch",10)
+          friendly=fetch_matches("friendlyMatch",10)
+          playoff=fetch_matches("playoffMatch",10)
+          all_latest=league+friendly+playoff
           print(f"EA 合計 {len(all_latest)} 場 (league {len(league)}+friendly {len(friendly)}+playoff {len(playoff)})")
 
           if len(all_latest)==0:
-              print("⚠️ EA 0場，檢查舊檔")
-              existing = load_existing()
+              print("⚠️ EA 0場")
+              existing=load_existing()
               if len(existing)==0:
-                  print("舊檔都係0，無嘢做，結束")
-                  # 寫空meta避免後面報錯
-                  os.makedirs("data/aggregated", exist_ok=True)
+                  print("舊檔都係0，結束")
+                  os.makedirs("data/aggregated",exist_ok=True)
                   with open("data/meta.json","w",encoding="utf-8") as f:
-                      json.dump({"totalMatches":0,"lastUpdated":"0場 curl_cffi 403","version":"curl_cffi-403","note":"EA 0場"},f,ensure_ascii=False,indent=2)
+                      json.dump({"totalMatches":0,"lastUpdated":"0場","version":"curl_cffi-0"},f,ensure_ascii=False,indent=2)
                   exit(0)
-              else:
-                  print(f"保留舊檔 {len(existing)} 場，唔覆蓋，重建board")
-                  deduped = existing
+              deduped=existing
           else:
-              # 去重
-              by_fp = {}
+              by_fp={}
               for m in all_latest:
-                  fp = fingerprint(m)
-                  if fp not in by_fp or (m.get("timestamp",0) > by_fp[fp].get("timestamp",0)):
+                  fp=fingerprint(m)
+                  if fp not in by_fp or (m.get("timestamp",0)>by_fp[fp].get("timestamp",0)):
                       by_fp[fp]=m
-              deduped = sorted(by_fp.values(), key=lambda x: x.get("timestamp",0), reverse=True)
+              deduped=sorted(by_fp.values(),key=lambda x:x.get("timestamp",0),reverse=True)
               print(f"去重後 {len(deduped)} 場")
 
-          # 解析建board
-          parsed = []
+          parsed=[]
           for d in deduped:
-              pd = parse_doc_v4(d)
-              if pd:
-                  parsed.append(pd)
-          parsed.sort(key=lambda x: x["ts"], reverse=True)
+              pd=parse_doc_v4(d)
+              if pd: parsed.append(pd)
+          parsed.sort(key=lambda x:x["ts"],reverse=True)
 
-          agg_map = {}
+          agg_map={}
           for m in parsed:
               for p in m["myList"]:
-                  name = p["name"]
+                  name=p["name"]
                   if name not in agg_map:
-                      agg_map[name] = {"xg":0,"xa":0,"goals":0,"assists":0,"pm":0,"pa":0,"keyPass":0,"interceptions":0,"clearances":0,"blocks":0,"tk":0,"games":0,"ratingSum":0,"ratingCnt":0,"pos":p["pos"],"posCN":p["posCN"],"shots":0,"shotOn":0}
-                  o = agg_map[name]
+                      agg_map[name]={"xg":0,"xa":0,"goals":0,"assists":0,"pm":0,"pa":0,"keyPass":0,"interceptions":0,"clearances":0,"blocks":0,"tk":0,"games":0,"ratingSum":0,"ratingCnt":0,"pos":p["pos"],"posCN":p["posCN"],"shots":0,"shotOn":0}
+                  o=agg_map[name]
                   o["xg"]+=p["xg"]; o["xa"]+=p["xa"]; o["goals"]+=p["goals"]; o["assists"]+=p["assists"]; o["pm"]+=p["pm"]; o["pa"]+=p["pa"]; o["keyPass"]+=p["keyPass"]; o["interceptions"]+=p["interceptions"]; o["clearances"]+=p["clearances"]; o["blocks"]+=p["blocks"]; o["tk"]+=p["tk"]; o["shots"]+=p["shots"]; o["shotOn"]+=p["shotOn"]; o["games"]+=1
-                  if p["rating"]:
-                      o["ratingSum"]+=p["rating"]; o["ratingCnt"]+=1
+                  if p["rating"]: o["ratingSum"]+=p["rating"]; o["ratingCnt"]+=1
 
-          players = []
+          players=[]
           for name,a in agg_map.items():
-              avg = a["ratingSum"]/a["ratingCnt"] if a["ratingCnt"] else 0
-              players.append({
-                  "name": name, "pos": a["pos"], "posCN": a["posCN"],
-                  "games": a["games"], "goals": a["goals"], "assists": a["assists"],
-                  "xg": round(a["xg"],2), "xa": round(a["xa"],2),
-                  "pm": a["pm"], "pa": a["pa"], "passPct": round(a["pm"]/a["pa"]*100) if a["pa"] else 0,
-                  "keyPass": a["keyPass"], "interceptions": a["interceptions"], "clearances": a["clearances"], "blocks": a["blocks"], "tk": a["tk"],
-                  "totalDef": a["interceptions"]+a["clearances"]+a["blocks"]+a["tk"],
-                  "avgRating": round(avg,2),
-                  "shots": a["shots"], "shotOn": a["shotOn"]
-              })
-          players.sort(key=lambda x: (x["goals"]+x["assists"]), reverse=True)
+              avg=a["ratingSum"]/a["ratingCnt"] if a["ratingCnt"] else 0
+              players.append({"name":name,"pos":a["pos"],"posCN":a["posCN"],"games":a["games"],"goals":a["goals"],"assists":a["assists"],"xg":round(a["xg"],2),"xa":round(a["xa"],2),"pm":a["pm"],"pa":a["pa"],"passPct":round(a["pm"]/a["pa"]*100) if a["pa"] else 0,"keyPass":a["keyPass"],"interceptions":a["interceptions"],"clearances":a["clearances"],"blocks":a["blocks"],"tk":a["tk"],"totalDef":a["interceptions"]+a["clearances"]+a["blocks"]+a["tk"],"avgRating":round(avg,2),"shots":a["shots"],"shotOn":a["shotOn"]})
+          players.sort(key=lambda x:(x["goals"]+x["assists"]),reverse=True)
 
-          # 寫檔
-          os.makedirs("data/aggregated", exist_ok=True)
-          # 如果有新抓到，才覆蓋 matches.json，否則保留舊檔
+          os.makedirs("data/aggregated",exist_ok=True)
           if len(all_latest)>0:
               with open("data/matches.json","w",encoding="utf-8") as f:
                   json.dump(deduped,f,ensure_ascii=False,indent=2)
 
-          board = {
-              "players": players,
-              "totalMatches": len(deduped),
-              "lastUpdated": __import__("datetime").datetime.utcnow().isoformat(),
-              "version": "curl_cffi-10-10-10",
-              "source": f"curl_cffi 最新{len(deduped)}場 (league{len(league)}+friendly{len(friendly)}+playoff{len(playoff)})"
-          }
-          meta = {
-              "totalMatches": len(deduped),
-              "lastUpdated": board["lastUpdated"],
-              "lastFetchCounts": {"league": len(league), "friendly": len(friendly), "playoff": len(playoff)},
-              "version": "curl_cffi-10-10-10",
-              "note": f"curl_cffi 抓新 league10+friendly10+playoff10 = 最新{len(deduped)}場"
-          }
-          with open("data/aggregated/board.json","w",encoding="utf-8") as f:
-              json.dump(board,f,ensure_ascii=False,indent=2)
-          with open("data/meta.json","w",encoding="utf-8") as f:
-              json.dump(meta,f,ensure_ascii=False,indent=2)
+          board={"players":players,"totalMatches":len(deduped),"lastUpdated":__import__("datetime").datetime.utcnow().isoformat(),"version":"curl_cffi-10-10-10-FIXED","source":f"curl_cffi 最新{len(deduped)}場 (league{len(league)}+friendly{len(friendly)}+playoff{len(playoff)})"}
+          meta={"totalMatches":len(deduped),"lastUpdated":board["lastUpdated"],"lastFetchCounts":{"league":len(league),"friendly":len(friendly),"playoff":len(playoff)},"version":"curl_cffi-10-10-10-FIXED","note":f"curl_cffi 抓新 league10+friendly10+playoff10 = 最新{len(deduped)}場"}
+          with open("data/aggregated/board.json","w",encoding="utf-8") as f: json.dump(board,f,ensure_ascii=False,indent=2)
+          with open("data/meta.json","w",encoding="utf-8") as f: json.dump(meta,f,ensure_ascii=False,indent=2)
 
           print(f"✅ 完成: 最新{len(deduped)}場, {len(players)}人")
-          for p in players[:10]:
-              print(f"  {p['name']} {p['games']}場 {p['goals']}G{p['assists']}A ⭐{p['avgRating']} xG{p['xg']}")
+          for p in players[:10]: print(f"  {p['name']} {p['games']}場 {p['goals']}G{p['assists']}A ⭐{p['avgRating']}")
           PY
-
-      - name: 執行 curl_cffi 抓取
+      - name: 執行
         run: python /tmp/fetch_ea.py
-
-      - name: Commit 最新30場
+      - name: Commit
         run: |
           git config user.name "pepe-bot"
           git config user.email "pepe-bot@users.noreply.github.com"
           git add data/matches.json data/meta.json data/aggregated/board.json || true
-          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: curl_cffi 抓新 league10+friendly10+playoff10 最新30場 [skip ci]" && git push)
+          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: curl_cffi FIXED 最新30場 [skip ci]" && git push)
