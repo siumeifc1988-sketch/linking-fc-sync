@@ -1,5 +1,13 @@
 {
   "totalMatches": 0,
-  "lastUpdated": "0場",
-  "version": "curl_cffi-0"
+  "lastUpdated": "2026-10-18T18:42:07.368605+08:00",
+  "lastUpdatedDisplay": "2026-10-18 18:42 HKT",
+  "lastStatus": "保留舊檔",
+  "lastFetchCounts": {
+    "league": 0,
+    "friendly": 0,
+    "playoff": 0
+  },
+  "version": "實用版-日期標明",
+  "note": "保留舊檔 - 最新0場 抓取時間 2026-10-18 18:42 HKT"
 }

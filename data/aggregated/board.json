@@ -1,8 +1,14 @@
 {
   "players": [],
   "totalMatches": 0,
-  "last10Matches": 0,
-  "lastUpdated": "2026-10-18T10:04:07.112Z",
-  "version": "V700-LATEST-30-PLAYER-10",
-  "source": "最新 0場 (league 0+friendly 0+playoff 0) | 球員只計近10場"
+  "lastUpdated": "2026-10-18T18:42:07.368605+08:00",
+  "lastUpdatedDisplay": "2026-10-18 18:42 HKT",
+  "lastStatus": "保留舊檔",
+  "lastFetchCounts": {
+    "league": 0,
+    "friendly": 0,
+    "playoff": 0
+  },
+  "version": "實用版-日期標明",
+  "source": "保留舊檔 0場 (2026-10-18 18:42 HKT) league0+friendly0+playoff0"
 }
