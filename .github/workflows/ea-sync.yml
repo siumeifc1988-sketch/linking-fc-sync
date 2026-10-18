@@ -1,0 +1,170 @@
+name: EA Sync to GitHub - V600 Optimized
+
+on:
+  schedule:
+    - cron: '0 19 * * *'  # 03:00 HKT 每日
+  workflow_dispatch:  # 手動觸發
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync EA matches + Build Aggregated Board
+        env:
+          CLUB_ID: '41026'
+        run: |
+          mkdir -p data/aggregated .github/scripts
+          node .github/scripts/sync.mjs
+
+      - name: Commit & Push
+        run: |
+          git config user.name "pepe-bot"
+          git config user.email "pepe-bot@users.noreply.github.com"
+          git add data/matches.json data/meta.json data/aggregated/board.json
+          git diff --cached --quiet || git commit -m "chore: sync EA $(date -u +%Y-%m-%d) [skip ci]"
+          git push
+
+# --- 核心腳本: .github/scripts/sync.mjs ---
+# 為咗單檔方便，我哋直接喺 workflow 入面生成
+      - name: Ensure sync script exists
+        run: |
+          cat > .github/scripts/sync.mjs <<'JS'
+          import fs from 'fs';
+
+          const CLUB_ID = process.env.CLUB_ID || '41026';
+          const EA_HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://www.ea.com/',
+            'Origin': 'https://www.ea.com'
+          };
+          const PROXIES = [
+            (url) => url,
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+          ];
+
+          async function fetchJsonWithFallback(url) {
+            for (const p of PROXIES) {
+              try {
+                const proxied = p(url);
+                const res = await fetch(proxied, { headers: EA_HEADERS, signal: AbortSignal.timeout(8000) });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const text = await res.text();
+                const json = JSON.parse(text);
+                // EA 包一層 raw / 有時 allorigins 包
+                return json;
+              } catch (e) {
+                console.log(`proxy fail ${p.name || 'direct'} for ${url}: ${e.message}`);
+                continue;
+              }
+            }
+            throw new Error(`All proxies failed for ${url}`);
+          }
+
+          async function fetchMatches(matchType) {
+            const url = `https://proclubs.ea.com/api/fc/clubs/matches?matchType=${matchType}&clubIds=${CLUB_ID}&maxResultCount=10`;
+            try {
+              const data = await fetchJsonWithFallback(url);
+              return Array.isArray(data) ? data : (data.matches || data.raw || []);
+            } catch (e) {
+              console.error(`fetch ${matchType} fail`, e.message);
+              return [];
+            }
+          }
+
+          function loadExisting() {
+            try {
+              if (fs.existsSync('data/matches.json')) {
+                const raw = fs.readFileSync('data/matches.json','utf8');
+                const arr = JSON.parse(raw);
+                return Array.isArray(arr) ? arr : (arr.matches || []);
+              }
+            } catch {}
+            return [];
+          }
+
+          function dedupMatches(all) {
+            const map = new Map();
+            for (const m of all) {
+              const id = m.matchId || m.id || `${m.timestamp}-${m.opponentId}`;
+              if (!id) continue;
+              // 保留最新
+              if (!map.has(id) || (m.timestamp||0) > (map.get(id).timestamp||0)) map.set(id, m);
+            }
+            return [...map.values()].sort((a,b) => (b.timestamp||0)-(a.timestamp||0));
+          }
+
+          function buildBoard(matches) {
+            const agg = new Map();
+            for (const m of matches) {
+              const clubs = m.clubs || {};
+              const club = clubs[CLUB_ID] || clubs['41026'] || Object.values(clubs)[0];
+              if (!club) continue;
+              const players = club.players || {};
+              for (const [pid, p] of Object.entries(players)) {
+                const cur = agg.get(pid) || { playerId: pid, name: p.playername || p.name || pid, games:0, goals:0, assists:0, ratingSum:0, ratingCount:0, mom:0 };
+                cur.games++;
+                cur.goals += Number(p.goals||0);
+                cur.assists += Number(p.assists||0);
+                cur.mom += Number(p.mom||0);
+                const r = Number(p.rating||p.vproattr||0);
+                if (r>0) { cur.ratingSum+=r; cur.ratingCount++; }
+                if (p.playername) cur.name = p.playername;
+                agg.set(pid, cur);
+              }
+            }
+            const players = [...agg.values()].map(p => ({
+              ...p,
+              avgRating: p.ratingCount ? +(p.ratingSum/p.ratingCount).toFixed(2) : 0,
+              g_a: p.goals + p.assists
+            })).sort((a,b) => b.g_a - a.g_a || b.avgRating - a.avgRating);
+
+            return { players, totalMatches: matches.length, lastUpdated: new Date().toISOString(), _source: 'github-action' };
+          }
+
+          async function main() {
+            const [league, friendly, playoff] = await Promise.all([
+              fetchMatches('league'),
+              fetchMatches('friendly'),
+              fetchMatches('playoff')
+            ]);
+            console.log(`fetched: league ${league.length}, friendly ${friendly.length}, playoff ${playoff.length}`);
+
+            const existing = loadExisting();
+            console.log(`existing ${existing.length} matches`);
+
+            const merged = dedupMatches([...league, ...friendly, ...playoff, ...existing]);
+            // 可選: 只保留最近 1000 場防無限膨脹
+            const capped = merged.slice(0, 1000);
+
+            const board = buildBoard(capped);
+            const meta = {
+              totalMatches: capped.length,
+              lastUpdated: new Date().toISOString(),
+              lastMatchId: capped[0]?.matchId || null,
+              lastFetchCounts: { league: league.length, friendly: friendly.length, playoff: playoff.length }
+            };
+
+            fs.mkdirSync('data/aggregated', { recursive: true });
+            fs.writeFileSync('data/matches.json', JSON.stringify(capped, null, 2));
+            fs.writeFileSync('data/aggregated/board.json', JSON.stringify(board, null, 2));
+            fs.writeFileSync('data/meta.json', JSON.stringify(meta, null, 2));
+
+            console.log(`saved ${capped.length} total matches, board ${board.players.length} players`);
+          }
+
+          await main();
+          JS
+          # 再跑一次主邏輯 (上面 step 已生成，這裡執行)
+          node .github/scripts/sync.mjs
