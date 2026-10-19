@@ -72,9 +72,6 @@ tr.detail-row { cursor: pointer; transition: background .1s; }
 tr.detail-row:hover { background: var(--row-hover); }
 tr.detail-row.open { background: #f3eef8; }
 tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-bottom: 1px solid var(--line); }
-.expand-body { padding: 0.1rem 0; }
-.expand-body .sec { margin-top: 0.55rem; }
-.expand-body .sec:first-child { margin-top: 0; }
 
 .table-wrap {
   overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -84,9 +81,6 @@ tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-b
   .detail-table { font-size: 0.78rem; min-width: 520px; }
   .detail-table thead th, .detail-table tbody td { padding: 0.48rem 0.32rem; }
 }
-
-.expand-body .chips { gap: 0.28rem; }
-.expand-body .chip { font-size: 0.7rem; padding: 0.16rem 0.5rem; background: #fff; border-color: #e2dce8; }
 
 @media (max-width: 640px) {
   .drawer-body { padding: 0.8rem 0.75rem; }
@@ -151,71 +145,72 @@ th.sort.sorted::after { content: " ▼"; font-size: 0.55rem; opacity: 0.9; }
   .stats-table { font-size: 0.75rem; min-width: 720px; }
 }
 
-/* Expand C: summary + cards + details */
-.expand-c { padding: 0.15rem 0; }
+/* Unified expandable player stats */
+.expand-c { padding: 0.2rem 0 0.35rem; }
 .expand-summary {
-  margin: 0 0 0.65rem;
-  font-size: 0.88rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--pl-purple);
   letter-spacing: -0.01em;
+  line-height: 1.35;
 }
-.expand-cards {
+.stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-  gap: 0.35rem;
-  margin-bottom: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
 }
-.expand-cards .ec {
+@media (max-width: 560px) {
+  .stat-grid { grid-template-columns: 1fr; }
+}
+.stat-group {
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0.4rem 0.35rem;
-  text-align: center;
+  border-radius: 8px;
+  overflow: hidden;
 }
-.expand-cards .el {
-  display: block;
-  font-size: 0.58rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.stat-gh {
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-bottom: 0.12rem;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--pl-purple);
 }
-.expand-cards .ev {
-  display: block;
-  font-size: 1rem;
+.stat-rows { padding: 0.25rem 0; }
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.32rem 0.65rem;
+  border-bottom: 1px solid #f0ebf5;
+  font-size: 0.8rem;
+}
+.stat-row:last-child { border-bottom: 0; }
+.stat-l {
+  color: var(--muted);
+  font-weight: 600;
+  min-width: 0;
+}
+.stat-v {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
   color: var(--text);
 }
-.expand-details {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 0.35rem 0.65rem 0.5rem;
-}
-.expand-details summary {
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--muted);
-  padding: 0.25rem 0;
-  list-style: none;
-}
-.expand-details summary::-webkit-details-marker { display: none; }
-.expand-details summary::before {
-  content: "▸ ";
-  color: var(--pl-magenta);
-  font-weight: 800;
-}
-.expand-details[open] summary::before { content: "▾ "; }
-.expand-details[open] summary { color: var(--pl-purple); margin-bottom: 0.35rem; }
 
-/* Heatmap cells */
-td.heat { border-radius: 3px; }
-td.heat-1 { background: rgba(233,0,82,.06); }
-td.heat-2 { background: rgba(233,0,82,.12); }
-td.heat-3 { background: rgba(150,60,255,.14); }
-td.heat-4 { background: rgba(0,168,90,.18); color: #0a5c32; }
-td.heat-5 { background: rgba(0,168,90,.32); color: #064020; font-weight: 800; }
+/* Match detail sort header */
+.detail-table th.sort { cursor: pointer; user-select: none; }
+.detail-table th.sort:hover { background: #4a1550 !important; }
+.detail-table th.sort.sorted { background: #5a1a62 !important; }
+
+/* Align cumulative table style with detail */
+.stats-table tbody td.n,
+.detail-table tbody td.n {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
