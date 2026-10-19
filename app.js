@@ -103,7 +103,9 @@ function playerRows(list, mode, limit){
     const ga = p.gA!=null?p.gA:(p.goals+p.assists);
     const r = Number(p.avgRating);
     const pos = p.posCN || "";
-    return '<tr class="player-row" data-name="'+esc(p.name)+'">'+ 
+    const key = p.name;
+    const open = expandedCum === key;
+    return '<tr class="player-row detail-row'+(open?" open":"")+'" data-cname="'+esc(p.name)+'">'+ 
       '<td class="pos">'+(i+1)+'</td>'+
       '<td><span class="pos-tag">'+esc(pos||"-")+'</span></td>'+
       '<td><strong>'+esc(p.name)+'</strong></td>'+
@@ -117,8 +119,53 @@ function playerRows(list, mode, limit){
       '<td class="n">'+(p.keyPass!=null?p.keyPass:"-")+'</td>'+
       '<td class="n">'+(p.interceptions!=null?p.interceptions:"-")+'</td>'+
       '<td class="n">'+(p.tk!=null?p.tk:"-")+'</td>'+
-      '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>';
+      '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>'+
+      (open ? '<tr class="expand-tr"><td colspan="14">'+cumExpandHtml(p)+'</td></tr>' : '');
   }).join("");
+}
+function cumExpandHtml(p){
+  const ga = p.gA!=null?p.gA:(p.goals+p.assists);
+  const r = Number(p.avgRating).toFixed(2);
+  const summary = "評分 "+r+" · "+p.games+" 場 · "+p.goals+"G "+p.assists+"A · 傳 "+(p.passPct!=null?p.passPct+"%":"-")+(p.minutes!=null?" · "+p.minutes+"′":"");
+  function row(label, value){
+    return '<div class="stat-row"><span class="stat-l">'+esc(label)+'</span><span class="stat-v">'+value+'</span></div>';
+  }
+  function group(title, rowsHtml){
+    return '<div class="stat-group"><h4 class="stat-gh">'+esc(title)+'</h4><div class="stat-rows">'+rowsHtml+'</div></div>';
+  }
+  const attack = group("進攻",
+    row("入球", String(p.goals))+
+    row("助攻", String(p.assists))+
+    row("G+A", String(ga))+
+    row("射門", String(p.shots!=null?p.shots:"-"))+
+    row("射正", String(p.shotsOn!=null?p.shotsOn:"-"))+
+    row("場均入球", String(p.goalsPerGame!=null?p.goalsPerGame:"-"))+
+    row("xG / xA", (p.xg!=null?p.xg:"-")+" / "+(p.xa!=null?p.xa:"-"))
+  );
+  const passing = group("傳球",
+    row("成功率", (p.passPct!=null?p.passPct+"%":"-"))+
+    row("成功 / 嘗試", (p.pm!=null?p.pm:"-")+" / "+(p.pa!=null?p.pa:"-"))+
+    row("直塞", String(p.keyPass!=null?p.keyPass:"-"))+
+    row("向前 / 向後 / 橫傳", (p.passFwd||0)+" / "+(p.passBack||0)+" / "+(p.passSide||0))
+  );
+  const defense = group("防守",
+    row("搶截", String(p.tk!=null?p.tk:"-"))+
+    row("攔截", String(p.interceptions!=null?p.interceptions:"-"))+
+    row("防守合計", String(p.totalDef!=null?p.totalDef:"-"))+
+    row("解圍", String(p.clearances!=null?p.clearances:"-"))+
+    row("封堵", String(p.blocks!=null?p.blocks:"-"))+
+    row("頭錘防守", String(p.aerialDef!=null?p.aerialDef:"-"))
+  );
+  const activity = group("活動",
+    row("上場場數", String(p.games))+
+    row("上場分鐘", (p.minutes!=null?p.minutes:"-")+"′")+
+    row("盤球", String(p.dribbles!=null?p.dribbles:"-"))+
+    row("平均評分", r)
+  );
+  return '<div class="expand-c">'+
+    '<p class="expand-summary">'+esc(summary)+'</p>'+
+    '<div class="stat-grid">'+attack+passing+defense+activity+'</div>'+
+  '</div>';
 }
 function matchButtons(list, limit){
   const rows = (list||[]).slice(0, limit||20);
@@ -174,6 +221,7 @@ let detailMode = "table";
 let detailMatch = null;
 let expandedPlayer = null;
 let detailSort = { key: "rating", dir: -1 };
+let expandedCum = null;
 
 function ratingClass(r){
   r = num(r);
@@ -452,6 +500,14 @@ document.getElementById("all-thead").onclick=function(e){
   render();
 };
 document.body.addEventListener("click", function(e){
+  const crow=e.target.closest("tr.player-row[data-cname]");
+  if(crow){
+    const name = crow.dataset.cname;
+    expandedCum = (expandedCum === name) ? null : name;
+    document.getElementById("drawer").hidden = true;
+    render();
+    return;
+  }
   const row=e.target.closest("tr.player-row[data-name]");
   if(row) openPlayer(row.dataset.name);
   const mb=e.target.closest("button.match[data-id]");
