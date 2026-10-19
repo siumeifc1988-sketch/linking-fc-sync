@@ -10,7 +10,7 @@ const EV = {
 };
 
 let boardAll = null, boardL10 = null, matches = [], tab = "overview";
-let sortAll = "gA", selectedMatch = null;
+let sortAll = "gA", sortOv = "attack", selectedMatch = null;
 
 function num(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
 function esc(s){ return String(s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;"); }
@@ -455,7 +455,10 @@ function render(){
     "歷史 "+((boardAll&&boardAll.totalMatches)||matches.length)+" 場 · 戰報 "+matches.length+" 場";
   renderRecord(document.getElementById("ov-record"), recAll);
   renderForm(document.getElementById("ov-form"), (recAll||{}).form||[]);
-  document.getElementById("ov-top").innerHTML = playerRows((boardAll&&boardAll.players)||[], "attack", 8);
+  document.getElementById("ov-top").innerHTML = playerRows((boardAll&&boardAll.players)||[], sortOv, 8);
+  document.querySelectorAll("#ov-thead th[data-sort]").forEach(function(th){
+    th.classList.toggle("sorted", th.dataset.sort===sortOv);
+  });
   renderRecord(document.getElementById("all-record"), recAll);
   renderForm(document.getElementById("all-form"), (recAll||{}).form||[]);
   document.getElementById("all-body").innerHTML = playerRows((boardAll&&boardAll.players)||[], sortAll);
@@ -490,6 +493,11 @@ document.getElementById("btn-close-drawer").onclick=function(){document.getEleme
 document.getElementById("btn-close-detail").onclick=function(){selectedMatch=null;detailMatch=null;document.getElementById("detail").hidden=true;renderMatchLists(); try{window.scrollBy(0,-1);}catch(e){}};
 document.getElementById("main-tabs").onclick=function(e){
   const b=e.target.closest("button[data-tab]"); if(!b) return; showTab(b.dataset.tab);
+};
+document.getElementById("ov-thead").onclick=function(e){
+  const th=e.target.closest("th[data-sort]"); if(!th) return;
+  sortOv=th.dataset.sort;
+  render();
 };
 document.getElementById("all-thead").onclick=function(e){
   const th=e.target.closest("th[data-sort]"); if(!th) return;
