@@ -10,7 +10,7 @@ const EV = {
 };
 
 let boardAll = null, boardL10 = null, matches = [], tab = "overview";
-let sortAll = "attack", selectedMatch = null;
+let sortAll = "gA", selectedMatch = null;
 
 function num(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
 function esc(s){ return String(s).replace(/&/g,"&"+"amp;").replace(/</g,"&"+"lt;").replace(/>/g,"&"+"gt;").replace(/"/g,"&"+"quot;"); }
@@ -49,10 +49,25 @@ function shapeMatches(raw){
 }
 function sortPlayers(list, mode){
   const rows=(list||[]).slice();
-  if(mode==="defense") rows.sort(function(a,b){return b.totalDef-a.totalDef||b.avgRating-a.avgRating;});
-  else if(mode==="rating") rows.sort(function(a,b){return b.avgRating-a.avgRating||b.games-a.games;});
-  else if(mode==="pass") rows.sort(function(a,b){return b.passPct-a.passPct||b.keyPass-a.keyPass;});
-  else rows.sort(function(a,b){return (b.gA||(b.goals+b.assists))-(a.gA||(a.goals+a.assists))||b.goals-a.goals;});
+  const by = {
+    games: function(a,b){return b.games-a.games||b.avgRating-a.avgRating;},
+    goals: function(a,b){return b.goals-a.goals||b.assists-a.assists;},
+    assists: function(a,b){return b.assists-a.assists||b.goals-a.goals;},
+    gA: function(a,b){return (b.gA||(b.goals+b.assists))-(a.gA||(a.goals+a.assists))||b.goals-a.goals;},
+    shots: function(a,b){return (b.shots||0)-(a.shots||0);},
+    shotsOn: function(a,b){return (b.shotsOn||0)-(a.shotsOn||0);},
+    pass: function(a,b){return (b.passPct||0)-(a.passPct||0)||(b.keyPass||0)-(a.keyPass||0);},
+    keyPass: function(a,b){return (b.keyPass||0)-(a.keyPass||0);},
+    interceptions: function(a,b){return (b.interceptions||0)-(a.interceptions||0);},
+    tk: function(a,b){return (b.tk||0)-(a.tk||0);},
+    defense: function(a,b){return (b.totalDef||0)-(a.totalDef||0)||b.avgRating-a.avgRating;},
+    dribbles: function(a,b){return (b.dribbles||0)-(a.dribbles||0);},
+    rating: function(a,b){return b.avgRating-a.avgRating||b.games-a.games;},
+    minutes: function(a,b){return (b.minutes||0)-(a.minutes||0);},
+    attack: function(a,b){return (b.gA||(b.goals+b.assists))-(a.gA||(a.goals+a.assists))||b.goals-a.goals;}
+  };
+  const fn = by[mode] || by.gA;
+  rows.sort(fn);
   return rows;
 }
 function metric(p, mode){
@@ -89,10 +104,19 @@ function playerRows(list, mode, limit){
       '<td class="pos">'+(i+1)+'</td>'+
       '<td><div class="who"><div class="avatar">'+avatar(p.name)+'</div><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.posCN||"")+'</small></div></div></td>'+
       '<td class="n">'+p.games+'</td>'+
-      '<td class="n">'+metric(p,mode)+'</td>'+
       '<td class="n">'+p.goals+'</td>'+
       '<td class="n">'+p.assists+'</td>'+
-      '<td class="n">'+Number(p.avgRating).toFixed(2)+'</td></tr>';
+      '<td class="n">'+(p.gA!=null?p.gA:(p.goals+p.assists))+'</td>'+
+      '<td class="n">'+(p.shots!=null?p.shots:"-")+'</td>'+
+      '<td class="n">'+(p.shotsOn!=null?p.shotsOn:"-")+'</td>'+
+      '<td class="n">'+(p.passPct!=null?p.passPct+"%":"-")+'</td>'+
+      '<td class="n">'+(p.keyPass!=null?p.keyPass:"-")+'</td>'+
+      '<td class="n">'+(p.interceptions!=null?p.interceptions:"-")+'</td>'+
+      '<td class="n">'+(p.tk!=null?p.tk:"-")+'</td>'+
+      '<td class="n">'+(p.totalDef!=null?p.totalDef:"-")+'</td>'+
+      '<td class="n">'+(p.dribbles!=null?p.dribbles:"-")+'</td>'+
+      '<td class="n">'+Number(p.avgRating).toFixed(2)+'</td>'+
+      '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>';
   }).join("");
 }
 function matchButtons(list, limit){
@@ -215,13 +239,7 @@ function summaryHtml(row, usList, themList){
     '</div>'+
   '</div>';
 }
-function modeTabsHtml(){
-  return '<div class="detail-mode-tabs">'+
-    '<button type="button" class="dmode'+(detailMode==="table"?" active":"")+'" data-dmode="table">評分表</button>'+
-    '<button type="button" class="dmode'+(detailMode==="lineup"?" active":"")+'" data-dmode="lineup">陣容</button>'+
-    '<span class="hint-inline">點選可展開細項</span>'+
-  '</div>';
-}
+function modeTabsHtml(){ return ""; }
 function tableViewHtml(list, side){
   side = side || "us";
   const rows = list.map(function(p,i){
@@ -254,60 +272,10 @@ function tableViewHtml(list, side){
       '<th class="n">G</th><th class="n">A</th><th class="n">射</th><th class="n">傳%</th><th class="n">搶截</th><th class="n">分</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
-function lineupCardHtml(p, i){
-  const name=p.playername||p.name||"?";
-  const pos=posLabel(p);
-  const pk=posKey(p);
-  const r=num(p.rating);
-  const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
-  const pct = pa>0 ? Math.round(pm/pa*100) : 0;
-  const tkM=num(p.tacklesmade||p.tacklesMade);
-  const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
-  const key=(p._side||"us")+"|L|"+name+"|"+i;
-  const open = expandedPlayer===key;
-  let stats = "";
-  if(pk==="forward"){
-    stats = '<span>G<b>'+num(p.goals)+'</b></span><span>A<b>'+num(p.assists)+'</b></span><span>射<b>'+num(p.shots)+'</b></span>';
-  } else if(pk==="midfielder"){
-    const ev=decodeEvents(p);
-    stats = '<span>A<b>'+num(p.assists)+'</b></span><span>直塞<b>'+num(ev[152])+'</b></span><span>傳%<b>'+pct+'</b></span>';
-  } else if(pk==="defender"){
-    const ev=decodeEvents(p);
-    stats = '<span>搶<b>'+tkM+'</b></span><span>攔截<b>'+num(ev[6])+'</b></span><span>傳%<b>'+pct+'</b></span>';
-  } else {
-    stats = '<span>失球<b>'+num(p.goalsconceded)+'</b></span><span>撲救<b>'+num(p.saves)+'</b></span><span>分<b>'+(mins||0)+'</b></span>';
-  }
-  return '<div class="lineup-card'+(open?" open":"")+'" data-pkey="'+esc(key)+'">'+ 
-    '<div class="lc-top"><span class="rating-badge '+ratingClass(r)+'">'+r.toFixed(2)+'</span>'+
-    '<div class="lc-name"><strong>'+esc(name)+'</strong><small>'+esc(pos)+(mins?' · '+mins+'′':'')+'</small></div></div>'+
-    '<div class="lc-stats">'+stats+'</div>'+
-    (open ? eventExpandHtml(p) : '')+
-  '</div>';
-}
-function lineupViewHtml(list){
-  const groups = [
-    {key:"goalkeeper", title:"門將"},
-    {key:"defender", title:"後衛"},
-    {key:"midfielder", title:"中場"},
-    {key:"forward", title:"前鋒"}
-  ];
-  const by = {};
-  list.forEach(function(p,i){ p._idx=i; const k=posKey(p); (by[k]=by[k]||[]).push(p); });
-  return groups.map(function(g){
-    const arr = by[g.key]||[];
-    if(!arr.length) return "";
-    return '<div class="lineup-group"><h4 class="lineup-h">'+g.title+' <span>'+arr.length+'</span></h4>'+
-      '<div class="lineup-grid">'+arr.map(function(p){ return lineupCardHtml(p, p._idx); }).join("")+'</div></div>';
-  }).join("") || '<p class="hint" style="padding:0">沒有球員</p>';
-}
 function teamBlockHtml(title, list, side){
   if(!list.length) return '<p class="hint" style="padding:0.4rem 0">沒有 '+esc(title)+' 球員細項</p>';
-  const head = '<div class="team-block team-'+side+'"><h3 class="team-h">'+esc(title)+' <span>'+list.length+' 人</span></h3>';
-  if(detailMode==="lineup"){
-    list.forEach(function(p){ p._side = side; });
-    return head + lineupViewHtml(list) + '</div>';
-  }
-  return head + tableViewHtml(list, side) + '</div>';
+  return '<div class="team-block team-'+side+'"><h3 class="team-h">'+esc(title)+' <span>'+list.length+' 人</span></h3>' +
+    tableViewHtml(list, side) + '</div>';
 }
 function renderDetailBody(){
   if(!detailMatch) return;
@@ -363,8 +331,10 @@ function render(){
   }).join("");
   renderRecord(document.getElementById("all-record"), recAll);
   renderForm(document.getElementById("all-form"), (recAll||{}).form||[]);
-  document.getElementById("all-metric").textContent = sortAll==="defense"?"防守":sortAll==="rating"?"評分":sortAll==="pass"?"傳%":"G+A";
   document.getElementById("all-body").innerHTML = playerRows((boardAll&&boardAll.players)||[], sortAll);
+  document.querySelectorAll("#all-thead th[data-sort]").forEach(function(th){
+    th.classList.toggle("sorted", th.dataset.sort===sortAll);
+  });
   renderMatchLists();
 }
 async function load(){
@@ -394,10 +364,9 @@ document.getElementById("btn-close-detail").onclick=function(){selectedMatch=nul
 document.getElementById("main-tabs").onclick=function(e){
   const b=e.target.closest("button[data-tab]"); if(!b) return; showTab(b.dataset.tab);
 };
-document.getElementById("all-sort").onclick=function(e){
-  const b=e.target.closest("button[data-sort]"); if(!b) return;
-  sortAll=b.dataset.sort;
-  document.querySelectorAll("#all-sort button").forEach(function(x){x.classList.toggle("active",x===b);});
+document.getElementById("all-thead").onclick=function(e){
+  const th=e.target.closest("th[data-sort]"); if(!th) return;
+  sortAll=th.dataset.sort;
   render();
 };
 document.body.addEventListener("click", function(e){
@@ -410,13 +379,6 @@ document.body.addEventListener("click", function(e){
   }
 });
 document.getElementById("detail-body").addEventListener("click", function(e){
-  const modeBtn = e.target.closest("button.dmode[data-dmode]");
-  if(modeBtn){
-    detailMode = modeBtn.dataset.dmode;
-    expandedPlayer = null;
-    renderDetailBody();
-    return;
-  }
   const row = e.target.closest("[data-pkey]");
   if(row && detailMatch){
     const key = row.dataset.pkey;
