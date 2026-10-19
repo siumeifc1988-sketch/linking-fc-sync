@@ -77,6 +77,24 @@ function metric(p, mode){
   return (p.gA!=null?p.gA:(p.goals+p.assists));
 }
 function avatar(name){ return esc(String(name||"?").slice(0,2).toUpperCase()); }
+function heatScale(vals, v){
+  const nums = (vals||[]).filter(function(x){ return x!=null && !isNaN(x); });
+  if(!nums.length || v==null || isNaN(v)) return "";
+  const min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
+  if(max === min) return "heat-3";
+  const t = (v - min) / (max - min);
+  if(t >= 0.85) return "heat-5";
+  if(t >= 0.65) return "heat-4";
+  if(t >= 0.4) return "heat-3";
+  if(t >= 0.2) return "heat-2";
+  return "heat-1";
+}
+function colVals(list, key, mapFn){
+  return (list||[]).map(function(p){
+    if(mapFn) return mapFn(p);
+    return p[key];
+  });
+}
 
 function renderRecord(el, rec){
   if(!rec){ el.innerHTML=""; return; }
@@ -99,24 +117,45 @@ function renderForm(el, form){
   }).join("");
 }
 function playerRows(list, mode, limit){
-  return sortPlayers(list, mode).slice(0, limit||99).map(function(p,i){
+  const sorted = sortPlayers(list, mode).slice(0, limit||99);
+  const vGames = colVals(sorted, "games");
+  const vGoals = colVals(sorted, "goals");
+  const vAst = colVals(sorted, "assists");
+  const vGA = colVals(sorted, null, function(p){ return p.gA!=null?p.gA:(p.goals+p.assists); });
+  const vShots = colVals(sorted, "shots");
+  const vShOn = colVals(sorted, "shotsOn");
+  const vPass = colVals(sorted, "passPct");
+  const vKP = colVals(sorted, "keyPass");
+  const vInt = colVals(sorted, "interceptions");
+  const vTk = colVals(sorted, "tk");
+  const vDef = colVals(sorted, "totalDef");
+  const vDrib = colVals(sorted, "dribbles");
+  const vRat = colVals(sorted, "avgRating");
+  const vMin = colVals(sorted, "minutes");
+  return sorted.map(function(p,i){
+    const ga = p.gA!=null?p.gA:(p.goals+p.assists);
+    const td = function(val, heat, suffix){
+      suffix = suffix || "";
+      return '<td class="n heat '+heat+'">'+(val!=null?val:"-")+suffix+'</td>';
+    };
     return '<tr class="player-row" data-name="'+esc(p.name)+'">'+ 
       '<td class="pos">'+(i+1)+'</td>'+
       '<td><div class="who"><div class="avatar">'+avatar(p.name)+'</div><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.posCN||"")+'</small></div></div></td>'+
-      '<td class="n">'+p.games+'</td>'+
-      '<td class="n">'+p.goals+'</td>'+
-      '<td class="n">'+p.assists+'</td>'+
-      '<td class="n">'+(p.gA!=null?p.gA:(p.goals+p.assists))+'</td>'+
-      '<td class="n">'+(p.shots!=null?p.shots:"-")+'</td>'+
-      '<td class="n">'+(p.shotsOn!=null?p.shotsOn:"-")+'</td>'+
-      '<td class="n">'+(p.passPct!=null?p.passPct+"%":"-")+'</td>'+
-      '<td class="n">'+(p.keyPass!=null?p.keyPass:"-")+'</td>'+
-      '<td class="n">'+(p.interceptions!=null?p.interceptions:"-")+'</td>'+
-      '<td class="n">'+(p.tk!=null?p.tk:"-")+'</td>'+
-      '<td class="n">'+(p.totalDef!=null?p.totalDef:"-")+'</td>'+
-      '<td class="n">'+(p.dribbles!=null?p.dribbles:"-")+'</td>'+
-      '<td class="n">'+Number(p.avgRating).toFixed(2)+'</td>'+
-      '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>';
+      td(p.games, heatScale(vGames, p.games))+
+      td(p.goals, heatScale(vGoals, p.goals))+
+      td(p.assists, heatScale(vAst, p.assists))+
+      td(ga, heatScale(vGA, ga))+
+      td(p.shots, heatScale(vShots, p.shots))+
+      td(p.shotsOn, heatScale(vShOn, p.shotsOn))+
+      td(p.passPct, heatScale(vPass, p.passPct), "%")+
+      td(p.keyPass, heatScale(vKP, p.keyPass))+
+      td(p.interceptions, heatScale(vInt, p.interceptions))+
+      td(p.tk, heatScale(vTk, p.tk))+
+      td(p.totalDef, heatScale(vDef, p.totalDef))+
+      td(p.dribbles, heatScale(vDrib, p.dribbles))+
+      td(Number(p.avgRating).toFixed(2), heatScale(vRat, p.avgRating))+
+      td(p.minutes, heatScale(vMin, p.minutes))+
+    '</tr>';
   }).join("");
 }
 function matchButtons(list, limit){
@@ -204,11 +243,37 @@ function playerList(raw){
 }
 function eventExpandHtml(p){
   const ev=decodeEvents(p);
-  return '<div class="expand-body">'+
-    '<p class="sec">傳球</p><div class="chips">'+chips(ev,[215,216,30,32,34,24,26,28,36,152,153,143])+'</div>'+
-    '<p class="sec">射門 / 入球</p><div class="chips">'+chips(ev,[217,218,13,14,18,19,214,11])+'</div>'+
-    '<p class="sec">防守</p><div class="chips">'+chips(ev,[0,1,6,156,265,266])+'</div>'+
-    '<p class="sec">盤帶 / 站位 / 球權</p><div class="chips">'+chips(ev,[174,97,111,219,105,106,107,108,109,110])+'</div>'+
+  const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
+  const pct = pa>0 ? Math.round(pm/pa*100) : 0;
+  const tkM=num(p.tacklesmade||p.tacklesMade), tkA=num(p.tackleattempts);
+  const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
+  const g=num(p.goals), a=num(p.assists), sh=num(p.shots);
+  const r=num(p.rating).toFixed(2);
+  const summary = '評分 '+r+' · '+g+'G '+a+'A · 傳 '+pct+'% · 搶截 '+tkM+(tkA?'/'+tkA:'')+(mins?' · '+mins+'′':'');
+  const cards =
+    '<div class="expand-cards">'+
+      '<div class="ec"><span class="el">入球</span><span class="ev">'+g+'</span></div>'+
+      '<div class="ec"><span class="el">助攻</span><span class="ev">'+a+'</span></div>'+
+      '<div class="ec"><span class="el">射門</span><span class="ev">'+sh+'</span></div>'+
+      '<div class="ec"><span class="el">傳球</span><span class="ev">'+pm+'/'+pa+'</span></div>'+
+      '<div class="ec"><span class="el">傳%</span><span class="ev">'+pct+'%</span></div>'+
+      '<div class="ec"><span class="el">搶截</span><span class="ev">'+tkM+(tkA?'/'+tkA:'')+'</span></div>'+
+      '<div class="ec"><span class="el">攔截</span><span class="ev">'+num(ev[6])+'</span></div>'+
+      '<div class="ec"><span class="el">分鐘</span><span class="ev">'+(mins||'-')+'</span></div>'+
+    '</div>';
+  const details =
+    '<details class="expand-details">'+
+      '<summary>展開事件明細</summary>'+
+      '<div class="expand-body">'+
+        '<p class="sec">傳球</p><div class="chips">'+chips(ev,[215,216,30,32,34,24,26,28,36,152,153,143])+'</div>'+
+        '<p class="sec">射門 / 入球</p><div class="chips">'+chips(ev,[217,218,13,14,18,19,214,11])+'</div>'+
+        '<p class="sec">防守</p><div class="chips">'+chips(ev,[0,1,6,156,265,266])+'</div>'+
+        '<p class="sec">盤帶 / 站位 / 球權</p><div class="chips">'+chips(ev,[174,97,111,219,105,106,107,108,109,110])+'</div>'+
+      '</div>'+
+    '</details>';
+  return '<div class="expand-c">'+
+    '<p class="expand-summary">'+esc(summary)+'</p>'+
+    cards + details +
   '</div>';
 }
 function summaryHtml(row, usList, themList){
