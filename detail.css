@@ -142,7 +142,7 @@ th.sort.sorted::after { content: " ▼"; font-size: 0.55rem; opacity: 0.9; }
 .stats-table { font-size: 0.82rem; }
 .stats-table thead th { white-space: nowrap; padding: 0.55rem 0.4rem; }
 @media (max-width: 640px) {
-  .stats-table { font-size: 0.75rem; min-width: 720px; }
+  .stats-table { font-size: 0.75rem; min-width: 640px; }
 }
 
 /* Unified expandable player stats */
@@ -203,14 +203,37 @@ th.sort.sorted::after { content: " ▼"; font-size: 0.55rem; opacity: 0.9; }
   color: var(--text);
 }
 
-/* Match detail sort header */
 .detail-table th.sort { cursor: pointer; user-select: none; }
 .detail-table th.sort:hover { background: #4a1550 !important; }
 .detail-table th.sort.sorted { background: #5a1a62 !important; }
 
-/* Align cumulative table style with detail */
 .stats-table tbody td.n,
 .detail-table tbody td.n {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+/* Cumulative uses same detail-table look */
+.stats-table.detail-table thead th {
+  background: var(--pl-purple);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.stats-table .pos-tag {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.12rem 0.38rem;
+  border-radius: 3px;
+  background: #f0ebf5;
+  color: var(--pl-purple);
+  white-space: nowrap;
+}
+.stats-table tbody td {
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
 }
