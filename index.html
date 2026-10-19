@@ -251,26 +251,26 @@
         <div class="panel">
           <div class="panel-head">
             <h2>球員表現</h2>
-            <span class="meta">點列展開明細 · 與戰報同格式</span>
+            <span class="meta">點欄位排序 · 點列展開明細</span>
           </div>
           <div class="table-wrap">
             <table class="detail-table stats-table">
-              <thead>
+              <thead id="ov-thead">
                 <tr>
                   <th class="pos">#</th>
                   <th>位置</th>
                   <th>球員</th>
-                  <th class="n">評分</th>
-                  <th class="n">場</th>
-                  <th class="n">G</th>
-                  <th class="n">A</th>
-                  <th class="n">G+A</th>
-                  <th class="n">射</th>
-                  <th class="n">傳%</th>
-                  <th class="n">直塞</th>
-                  <th class="n">攔截</th>
-                  <th class="n">搶截</th>
-                  <th class="n">分</th>
+                  <th class="n sort" data-sort="rating">評分</th>
+                  <th class="n sort" data-sort="games">場</th>
+                  <th class="n sort" data-sort="goals">G</th>
+                  <th class="n sort" data-sort="assists">A</th>
+                  <th class="n sort" data-sort="gA">G+A</th>
+                  <th class="n sort" data-sort="shots">射</th>
+                  <th class="n sort" data-sort="pass">傳%</th>
+                  <th class="n sort" data-sort="keyPass">直塞</th>
+                  <th class="n sort" data-sort="interceptions">攔截</th>
+                  <th class="n sort" data-sort="tk">搶截</th>
+                  <th class="n sort" data-sort="minutes">分</th>
                 </tr>
               </thead>
               <tbody id="ov-top"></tbody>
