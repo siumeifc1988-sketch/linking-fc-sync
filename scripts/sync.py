@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""LinKing FC EA Pro Clubs sync — club 41026, platform common-gen5."""
+"""LinKing FC EA Pro Clubs sync — club 41026, platform common-gen5.
+
+Event ID 對照以社群研究為準（非 EA 官方）：
+https://github.com/1erkandogan/fc27-clubs-api/blob/main/docs/match-events.md
+"""
 from __future__ import annotations
 
 import datetime
@@ -17,6 +21,34 @@ ROOT = Path(__file__).resolve().parent.parent
 MATCHES_PATH = ROOT / "data" / "matches.json"
 BOARD_PATH = ROOT / "data" / "aggregated" / "board.json"
 META_PATH = ROOT / "data" / "meta.json"
+
+# --- Event IDs (high confidence, research doc) ---
+EV_PASS_OK = 215
+EV_PASS_FAIL = 216
+EV_PASS_FWD = 30
+EV_PASS_BACK = 32
+EV_PASS_SIDE = 34
+EV_PASS_SHORT = 24
+EV_PASS_MED = 26
+EV_PASS_LONG = 28
+EV_PASS_CROSS = 36
+EV_THROUGH = 152
+EV_OFFSIDE_PASS = 153
+EV_SHOT_ON = 217
+EV_SHOT_OFF = 218
+EV_SHOT_ON_IN = 13
+EV_SHOT_ON_OUT = 18
+EV_SHOT_OFF_IN = 14
+EV_SHOT_OFF_OUT = 19
+EV_GOAL = 214
+EV_ASSIST = 11
+EV_DRIBBLE_OK = 174
+EV_TACKLE_WON = 0
+EV_TACKLE_LOST = 1
+EV_INTERCEPT = 6
+EV_CROSS_BLOCK = 156
+EV_AERIAL_ATK = 265
+EV_AERIAL_DEF = 266
 
 
 def try_fetch(match_type: str, count: int = 10) -> list:
@@ -111,19 +143,22 @@ def safe(n) -> float:
         return 0.0
 
 
-def decode(s: str) -> dict:
-    m = {}
-    if not s:
-        return m
-    for p in s.split(","):
-        kv = p.split(":")
-        if len(kv) != 2:
+def decode_events(p: dict) -> dict:
+    """Parse match_event_aggregate_0..3 → {event_id: count}."""
+    out = {}
+    for i in range(4):
+        s = p.get(f"match_event_aggregate_{i}") or ""
+        if not s:
             continue
-        try:
-            m[int(kv[0])] = float(kv[1])
-        except Exception:
-            pass
-    return m
+        for part in str(s).split(","):
+            kv = part.split(":")
+            if len(kv) != 2:
+                continue
+            try:
+                out[int(kv[0])] = float(kv[1])
+            except Exception:
+                pass
+    return out
 
 
 def pos_cn(p) -> str:
@@ -142,36 +177,72 @@ def pos_cn(p) -> str:
 
 
 def parse_player(p: dict) -> dict:
-    a = decode(p.get("match_event_aggregate_0") or p.get("aggregate") or "")
-    succ = safe(a.get(215, 0))
-    pm = succ or safe(p.get("passesmade") or p.get("passesMade") or 0)
-    pa = safe(p.get("passattempts") or p.get("passAttempts") or 0) or (succ + safe(a.get(153, 0))) or pm
-    shots = safe(p.get("shots") or a.get(100, 0))
-    shot_on = safe(a.get(101, 0) or p.get("shotsOn", 0))
-    inside = safe(a.get(106, 0))
-    outside = safe(a.get(107, 0) or max(0, shots - inside))
-    if inside > 0:
-        xg = shot_on * 0.35 + max(0, inside - shot_on) * 0.12 + outside * 0.04
+    """Per-match player row. EA named fields win for totals; events for breakdown."""
+    e = decode_events(p)
+
+    goals = int(safe(p.get("goals", 0)))
+    assists = int(safe(p.get("assists", 0)))
+    rating = safe(p.get("rating", 0))
+
+    pm_ea = safe(p.get("passesmade") or p.get("passesMade") or 0)
+    pa_ea = safe(p.get("passattempts") or p.get("passAttempts") or 0)
+    pm_ev = e.get(EV_PASS_OK, 0)
+    pf_ev = e.get(EV_PASS_FAIL, 0)
+    pm = int(pm_ea or pm_ev)
+    pa = int(pa_ea or (pm_ev + pf_ev) or pm)
+
+    through = int(e.get(EV_THROUGH, 0))
+
+    shots_ea = safe(p.get("shots") or 0)
+    shot_on = e.get(EV_SHOT_ON, 0)
+    shot_off = e.get(EV_SHOT_OFF, 0)
+    shots = shots_ea or (shot_on + shot_off)
+    on_in = e.get(EV_SHOT_ON_IN, 0)
+    on_out = e.get(EV_SHOT_ON_OUT, 0)
+    off_in = e.get(EV_SHOT_OFF_IN, 0)
+    off_out = e.get(EV_SHOT_OFF_OUT, 0)
+    if on_in or on_out or off_in or off_out:
+        xg = on_in * 0.35 + on_out * 0.12 + off_in * 0.10 + off_out * 0.04
+    elif shots:
+        xg = shot_on * 0.32 + max(0.0, shots - shot_on) * 0.06
     else:
-        xg = shot_on * 0.32 + max(0, shots - shot_on) * 0.06
+        xg = 0.0
+    xa = assists * 0.15 + e.get(118, 0) * 0.10
+
+    interceptions = int(e.get(EV_INTERCEPT, 0))
+    tackles_won = int(e.get(EV_TACKLE_WON, 0) or safe(p.get("tacklesmade") or p.get("tacklesMade") or 0))
+    tackles_lost = int(e.get(EV_TACKLE_LOST, 0))
+    clearances = 0
+    blocks = int(e.get(EV_CROSS_BLOCK, 0))
+    aerial_def = int(e.get(EV_AERIAL_DEF, 0))
+    dribbles = int(e.get(EV_DRIBBLE_OK, 0))
+
     return {
         "name": p.get("playername") or p.get("name") or "Unknown",
         "posCN": pos_cn(p.get("pos") or p.get("position") or ""),
-        "rating": safe(p.get("rating", 0)),
-        "goals": int(safe(p.get("goals", 0))),
-        "assists": int(safe(p.get("assists", 0))),
-        "xg": round(max(0, xg), 2),
-        "xa": round(safe(a.get(216, 0)) * 0.12 + safe(p.get("assists", 0)) * 0.15, 2),
-        "pm": int(pm),
-        "pa": int(pa),
-        "keyPass": int(safe(a.get(216, 0) or 0)),
-        "interceptions": int(safe(a.get(24, 0) or 0)),
-        "clearances": int(safe(a.get(30, 0))),
-        "blocks": int(safe(a.get(31, 0))),
-        "tk": int(safe(p.get("tacklesmade") or p.get("tacklesMade") or a.get(22, 0))),
+        "rating": rating,
+        "goals": goals,
+        "assists": assists,
+        "xg": round(max(0.0, xg), 2),
+        "xa": round(max(0.0, xa), 2),
+        "pm": pm,
+        "pa": pa,
+        "keyPass": through,
+        "interceptions": interceptions,
+        "clearances": clearances,
+        "blocks": blocks,
+        "tk": tackles_won,
+        "tacklesLost": tackles_lost,
+        "dribbles": dribbles,
+        "aerialDef": aerial_def,
+        "shots": int(shots),
+        "shotsOn": int(shot_on),
+        "passFwd": int(e.get(EV_PASS_FWD, 0)),
+        "passBack": int(e.get(EV_PASS_BACK, 0)),
+        "passSide": int(e.get(EV_PASS_SIDE, 0)),
         "games": 1,
-        "ratingSum": safe(p.get("rating", 0)),
-        "ratingCnt": 1 if safe(p.get("rating", 0)) else 0,
+        "ratingSum": rating,
+        "ratingCnt": 1 if rating else 0,
     }
 
 
@@ -183,31 +254,8 @@ def fingerprint(m: dict) -> str:
     return f"{ts}_{other}_{my.get('goals', 0)}-{my.get('goalsAgainst', 0)}"
 
 
-def main() -> None:
-    league = fetch("leagueMatch", 10)
-    friendly = fetch("friendlyMatch", 10)
-    playoff = fetch("playoffMatch", 10)
-    all_latest = league + friendly + playoff
-
-    now_hk = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
-    now_str = now_hk.strftime("%Y-%m-%d %H:%M HKT")
-    existing = load_existing()
-
-    if not all_latest:
-        print(f"⚠ 今次 EA 0場 (Runner 被封)，保留舊檔 {len(existing)}場 @ {now_str}")
-        deduped = existing
-        status = "保留舊檔"
-    else:
-        by = {}
-        for m in all_latest:
-            f = fingerprint(m)
-            if f not in by or m.get("timestamp", 0) > by[f].get("timestamp", 0):
-                by[f] = m
-        deduped = sorted(by.values(), key=lambda x: x.get("timestamp", 0), reverse=True)
-        status = "已更新"
-        print(f"去重後 {len(deduped)}場")
-
-    agg: dict = {}
+def build_board(deduped: list, status: str, now_hk: datetime.datetime, fetch_counts: dict):
+    agg = {}
     for d in deduped:
         players = d.get("players", {})
         my_raw = players.get(CLUB_ID) or {}
@@ -220,90 +268,121 @@ def main() -> None:
             name = pp["name"]
             if name not in agg:
                 agg[name] = {
-                    "xg": 0,
-                    "xa": 0,
-                    "goals": 0,
-                    "assists": 0,
-                    "pm": 0,
-                    "pa": 0,
-                    "keyPass": 0,
-                    "interceptions": 0,
-                    "clearances": 0,
-                    "blocks": 0,
-                    "tk": 0,
-                    "games": 0,
-                    "ratingSum": 0,
-                    "ratingCnt": 0,
+                    "xg": 0.0, "xa": 0.0, "goals": 0, "assists": 0,
+                    "pm": 0, "pa": 0, "keyPass": 0, "interceptions": 0,
+                    "clearances": 0, "blocks": 0, "tk": 0, "tacklesLost": 0,
+                    "dribbles": 0, "aerialDef": 0, "shots": 0, "shotsOn": 0,
+                    "passFwd": 0, "passBack": 0, "passSide": 0,
+                    "games": 0, "ratingSum": 0.0, "ratingCnt": 0,
                     "posCN": pp["posCN"],
                 }
             o = agg[name]
-            o["xg"] += pp["xg"]
-            o["xa"] += pp["xa"]
-            o["goals"] += pp["goals"]
-            o["assists"] += pp["assists"]
-            o["pm"] += pp["pm"]
-            o["pa"] += pp["pa"]
-            o["keyPass"] += pp["keyPass"]
-            o["interceptions"] += pp["interceptions"]
-            o["clearances"] += pp["clearances"]
-            o["blocks"] += pp["blocks"]
-            o["tk"] += pp["tk"]
+            for k in (
+                "xg", "xa", "goals", "assists", "pm", "pa", "keyPass",
+                "interceptions", "clearances", "blocks", "tk", "tacklesLost",
+                "dribbles", "aerialDef", "shots", "shotsOn",
+                "passFwd", "passBack", "passSide",
+            ):
+                o[k] += pp[k]
             o["games"] += 1
             o["ratingSum"] += pp["ratingSum"]
             o["ratingCnt"] += pp["ratingCnt"]
+            if pp["posCN"] and pp["posCN"] != "未知":
+                o["posCN"] = pp["posCN"]
 
     players = []
     for name, a in agg.items():
-        avg = a["ratingSum"] / a["ratingCnt"] if a["ratingCnt"] else 0
-        players.append(
-            {
-                "name": name,
-                "posCN": a["posCN"],
-                "games": a["games"],
-                "goals": a["goals"],
-                "assists": a["assists"],
-                "xg": round(a["xg"], 2),
-                "xa": round(a["xa"], 2),
-                "pm": a["pm"],
-                "pa": a["pa"],
-                "passPct": round(a["pm"] / a["pa"] * 100) if a["pa"] else 0,
-                "keyPass": a["keyPass"],
-                "interceptions": a["interceptions"],
-                "clearances": a["clearances"],
-                "blocks": a["blocks"],
-                "tk": a["tk"],
-                "totalDef": a["interceptions"] + a["clearances"] + a["blocks"] + a["tk"],
-                "avgRating": round(avg, 2),
-            }
-        )
+        avg = a["ratingSum"] / a["ratingCnt"] if a["ratingCnt"] else 0.0
+        total_def = a["interceptions"] + a["tk"] + a["blocks"] + a["aerialDef"]
+        players.append({
+            "name": name,
+            "posCN": a["posCN"],
+            "games": a["games"],
+            "goals": a["goals"],
+            "assists": a["assists"],
+            "xg": round(a["xg"], 2),
+            "xa": round(a["xa"], 2),
+            "pm": a["pm"],
+            "pa": a["pa"],
+            "passPct": round(a["pm"] / a["pa"] * 100) if a["pa"] else 0,
+            "keyPass": a["keyPass"],
+            "interceptions": a["interceptions"],
+            "clearances": a["clearances"],
+            "blocks": a["blocks"],
+            "tk": a["tk"],
+            "tacklesLost": a["tacklesLost"],
+            "dribbles": a["dribbles"],
+            "aerialDef": a["aerialDef"],
+            "shots": a["shots"],
+            "shotsOn": a["shotsOn"],
+            "passFwd": a["passFwd"],
+            "passBack": a["passBack"],
+            "passSide": a["passSide"],
+            "totalDef": total_def,
+            "avgRating": round(avg, 2),
+        })
     players.sort(key=lambda x: (x["goals"] + x["assists"]), reverse=True)
 
-    BOARD_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if all_latest:
-        MATCHES_PATH.write_text(json.dumps(deduped, ensure_ascii=False, indent=2), encoding="utf-8")
-
+    now_str = now_hk.strftime("%Y-%m-%d %H:%M HKT")
     board = {
         "players": players,
         "totalMatches": len(deduped),
         "lastUpdated": now_hk.isoformat(),
         "lastUpdatedDisplay": now_str,
         "lastStatus": status,
-        "lastFetchCounts": {"league": len(league), "friendly": len(friendly), "playoff": len(playoff)},
-        "version": "curl_cffi-實用版",
-        "source": f"{status} {len(deduped)}場 ({now_str}) league{len(league)}+friendly{len(friendly)}+playoff{len(playoff)}",
+        "lastFetchCounts": fetch_counts,
+        "version": "curl_cffi-event-research",
+        "eventMap": "1erkandogan/fc27-clubs-api match-events.md",
+        "source": f"{status} {len(deduped)}場 ({now_str}) league{fetch_counts.get('league', 0)}+friendly{fetch_counts.get('friendly', 0)}+playoff{fetch_counts.get('playoff', 0)}",
     }
     meta = {
         "totalMatches": len(deduped),
         "lastUpdated": board["lastUpdated"],
         "lastUpdatedDisplay": now_str,
         "lastStatus": status,
-        "lastFetchCounts": board["lastFetchCounts"],
-        "version": "curl_cffi-實用版",
-        "note": f"{status} - 最新{len(deduped)}場 抓取時間 {now_str}",
+        "lastFetchCounts": fetch_counts,
+        "version": "curl_cffi-event-research",
+        "note": f"{status} - 最新{len(deduped)}場 抓取時間 {now_str}；event 對照依研究文件",
     }
+    return board, meta
+
+
+def write_board(board: dict, meta: dict) -> None:
+    BOARD_PATH.parent.mkdir(parents=True, exist_ok=True)
     BOARD_PATH.write_text(json.dumps(board, ensure_ascii=False, indent=2), encoding="utf-8")
     META_PATH.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"✅ {status}: 最新{len(deduped)}場 @ {now_str}, {len(players)}人")
+
+
+def main() -> None:
+    league = fetch("leagueMatch", 10)
+    friendly = fetch("friendlyMatch", 10)
+    playoff = fetch("playoffMatch", 10)
+    all_latest = league + friendly + playoff
+    fetch_counts = {"league": len(league), "friendly": len(friendly), "playoff": len(playoff)}
+
+    now_hk = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
+    existing = load_existing()
+
+    if not all_latest:
+        print(f"⚠ 今次 EA 0場 (Runner 被封)，保留舊檔 {len(existing)}場 @ {now_hk.strftime('%Y-%m-%d %H:%M HKT')}")
+        deduped = existing
+        status = "保留舊檔"
+    else:
+        by = {}
+        for m in all_latest:
+            f = fingerprint(m)
+            if f not in by or m.get("timestamp", 0) > by[f].get("timestamp", 0):
+                by[f] = m
+        deduped = sorted(by.values(), key=lambda x: x.get("timestamp", 0), reverse=True)
+        status = "已更新"
+        print(f"去重後 {len(deduped)}場")
+
+    if all_latest:
+        MATCHES_PATH.write_text(json.dumps(deduped, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    board, meta = build_board(deduped, status, now_hk, fetch_counts)
+    write_board(board, meta)
+    print(f"✅ {status}: 最新{len(deduped)}場, {len(board['players'])}人 (event 研究文件對照)")
 
 
 if __name__ == "__main__":
