@@ -196,7 +196,7 @@ function modeTabsHtml(){
   return '<div class="detail-mode-tabs">'+
     '<button type="button" class="dmode'+(detailMode==="table"?" active":"")+'" data-dmode="table">評分表</button>'+
     '<button type="button" class="dmode'+(detailMode==="lineup"?" active":"")+'" data-dmode="lineup">陣容</button>'+
-    '<span class="hint-inline">點列／卡可展開事件解碼</span>'+
+    '<span class="hint-inline">點選可展開細項</span>'+
   '</div>';
 }
 function tableViewHtml(list){
@@ -243,15 +243,15 @@ function lineupCardHtml(p, i){
   const open = expandedPlayer===key;
   let stats = "";
   if(pk==="forward"){
-    stats = '<span>G <b>'+num(p.goals)+'</b></span><span>A <b>'+num(p.assists)+'</b></span><span>射 <b>'+num(p.shots)+'</b></span>';
+    stats = '<span>G<b>'+num(p.goals)+'</b></span><span>A<b>'+num(p.assists)+'</b></span><span>射<b>'+num(p.shots)+'</b></span>';
   } else if(pk==="midfielder"){
     const ev=decodeEvents(p);
-    stats = '<span>A <b>'+num(p.assists)+'</b></span><span>直塞 <b>'+num(ev[152])+'</b></span><span>傳% <b>'+pct+'</b></span>';
+    stats = '<span>A<b>'+num(p.assists)+'</b></span><span>直塞<b>'+num(ev[152])+'</b></span><span>傳%<b>'+pct+'</b></span>';
   } else if(pk==="defender"){
     const ev=decodeEvents(p);
-    stats = '<span>搶 <b>'+tkM+'</b></span><span>攔截 <b>'+num(ev[6])+'</b></span><span>傳% <b>'+pct+'</b></span>';
+    stats = '<span>搶<b>'+tkM+'</b></span><span>攔截<b>'+num(ev[6])+'</b></span><span>傳%<b>'+pct+'</b></span>';
   } else {
-    stats = '<span>失球 <b>'+num(p.goalsconceded)+'</b></span><span>撲救 <b>'+num(p.saves)+'</b></span><span>上場 <b>'+(mins||0)+'′</b></span>';
+    stats = '<span>失球<b>'+num(p.goalsconceded)+'</b></span><span>撲救<b>'+num(p.saves)+'</b></span><span>分<b>'+(mins||0)+'</b></span>';
   }
   return '<div class="lineup-card'+(open?" open":"")+'" data-pkey="'+esc(key)+'">'+ 
     '<div class="lc-top"><span class="rating-badge '+ratingClass(r)+'">'+r.toFixed(2)+'</span>'+
