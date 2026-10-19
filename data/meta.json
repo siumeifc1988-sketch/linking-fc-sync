@@ -1,13 +1,13 @@
 {
   "totalMatches": 20,
-  "lastUpdated": "2026-10-19T05:16:36.528380+08:00",
-  "lastUpdatedDisplay": "2026-10-19 05:16 HKT",
-  "lastStatus": "保留舊檔",
+  "lastUpdated": "2026-10-19T12:02:28.256528+08:00",
+  "lastUpdatedDisplay": "2026-10-19 12:02 HKT",
+  "lastStatus": "已更新",
   "lastFetchCounts": {
-    "league": 0,
+    "league": 10,
     "friendly": 0,
-    "playoff": 0
+    "playoff": 10
   },
-  "version": "實用版-日期標明",
-  "note": "保留舊檔 - 最新20場 抓取時間 2026-10-19 05:16 HKT"
+  "version": "curl_cffi-實用版",
+  "note": "已更新 - 最新20場 抓取時間 2026-10-19 12:02 HKT"
 }
