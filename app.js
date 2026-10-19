@@ -135,34 +135,163 @@ function openPlayer(name){
     '<p class="hint" style="padding:0">傳球方向：前 '+(p.passFwd||0)+' · 後 '+(p.passBack||0)+' · 橫 '+(p.passSide||0)+'</p>';
   document.getElementById("drawer").scrollIntoView({behavior:"smooth",block:"start"});
 }
+
+let detailMode = "table";
+let detailMatch = null;
+let expandedPlayer = null;
+
+function ratingClass(r){
+  r = num(r);
+  if(r >= 8) return "r-high";
+  if(r >= 7) return "r-mid";
+  if(r >= 6) return "r-ok";
+  return "r-low";
+}
+function posKey(p){
+  const s = String(p.pos||"").toLowerCase();
+  if(s.indexOf("goal")>=0 || s==="gk") return "goalkeeper";
+  if(s.indexOf("def")>=0) return "defender";
+  if(s.indexOf("mid")>=0) return "midfielder";
+  if(s.indexOf("for")>=0 || s.indexOf("att")>=0 || s.indexOf("st")>=0) return "forward";
+  return s || "midfielder";
+}
+function posLabel(p){ return POS[posKey(p)] || p.pos || ""; }
+function playerList(raw){
+  const map=(raw.players&&raw.players[CLUB])||{};
+  let list=Array.isArray(map)?map.slice():Object.keys(map).map(function(k){return map[k];});
+  list.sort(function(a,b){return num(b.rating)-num(a.rating);});
+  return list;
+}
+function eventExpandHtml(p){
+  const ev=decodeEvents(p);
+  return '<div class="expand-body">'+
+    '<p class="sec">傳球</p><div class="chips">'+chips(ev,[215,216,30,32,34,24,26,28,36,152,153,143])+'</div>'+
+    '<p class="sec">射門 / 入球</p><div class="chips">'+chips(ev,[217,218,13,14,18,19,214,11])+'</div>'+
+    '<p class="sec">防守</p><div class="chips">'+chips(ev,[0,1,6,156,265,266])+'</div>'+
+    '<p class="sec">盤帶 / 站位 / 球權</p><div class="chips">'+chips(ev,[174,97,111,219,105,106,107,108,109,110])+'</div>'+
+  '</div>';
+}
+function summaryHtml(row, list){
+  let mom = null, sumR=0, g=0, a=0, shots=0;
+  list.forEach(function(p){
+    sumR += num(p.rating); g += num(p.goals); a += num(p.assists); shots += num(p.shots);
+    if(num(p.mom)>0) mom = p;
+  });
+  if(!mom && list.length) mom = list[0];
+  const avg = list.length ? (sumR/list.length).toFixed(2) : "-";
+  const momName = mom ? (mom.playername||mom.name||"?") : "-";
+  const momR = mom ? num(mom.rating).toFixed(2) : "-";
+  return '<div class="detail-summary">'+
+    '<div class="ds-score"><span class="ds-big">'+row.us+'-'+row.them+'</span><span class="ds-opp">vs '+esc(row.opp)+'</span></div>'+
+    '<div class="ds-meta">'+
+      '<div class="ds-item"><span class="l">結果</span><span class="v"><span class="pill zh'+row.code+'">'+row.outcome+'</span></span></div>'+
+      '<div class="ds-item"><span class="l">MOTM</span><span class="v">'+esc(momName)+' <span class="rating-badge '+ratingClass(momR)+'">'+momR+'</span></span></div>'+
+      '<div class="ds-item"><span class="l">隊均評分</span><span class="v">'+avg+'</span></div>'+
+      '<div class="ds-item"><span class="l">G / A / 射</span><span class="v">'+g+' / '+a+' / '+shots+'</span></div>'+
+      '<div class="ds-item"><span class="l">人數</span><span class="v">'+list.length+'</span></div>'+
+    '</div>'+
+  '</div>';
+}
+function modeTabsHtml(){
+  return '<div class="detail-mode-tabs">'+
+    '<button type="button" class="dmode'+(detailMode==="table"?" active":"")+'" data-dmode="table">評分表</button>'+
+    '<button type="button" class="dmode'+(detailMode==="lineup"?" active":"")+'" data-dmode="lineup">陣容</button>'+
+    '<span class="hint-inline">點列／卡可展開事件解碼</span>'+
+  '</div>';
+}
+function tableViewHtml(list){
+  const rows = list.map(function(p,i){
+    const name=p.playername||p.name||"?";
+    const pos=posLabel(p);
+    const r=num(p.rating);
+    const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
+    const pct = pa>0 ? Math.round(pm/pa*100) : 0;
+    const tkM=num(p.tacklesmade||p.tacklesMade), tkA=num(p.tackleattempts);
+    const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
+    const key=name+"|"+i;
+    const open = expandedPlayer===key;
+    return '<tr class="player-row detail-row'+(open?" open":"")+'" data-pkey="'+esc(key)+'">'+ 
+      '<td class="pos">'+(i+1)+'</td>'+
+      '<td><span class="pos-tag">'+esc(pos)+'</span></td>'+
+      '<td><strong>'+esc(name)+'</strong></td>'+
+      '<td class="n"><span class="rating-badge '+ratingClass(r)+'">'+r.toFixed(2)+'</span></td>'+
+      '<td class="n">'+num(p.goals)+'</td>'+
+      '<td class="n">'+num(p.assists)+'</td>'+
+      '<td class="n">'+num(p.shots)+'</td>'+
+      '<td class="n">'+pct+'%</td>'+
+      '<td class="n">'+tkM+(tkA?'/'+tkA:'')+'</td>'+
+      '<td class="n">'+(mins||"-")+'</td>'+
+    '</tr>'+
+    (open ? '<tr class="expand-tr"><td colspan="10">'+eventExpandHtml(p)+'</td></tr>' : '');
+  }).join("");
+  return '<div class="table-wrap"><table class="detail-table">'+
+    '<thead><tr>'+
+      '<th class="pos">#</th><th>位置</th><th>球員</th><th class="n">評分</th>'+
+      '<th class="n">G</th><th class="n">A</th><th class="n">射</th><th class="n">傳%</th><th class="n">搶截</th><th class="n">分</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function lineupCardHtml(p, i){
+  const name=p.playername||p.name||"?";
+  const pos=posLabel(p);
+  const pk=posKey(p);
+  const r=num(p.rating);
+  const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
+  const pct = pa>0 ? Math.round(pm/pa*100) : 0;
+  const tkM=num(p.tacklesmade||p.tacklesMade);
+  const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
+  const key=name+"|L"+i;
+  const open = expandedPlayer===key;
+  let stats = "";
+  if(pk==="forward"){
+    stats = '<span>G <b>'+num(p.goals)+'</b></span><span>A <b>'+num(p.assists)+'</b></span><span>射 <b>'+num(p.shots)+'</b></span>';
+  } else if(pk==="midfielder"){
+    const ev=decodeEvents(p);
+    stats = '<span>A <b>'+num(p.assists)+'</b></span><span>直塞 <b>'+num(ev[152])+'</b></span><span>傳% <b>'+pct+'</b></span>';
+  } else if(pk==="defender"){
+    const ev=decodeEvents(p);
+    stats = '<span>搶 <b>'+tkM+'</b></span><span>攔截 <b>'+num(ev[6])+'</b></span><span>傳% <b>'+pct+'</b></span>';
+  } else {
+    stats = '<span>失球 <b>'+num(p.goalsconceded)+'</b></span><span>撲救 <b>'+num(p.saves)+'</b></span><span>上場 <b>'+(mins||0)+'′</b></span>';
+  }
+  return '<div class="lineup-card'+(open?" open":"")+'" data-pkey="'+esc(key)+'">'+ 
+    '<div class="lc-top"><span class="rating-badge '+ratingClass(r)+'">'+r.toFixed(2)+'</span>'+
+    '<div class="lc-name"><strong>'+esc(name)+'</strong><small>'+esc(pos)+(mins?' · '+mins+'′':'')+'</small></div></div>'+
+    '<div class="lc-stats">'+stats+'</div>'+
+    (open ? eventExpandHtml(p) : '')+
+  '</div>';
+}
+function lineupViewHtml(list){
+  const groups = [
+    {key:"goalkeeper", title:"門將"},
+    {key:"defender", title:"後衛"},
+    {key:"midfielder", title:"中場"},
+    {key:"forward", title:"前鋒"}
+  ];
+  const by = {};
+  list.forEach(function(p,i){ p._idx=i; const k=posKey(p); (by[k]=by[k]||[]).push(p); });
+  return groups.map(function(g){
+    const arr = by[g.key]||[];
+    if(!arr.length) return "";
+    return '<div class="lineup-group"><h4 class="lineup-h">'+g.title+' <span>'+arr.length+'</span></h4>'+
+      '<div class="lineup-grid">'+arr.map(function(p){ return lineupCardHtml(p, p._idx); }).join("")+'</div></div>';
+  }).join("") || '<p class="hint" style="padding:0">沒有球員</p>';
+}
+function renderDetailBody(){
+  if(!detailMatch) return;
+  const list = playerList(detailMatch.raw||{});
+  const body = document.getElementById("detail-body");
+  if(!list.length){ body.innerHTML = '<p class="hint" style="padding:0">沒有球員細項</p>'; return; }
+  body.innerHTML = summaryHtml(detailMatch, list) + modeTabsHtml() +
+    (detailMode==="lineup" ? lineupViewHtml(list) : tableViewHtml(list));
+}
 function openDetail(row){
   selectedMatch=row.id;
+  detailMatch=row;
+  expandedPlayer=null;
   document.getElementById("detail").hidden=false;
   document.getElementById("drawer").hidden=true;
   document.getElementById("detail-title").textContent=row.type+" · "+row.when+" · "+row.us+"-"+row.them+" vs "+row.opp;
-  const map=(row.raw.players&&row.raw.players[CLUB])||{};
-  let list=Array.isArray(map)?map:Object.keys(map).map(function(k){return map[k];});
-  list.sort(function(a,b){return num(b.rating)-num(a.rating);});
-  document.getElementById("detail-body").innerHTML = list.length ? list.map(function(p){
-    const name=p.playername||p.name||"?";
-    const pos=POS[String(p.pos||"").toLowerCase()]||p.pos||"";
-    const ev=decodeEvents(p);
-    const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
-    const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
-    return '<div class="player-block"><h3>'+esc(name)+' <span style="color:var(--muted);font-weight:500;font-size:0.85rem">'+esc(pos)+'</span> <span class="rating">'+num(p.rating).toFixed(2)+'</span></h3>'+
-      '<div class="chips" style="margin-bottom:0.4rem">'+
-      '<span class="chip">入球<strong>'+num(p.goals)+'</strong></span>'+
-      '<span class="chip">助攻<strong>'+num(p.assists)+'</strong></span>'+
-      '<span class="chip">射門<strong>'+num(p.shots)+'</strong></span>'+
-      '<span class="chip">傳球<strong>'+pm+"/"+pa+'</strong></span>'+
-      '<span class="chip">搶截<strong>'+num(p.tacklesmade||p.tacklesMade)+"/"+num(p.tackleattempts)+'</strong></span>'+
-      (mins?'<span class="chip">上場<strong>'+mins+"′</strong></span>":"")+
-      '</div>'+
-      '<p class="sec">傳球</p><div class="chips">'+chips(ev,[215,216,30,32,34,24,26,28,36,152,153,143])+'</div>'+
-      '<p class="sec">射門 / 入球</p><div class="chips">'+chips(ev,[217,218,13,14,18,19,214,11])+'</div>'+
-      '<p class="sec">防守</p><div class="chips">'+chips(ev,[0,1,6,156,265,266])+'</div>'+
-      '<p class="sec">盤帶 / 站位 / 球權</p><div class="chips">'+chips(ev,[174,97,111,219,105,106,107,108,109,110])+'</div></div>';
-  }).join("") : '<p class="hint" style="padding:0">沒有球員細項</p>';
+  renderDetailBody();
   renderMatchLists();
   document.getElementById("detail").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -222,7 +351,7 @@ async function load(){
 }
 document.getElementById("btn-reload").onclick=load;
 document.getElementById("btn-close-drawer").onclick=function(){document.getElementById("drawer").hidden=true;};
-document.getElementById("btn-close-detail").onclick=function(){selectedMatch=null;document.getElementById("detail").hidden=true;renderMatchLists();};
+document.getElementById("btn-close-detail").onclick=function(){selectedMatch=null;detailMatch=null;document.getElementById("detail").hidden=true;renderMatchLists();};
 document.getElementById("main-tabs").onclick=function(e){
   const b=e.target.closest("button[data-tab]"); if(!b) return; showTab(b.dataset.tab);
 };
@@ -245,6 +374,21 @@ document.body.addEventListener("click", function(e){
   if(mb){
     const m=matches.find(function(x){return x.id===mb.dataset.id;});
     if(m) openDetail(m);
+  }
+});
+document.getElementById("detail-body").addEventListener("click", function(e){
+  const modeBtn = e.target.closest("button.dmode[data-dmode]");
+  if(modeBtn){
+    detailMode = modeBtn.dataset.dmode;
+    expandedPlayer = null;
+    renderDetailBody();
+    return;
+  }
+  const row = e.target.closest("[data-pkey]");
+  if(row && detailMatch){
+    const key = row.dataset.pkey;
+    expandedPlayer = (expandedPlayer === key) ? null : key;
+    renderDetailBody();
   }
 });
 load();
