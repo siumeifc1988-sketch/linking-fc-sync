@@ -1,0 +1,31 @@
+[
+  { "name": "status", "description": "LinKing 同步狀態同視窗戰績" },
+  {
+    "name": "board",
+    "description": "球員榜",
+    "options": [
+      {
+        "name": "sort",
+        "description": "排序",
+        "type": 3,
+        "choices": [
+          { "name": "進攻", "value": "attack" },
+          { "name": "防守", "value": "defense" },
+          { "name": "評分", "value": "rating" },
+          { "name": "傳球", "value": "pass" }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "player",
+    "description": "查一個球員",
+    "options": [{ "name": "name", "description": "遊戲 ID", "type": 3, "required": true }]
+  },
+  {
+    "name": "matches",
+    "description": "最近比分",
+    "options": [{ "name": "count", "description": "場數", "type": 4, "min_value": 1, "max_value": 15 }]
+  },
+  { "name": "form", "description": "近五場" }
+]
