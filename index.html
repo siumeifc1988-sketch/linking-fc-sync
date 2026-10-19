@@ -1,1 +1,457 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LinKing FC · Stats</title>
+  <meta name="theme-color" content="#360D3A" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --pl-purple: #360D3A;
+      --pl-magenta: #E90052;
+      --pl-violet: #963CFF;
+      --bg: #f4f2f7;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b6575;
+      --line: #e6e1ec;
+      --row-hover: #faf7fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Noto Sans TC", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    .topbar {
+      background: var(--pl-purple);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 12px rgba(54,13,58,.35);
+    }
+    .topbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--pl-magenta), var(--pl-violet));
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 0.85rem; flex: 0 0 auto;
+    }
+    .brand h1 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; }
+    .brand p { margin: 0; font-size: 0.72rem; opacity: 0.75; font-weight: 500; }
+    .btn {
+      border: 0; background: rgba(255,255,255,.12); color: #fff;
+      border-radius: 999px; padding: 0.45rem 0.95rem; font: inherit;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; min-height: 36px;
+    }
+    .btn:hover { background: rgba(255,255,255,.2); }
+    .accent-bar {
+      height: 3px;
+      background: linear-gradient(90deg, var(--pl-magenta), var(--pl-violet), var(--pl-magenta));
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+    .tabs {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 12px; padding: 0.35rem; margin-bottom: 1.25rem;
+      width: fit-content; max-width: 100%;
+      box-shadow: 0 1px 2px rgba(54,13,58,.04);
+    }
+    .tabs button {
+      border: 0; background: transparent; color: var(--muted);
+      border-radius: 9px; padding: 0.5rem 1rem; font: inherit;
+      font-size: 0.88rem; font-weight: 600; cursor: pointer; min-height: 38px;
+    }
+    .tabs button.active { background: var(--pl-purple); color: #fff; }
+    .tabs button:not(.active):hover { background: var(--row-hover); color: var(--text); }
+    .record-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      gap: 0; background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; margin-bottom: 0.85rem;
+      box-shadow: 0 1px 3px rgba(54,13,58,.05);
+    }
+    .record-item {
+      padding: 0.85rem 0.6rem; text-align: center;
+      border-right: 1px solid var(--line);
+    }
+    .record-item:last-child { border-right: 0; }
+    .record-item .l {
+      display: block; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.25rem;
+    }
+    .record-item .v {
+      font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+    }
+    .record-item .v.w { color: #00a85a; }
+    .record-item .v.l { color: var(--pl-magenta); }
+    .record-item .v.gd-pos { color: #00a85a; }
+    .record-item .v.gd-neg { color: var(--pl-magenta); }
+    .form-row {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 0.4rem; margin-bottom: 1.15rem; padding: 0 0.15rem;
+    }
+    .form-row .label {
+      font-size: 0.78rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.25rem;
+    }
+    .form-dot {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: grid; place-items: center;
+      font-size: 0.72rem; font-weight: 800; color: #fff;
+    }
+    .form-dot.W { background: #00a85a; }
+    .form-dot.D { background: #8b8499; }
+    .form-dot.L { background: var(--pl-magenta); }
+    .panel {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(54,13,58,.05);
+    }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #faf8fc, #fff);
+    }
+    .panel-head h2 {
+      margin: 0; font-size: 0.95rem; font-weight: 800;
+      color: var(--pl-purple); letter-spacing: -0.01em;
+    }
+    .panel-head .meta { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+    .hint {
+      color: var(--muted); font-size: 0.8rem; margin: 0;
+      padding: 0.75rem 1rem 0;
+    }
+    .layout { display: grid; gap: 1rem; }
+    @media (min-width: 960px) {
+      .layout { grid-template-columns: 1.45fr 0.9fr; align-items: start; }
+    }
+    .sort-chips {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+      padding: 0.65rem 1rem; border-bottom: 1px solid var(--line);
+      background: #faf8fc;
+    }
+    .sort-chips button {
+      border: 1px solid var(--line); background: #fff; color: var(--muted);
+      border-radius: 999px; padding: 0.3rem 0.75rem; font: inherit;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    }
+    .sort-chips button.active {
+      background: var(--pl-purple); border-color: var(--pl-purple); color: #fff;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead th {
+      background: var(--pl-purple); color: #fff;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; padding: 0.65rem 0.55rem;
+      text-align: left; white-space: nowrap;
+    }
+    thead th.n { text-align: right; }
+    tbody td {
+      padding: 0.7rem 0.55rem; border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr.player-row { cursor: pointer; transition: background .12s; }
+    tbody tr.player-row:hover { background: var(--row-hover); }
+    td.n, th.n {
+      text-align: right; font-variant-numeric: tabular-nums; font-weight: 700;
+    }
+    td.pos {
+      width: 2.2rem; font-weight: 800; color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .who { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+      background: linear-gradient(135deg, var(--pl-purple), var(--pl-violet));
+      color: #fff; display: grid; place-items: center;
+      font-size: 0.72rem; font-weight: 800;
+    }
+    .who strong {
+      display: block; font-weight: 700; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .who small { color: var(--muted); font-size: 0.75rem; font-weight: 500; }
+    .match {
+      width: 100%; display: flex; justify-content: space-between;
+      align-items: center; gap: 0.75rem; padding: 0.8rem 1rem;
+      border: 0; border-bottom: 1px solid var(--line);
+      background: transparent; color: inherit; font: inherit;
+      text-align: left; cursor: pointer;
+    }
+    .match:last-child { border-bottom: 0; }
+    .match:hover, .match.active { background: var(--row-hover); }
+    .match .score {
+      font-size: 1.35rem; font-weight: 800;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+    .match .meta { color: var(--muted); font-size: 0.75rem; margin-top: 0.15rem; }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 1.5rem; height: 1.35rem; padding: 0 0.4rem;
+      border-radius: 4px; font-size: 0.68rem; font-weight: 800;
+      margin-right: 0.4rem; color: #fff;
+    }
+    .pill.zhW, .pill.W { background: #00a85a; }
+    .pill.zhD, .pill.D { background: #8b8499; }
+    .pill.zhL, .pill.L { background: var(--pl-magenta); }
+    #drawer[hidden], #detail[hidden] { display: none !important; }
+    .drawer-panel {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; margin-bottom: 1rem; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(54,13,58,.1);
+    }
+    .drawer-head {
+      display: flex; justify-content: space-between; align-items: start;
+      gap: 0.75rem; padding: 1rem; background: var(--pl-purple); color: #fff;
+    }
+    .drawer-head h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+    .drawer-head .sub { margin: 0.25rem 0 0; opacity: 0.8; font-size: 0.82rem; }
+    .drawer-head .btn { background: rgba(255,255,255,.15); flex-shrink: 0; }
+    .drawer-body { padding: 1rem; }
+    .rating-xl {
+      font-size: 2.8rem; font-weight: 800; color: var(--pl-purple);
+      line-height: 1; letter-spacing: -0.03em;
+    }
+    .grid2 {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 0.5rem; margin: 0.85rem 0;
+    }
+    .mini {
+      background: #faf8fc; border: 1px solid var(--line);
+      border-radius: 10px; padding: 0.55rem 0.65rem;
+    }
+    .mini .l {
+      color: var(--muted); font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; margin: 0;
+    }
+    .mini .v {
+      font-size: 1.35rem; font-weight: 800; margin: 0.15rem 0 0;
+      letter-spacing: -0.02em;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chip {
+      border: 1px solid var(--line); background: #faf8fc;
+      border-radius: 999px; padding: 0.2rem 0.6rem;
+      font-size: 0.78rem; font-weight: 500;
+    }
+    .chip strong { font-weight: 800; margin-left: 0.2rem; color: var(--pl-purple); }
+    .sec {
+      color: var(--pl-magenta); font-size: 0.75rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      margin: 0.85rem 0 0.35rem;
+    }
+    .player-block {
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 0.9rem; margin-bottom: 0.65rem; background: #faf8fc;
+    }
+    .player-block h3 {
+      margin: 0 0 0.4rem; font-size: 1.05rem; font-weight: 800;
+      display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: baseline;
+    }
+    .player-block .rating {
+      color: var(--pl-magenta); font-weight: 800; font-size: 1.25rem;
+    }
+    .err {
+      background: #fff0f5; border: 1px solid #ffc2d4; color: var(--pl-magenta);
+      padding: 0.9rem 1rem; border-radius: 12px; margin-bottom: 1rem; font-weight: 600;
+    }
+    .hide { display: none !important; }
+    footer {
+      margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 0.78rem;
+    }
+    footer a { color: var(--pl-purple); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">LK</div>
+        <div>
+          <h1>LinKing FC</h1>
+          <p id="header-sub">Pro Clubs · Stats Centre</p>
+        </div>
+      </div>
+      <button type="button" class="btn" id="btn-reload">重新讀取</button>
+    </div>
+    <div class="accent-bar"></div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" id="main-tabs" role="tablist">
+      <button type="button" data-tab="overview" class="active">總覽</button>
+      <button type="button" data-tab="all">全部累計</button>
+      <button type="button" data-tab="l10">近 10 場</button>
+      <button type="button" data-tab="matches">戰報</button>
+    </div>
+
+    <div id="error" class="err hide"></div>
+
+    <section id="view-overview">
+      <div class="record-strip" id="ov-record"></div>
+      <div class="form-row" id="ov-form"></div>
+      <div class="layout">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>近 10 場球員表現</h2>
+            <span class="meta">按 G+A 排序</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="pos">#</th>
+                  <th>球員</th>
+                  <th class="n">場</th>
+                  <th class="n">G</th>
+                  <th class="n">A</th>
+                  <th class="n">評分</th>
+                </tr>
+              </thead>
+              <tbody id="ov-top"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>最近比賽</h2>
+            <span class="meta">點擊看單場詳情</span>
+          </div>
+          <div id="ov-matches"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-all" class="hide">
+      <div class="record-strip" id="all-record"></div>
+      <div class="form-row" id="all-form"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>全部累計球員榜</h2>
+          <span class="meta">點列可看累計細項</span>
+        </div>
+        <div class="sort-chips" id="all-sort">
+          <button type="button" data-sort="attack" class="active">進攻</button>
+          <button type="button" data-sort="defense">防守</button>
+          <button type="button" data-sort="rating">評分</button>
+          <button type="button" data-sort="pass">傳球</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="pos">#</th>
+                <th>球員</th>
+                <th class="n">場</th>
+                <th class="n" id="all-metric">G+A</th>
+                <th class="n">G</th>
+                <th class="n">A</th>
+                <th class="n">評分</th>
+              </tr>
+            </thead>
+            <tbody id="all-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-l10" class="hide">
+      <div class="record-strip" id="l10-record"></div>
+      <div class="form-row" id="l10-form"></div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>近 10 場球員榜</h2>
+          <span class="meta">最近十場</span>
+        </div>
+        <div class="sort-chips" id="l10-sort">
+          <button type="button" data-sort="attack" class="active">進攻</button>
+          <button type="button" data-sort="defense">防守</button>
+          <button type="button" data-sort="rating">評分</button>
+          <button type="button" data-sort="pass">傳球</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="pos">#</th>
+                <th>球員</th>
+                <th class="n">場</th>
+                <th class="n" id="l10-metric">G+A</th>
+                <th class="n">G</th>
+                <th class="n">A</th>
+                <th class="n">評分</th>
+              </tr>
+            </thead>
+            <tbody id="l10-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-matches" class="hide">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>戰報</h2>
+          <span class="meta">點擊展開單場球員數據</span>
+        </div>
+        <p class="hint">具名欄位以 EA 為準 · 事件解碼依研究文件</p>
+        <div id="match-list"></div>
+      </div>
+    </section>
+
+    <section id="drawer" class="drawer-panel" hidden>
+      <div class="drawer-head">
+        <div>
+          <h2 id="drawer-name">球員</h2>
+          <p class="sub" id="drawer-sub"></p>
+        </div>
+        <button type="button" class="btn" id="btn-close-drawer">關閉</button>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+    </section>
+
+    <section id="detail" class="drawer-panel" hidden>
+      <div class="drawer-head">
+        <div>
+          <h2>單場詳情</h2>
+          <p class="sub" id="detail-title"></p>
+        </div>
+        <button type="button" class="btn" id="btn-close-detail">關閉</button>
+      </div>
+      <div class="drawer-body" id="detail-body"></div>
+    </section>
+
+    <footer>
+      資料每日合併累積 · event 解碼參考
+      <a href="https://github.com/1erkandogan/fc27-clubs-api/blob/main/docs/match-events.md">fc27-clubs-api</a>
+      · <a href="https://github.com/siumeifc1988-sketch/linking-fc-sync">GitHub</a>
+      · 排版靈感取自 Premier League Stats Centre
+    </footer>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
