@@ -230,7 +230,7 @@
     }
 
     function whenHK(ts) {
-      if (!ts) return "—";
+      if (!ts) return "-";
       return new Intl.DateTimeFormat("zh-HK", {
         timeZone: "Asia/Hong_Kong",
         month: "numeric",
@@ -282,12 +282,13 @@
       );
     }
 
-    function formLine(rows, n = 5) {
-      return rows.slice(0, n).map((r) => r.outcome).join(" ") || "—";
+    function formLine(rows, n) {
+      n = n || 5;
+      return rows.slice(0, n).map((r) => r.outcome).join(" ") || "-";
     }
 
     function sortPlayers(list, mode) {
-      const rows = [...(list || [])];
+      const rows = (list || []).slice();
       if (mode === "defense") rows.sort((a, b) => b.totalDef - a.totalDef || b.avgRating - a.avgRating);
       else if (mode === "rating") rows.sort((a, b) => b.avgRating - a.avgRating || b.games - a.games);
       else if (mode === "pass") rows.sort((a, b) => b.passPct - a.passPct || b.keyPass - a.keyPass);
@@ -302,20 +303,39 @@
       return p.goals + "+" + p.assists;
     }
 
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&" + "amp;")
+        .replace(/</g, "&" + "lt;")
+        .replace(/>/g, "&" + "gt;")
+        .replace(/"/g, "&" + "quot;");
+    }
+
     function render() {
       const rec = recordOf(matches);
       const counts = (board && board.lastFetchCounts) || {};
       const stale =
         board &&
-        (String(board.lastStatus || "").includes("舊") ||
+        (String(board.lastStatus || "").indexOf("舊") >= 0 ||
           num(counts.league) + num(counts.friendly) + num(counts.playoff) === 0);
 
-      document.getElementById("stats").innerHTML = `
-        <div class="card"><p class="label">視窗戰績</p><p class="value">${rec.w}-${rec.d}-${rec.l}</p><p class="hint">${rec.gf} 入 · ${rec.ga} 失</p></div>
-        <div class="card"><p class="label">近況</p><p class="value">${formLine(matches)}</p><p class="hint">由新到舊</p></div>
-        <div class="card"><p class="label">場次</p><p class="value">${board ? board.totalMatches : matches.length}</p><p class="hint">聯賽 ${num(counts.league)} · 季後 ${num(counts.playoff)} · 友誼 ${num(counts.friendly)}</p></div>
-        <div class="card"><p class="label">檔頭狀態</p><p class="value ${stale ? "warn" : ""}">${(board && board.lastStatus) || "—"}</p><p class="hint">${(board && board.lastUpdatedDisplay) || ""}</p></div>
-      `;
+      document.getElementById("stats").innerHTML =
+        '<div class="card"><p class="label">視窗戰績</p><p class="value">' +
+        rec.w + "-" + rec.d + "-" + rec.l +
+        '</p><p class="hint">' + rec.gf + " 入 · " + rec.ga + ' 失</p></div>' +
+        '<div class="card"><p class="label">近況</p><p class="value">' +
+        formLine(matches) +
+        '</p><p class="hint">由新到舊</p></div>' +
+        '<div class="card"><p class="label">場次</p><p class="value">' +
+        (board ? board.totalMatches : matches.length) +
+        '</p><p class="hint">聯賽 ' + num(counts.league) + " · 季後 " + num(counts.playoff) + " · 友誼 " + num(counts.friendly) +
+        '</p></div>' +
+        '<div class="card"><p class="label">檔頭狀態</p><p class="value ' +
+        (stale ? "warn" : "") + '">' +
+        ((board && board.lastStatus) || "-") +
+        '</p><p class="hint">' +
+        ((board && board.lastUpdatedDisplay) || "") +
+        '</p></div>';
 
       const banner = document.getElementById("banner");
       if (stale) {
@@ -333,16 +353,23 @@
       document.getElementById("col-metric").textContent = metricLabel;
       const sorted = sortPlayers(board ? board.players : [], sortMode);
       document.getElementById("board-body").innerHTML = sorted
-        .map(
-          (p, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td><strong>${escapeHtml(p.name)}</strong><div style="color:var(--muted);font-size:0.8rem">${escapeHtml(p.posCN)}</div></td>
-          <td class="num">${p.games}</td>
-          <td class="num">${metric(p, sortMode)}</td>
-          <td class="num">${Number(p.avgRating).toFixed(2)}</td>
-        </tr>`
-        )
+        .map(function (p, i) {
+          return (
+            "<tr><td>" +
+            (i + 1) +
+            "</td><td><strong>" +
+            escapeHtml(p.name) +
+            '</strong><div style="color:var(--muted);font-size:0.8rem">' +
+            escapeHtml(p.posCN) +
+            '</div></td><td class="num">' +
+            p.games +
+            '</td><td class="num">' +
+            metric(p, sortMode) +
+            '</td><td class="num">' +
+            Number(p.avgRating).toFixed(2) +
+            "</td></tr>"
+          );
+        })
         .join("");
 
       const last = matches[0];
@@ -350,34 +377,53 @@
       if (!last) {
         lastEl.innerHTML = "<p class='meta'>沒有比賽</p>";
       } else {
-        lastEl.innerHTML = `
-          <p class="meta">${last.type} · ${last.when}${last.dnf ? " · 有人離線" : ""}</p>
-          <p class="hero-score">${last.us}<span style="color:var(--muted)">-</span>${last.them}</p>
-          <p><span class="pill ${last.outcome === "勝" ? "win" : last.outcome === "負" ? "loss" : "draw"}">${last.outcome}</span>
-          vs ${escapeHtml(last.opp)}</p>`;
+        const pill =
+          last.outcome === "勝" ? "win" : last.outcome === "負" ? "loss" : "draw";
+        lastEl.innerHTML =
+          '<p class="meta">' +
+          last.type +
+          " · " +
+          last.when +
+          (last.dnf ? " · 有人離線" : "") +
+          '</p><p class="hero-score">' +
+          last.us +
+          '<span style="color:var(--muted)">-</span>' +
+          last.them +
+          '</p><p><span class="pill ' +
+          pill +
+          '">' +
+          last.outcome +
+          "</span> vs " +
+          escapeHtml(last.opp) +
+          "</p>";
       }
 
-      document.getElementById("matches").innerHTML = matches
-        .slice(0, 12)
-        .map(
-          (r) => `
-        <div class="match">
-          <div>
-            <div><span class="pill ${r.outcome === "勝" ? "win" : r.outcome === "負" ? "loss" : "draw"}">${r.outcome}</span>${escapeHtml(r.opp)}</div>
-            <div class="meta">${r.type} · ${r.when}${r.dnf ? " · 離線" : ""}</div>
-          </div>
-          <div class="score">${r.us}-${r.them}</div>
-        </div>`
-        )
-        .join("") || "<p class='meta'>沒有比賽</p>";
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, "&")
-        .replace(/</g, "<")
-        .replace(/>/g, ">")
-        .replace(/"/g, """);
+      document.getElementById("matches").innerHTML =
+        matches
+          .slice(0, 12)
+          .map(function (r) {
+            const pill =
+              r.outcome === "勝" ? "win" : r.outcome === "負" ? "loss" : "draw";
+            return (
+              '<div class="match"><div><div><span class="pill ' +
+              pill +
+              '">' +
+              r.outcome +
+              "</span>" +
+              escapeHtml(r.opp) +
+              '</div><div class="meta">' +
+              r.type +
+              " · " +
+              r.when +
+              (r.dnf ? " · 離線" : "") +
+              '</div></div><div class="score">' +
+              r.us +
+              "-" +
+              r.them +
+              "</div></div>"
+            );
+          })
+          .join("") || "<p class='meta'>沒有比賽</p>";
     }
 
     async function load() {
@@ -386,11 +432,15 @@
       document.getElementById("btn-reload").disabled = true;
       try {
         const bust = "?t=" + Date.now();
-        const [bRes, mRes] = await Promise.all([
+        const results = await Promise.all([
           fetch("./data/aggregated/board.json" + bust, { cache: "no-store" }),
           fetch("./data/matches.json" + bust, { cache: "no-store" }),
         ]);
-        if (!bRes.ok || !mRes.ok) throw new Error("讀不到 data JSON（HTTP " + bRes.status + "/" + mRes.status + "）");
+        const bRes = results[0];
+        const mRes = results[1];
+        if (!bRes.ok || !mRes.ok) {
+          throw new Error("讀不到 data JSON（HTTP " + bRes.status + "/" + mRes.status + "）");
+        }
         board = await bRes.json();
         matches = shapeMatches(await mRes.json());
         render();
@@ -403,11 +453,13 @@
     }
 
     document.getElementById("btn-reload").addEventListener("click", load);
-    document.getElementById("board-tabs").addEventListener("click", (e) => {
+    document.getElementById("board-tabs").addEventListener("click", function (e) {
       const btn = e.target.closest("button[data-sort]");
       if (!btn) return;
       sortMode = btn.dataset.sort;
-      document.querySelectorAll("#board-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+      document.querySelectorAll("#board-tabs button").forEach(function (b) {
+        b.classList.toggle("active", b === btn);
+      });
       render();
     });
 
