@@ -45,21 +45,6 @@
   gap: 0.3rem; flex-wrap: wrap; font-variant-numeric: tabular-nums;
 }
 
-.detail-mode-tabs {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
-  margin-bottom: 0.8rem; padding: 0.35rem; background: #faf8fc;
-  border: 1px solid var(--line); border-radius: 8px;
-}
-.detail-mode-tabs .dmode {
-  border: 0; background: transparent; color: var(--muted); border-radius: 5px;
-  padding: 0.42rem 0.9rem; font: inherit; font-size: 0.8rem; font-weight: 700;
-  cursor: pointer; min-height: 34px; transition: background .12s, color .12s;
-}
-.detail-mode-tabs .dmode.active { background: var(--pl-purple); color: #fff; }
-.detail-mode-tabs .dmode:not(.active):hover { background: #fff; color: var(--text); }
-.hint-inline { font-size: 0.7rem; color: var(--muted); margin-left: 0.25rem; flex: 1; min-width: 120px; }
-@media (max-width: 480px) { .hint-inline { display: none; } }
-
 .rating-badge {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 2.5rem; padding: 0.18rem 0.42rem; border-radius: 5px;
@@ -101,46 +86,6 @@ tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-b
   .detail-table thead th, .detail-table tbody td { padding: 0.48rem 0.32rem; }
 }
 
-.lineup-group { margin-bottom: 1rem; }
-.lineup-h {
-  margin: 0 0 0.5rem; font-size: 0.72rem; font-weight: 800; color: var(--pl-purple);
-  text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: baseline;
-  gap: 0.4rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--line);
-}
-.lineup-h span {
-  color: var(--muted); font-weight: 600; font-size: 0.7rem; background: #f0ebf5;
-  padding: 0.05rem 0.4rem; border-radius: 999px;
-}
-.lineup-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 0.55rem;
-}
-@media (max-width: 400px) { .lineup-grid { grid-template-columns: 1fr 1fr; gap: 0.4rem; } }
-.lineup-card {
-  border: 1px solid var(--line); border-radius: 8px; padding: 0.7rem 0.75rem;
-  background: #fff; cursor: pointer; transition: border-color .12s, box-shadow .12s;
-  box-shadow: 0 1px 2px rgba(54,13,58,.04);
-}
-.lineup-card:hover { border-color: #c9bdd8; box-shadow: 0 2px 8px rgba(54,13,58,.08); }
-.lineup-card.open {
-  border-color: var(--pl-purple);
-  box-shadow: 0 0 0 1.5px var(--pl-purple), 0 2px 10px rgba(54,13,58,.1);
-  background: #faf8fc;
-}
-.lc-top { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.5rem; }
-.lc-name { min-width: 0; flex: 1; }
-.lc-name strong {
-  display: block; font-size: 0.86rem; font-weight: 700;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.lc-name small { color: var(--muted); font-size: 0.68rem; font-weight: 500; }
-.lc-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem;
-  padding-top: 0.4rem; border-top: 1px solid var(--line);
-  font-size: 0.7rem; color: var(--muted); text-align: center;
-}
-.lc-stats span { display: flex; flex-direction: column; gap: 0.05rem; line-height: 1.2; }
-.lc-stats b { color: var(--text); font-weight: 800; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
-.lineup-card .expand-body { margin-top: 0.6rem; padding-top: 0.55rem; border-top: 1px solid var(--line); }
 .expand-body .chips { gap: 0.28rem; }
 .expand-body .chip { font-size: 0.7rem; padding: 0.16rem 0.5rem; background: #fff; border-color: #e2dce8; }
 
@@ -196,4 +141,15 @@ tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-b
 .team-h span {
   font-size: 0.7rem; font-weight: 600; color: var(--muted);
   background: rgba(255,255,255,.7); padding: 0.1rem 0.45rem; border-radius: 999px;
+}
+
+/* Sortable table headers */
+th.sort { cursor: pointer; user-select: none; position: relative; }
+th.sort:hover { background: #4a1550 !important; }
+th.sort.sorted { background: #5a1a62 !important; }
+th.sort.sorted::after { content: " ▼"; font-size: 0.55rem; opacity: 0.9; }
+.stats-table { font-size: 0.82rem; }
+.stats-table thead th { white-space: nowrap; padding: 0.55rem 0.4rem; }
+@media (max-width: 640px) {
+  .stats-table { font-size: 0.75rem; min-width: 720px; }
 }
