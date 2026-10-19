@@ -178,10 +178,7 @@
   color: var(--pl-purple);
   white-space: nowrap;
 }
-tr.detail-row {
-  cursor: pointer;
-  transition: background .1s;
-}
+tr.detail-row { cursor: pointer; transition: background .1s; }
 tr.detail-row:hover { background: var(--row-hover); }
 tr.detail-row.open { background: #f3eef8; }
 tr.expand-tr td {
@@ -243,7 +240,7 @@ tr.expand-tr td {
   padding: 0.7rem 0.75rem;
   background: #fff;
   cursor: pointer;
-  transition: border-color .12s, box-shadow .12s, transform .12s;
+  transition: border-color .12s, box-shadow .12s;
   box-shadow: 0 1px 2px rgba(54,13,58,.04);
 }
 .lineup-card:hover {
@@ -315,13 +312,47 @@ tr.expand-tr td {
   .drawer-body { padding: 0.8rem 0.75rem; }
   .ds-big { font-size: 1.6rem; }
   .ds-score {
-    min-width: 0;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    text-align: left;
-    gap: 0.75rem;
+    min-width: 0; width: 100%;
+    flex-direction: row; align-items: center;
+    justify-content: space-between; text-align: left; gap: 0.75rem;
   }
   .ds-opp { margin: 0; max-width: none; }
 }
+
+/* Match cards — inspired by Pro Clubs Head */
+.match-list-form {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;
+  padding: 0.55rem 1rem; border-bottom: 1px solid var(--line); background: #faf8fc;
+}
+.match {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 0.6rem; padding: 0.7rem 1rem; border: 0; border-bottom: 1px solid var(--line);
+  background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: background .12s;
+}
+.match:last-child { border-bottom: 0; }
+.match:hover, .match.active { background: var(--row-hover); }
+.match-card .mc-main {
+  display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;
+}
+.mc-score {
+  flex: 0 0 auto; min-width: 4.2rem; padding: 0.4rem 0.55rem;
+  border-radius: 6px; text-align: center; font-size: 1.15rem; font-weight: 800;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em; color: #fff;
+  line-height: 1.1;
+}
+.mc-score span { opacity: 0.75; font-weight: 600; margin: 0 0.05rem; }
+.mc-score.score-w { background: var(--pl-green); }
+.mc-score.score-l { background: var(--pl-magenta); }
+.mc-score.score-d { background: #6b6578; }
+.mc-info { min-width: 0; flex: 1; }
+.mc-opp {
+  font-weight: 700; font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mc-meta { color: var(--muted); font-size: 0.72rem; margin-top: 0.12rem; }
+.mc-chev {
+  flex: 0 0 auto; color: var(--muted); font-size: 1.25rem; font-weight: 300;
+  line-height: 1; opacity: 0.6;
+}
+.match.active .mc-chev { color: var(--pl-purple); opacity: 1; }
