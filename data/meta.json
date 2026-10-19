@@ -1,13 +1,35 @@
 {
   "totalMatches": 20,
-  "lastUpdated": "2026-10-19T18:47:09.898204+08:00",
-  "lastUpdatedDisplay": "2026-10-19 18:47 HKT",
-  "lastStatus": "已重算(event研究文件)",
+  "last10Matches": 10,
+  "newMatchesThisRun": 0,
+  "lastUpdated": "2026-10-19T19:04:56.554975+08:00",
+  "lastUpdatedDisplay": "2026-10-19 19:04 HKT",
+  "lastStatus": "已重算(累計)",
   "lastFetchCounts": {
     "league": 10,
     "friendly": 0,
     "playoff": 10
   },
-  "version": "curl_cffi-event-research",
-  "note": "已重算(event研究文件) - 最新20場 抓取時間 2026-10-19 18:47 HKT；event 對照依研究文件"
+  "version": "curl_cffi-accumulate",
+  "note": "已重算 · 歷史 20 場 · 近10",
+  "recordAll": {
+    "played": 20,
+    "wins": 8,
+    "draws": 2,
+    "losses": 10,
+    "goalsFor": 32,
+    "goalsAgainst": 33,
+    "goalDiff": -1,
+    "form": ["L", "L", "D", "L", "W", "L", "L", "W", "L", "W"]
+  },
+  "recordLast10": {
+    "played": 10,
+    "wins": 3,
+    "draws": 1,
+    "losses": 6,
+    "goalsFor": 15,
+    "goalsAgainst": 20,
+    "goalDiff": -5,
+    "form": ["L", "L", "D", "L", "W", "L", "L", "W", "L", "W"]
+  }
 }
