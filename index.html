@@ -26,6 +26,7 @@
       --radius: 8px;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
       margin: 0;
       font-family: "Inter", "Noto Sans TC", system-ui, -apple-system, sans-serif;
@@ -34,6 +35,9 @@
       line-height: 1.4;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
     }
     .topbar {
       background: var(--pl-purple);
@@ -42,6 +46,7 @@
       top: 0;
       z-index: 50;
       box-shadow: 0 2px 8px rgba(0,0,0,.28);
+      -webkit-transform: translateZ(0);
     }
     .topbar-inner {
       max-width: 1180px;
@@ -59,83 +64,64 @@
       background: linear-gradient(145deg, var(--pl-magenta) 0%, var(--pl-violet) 100%);
       display: grid; place-items: center;
       font-weight: 800; font-size: 0.78rem; flex: 0 0 auto;
-      letter-spacing: -0.02em;
     }
-    .brand h1 {
-      margin: 0; font-size: 1.05rem; font-weight: 800;
-      letter-spacing: -0.02em; white-space: nowrap;
-    }
-    .brand p {
-      margin: 0; font-size: 0.68rem; opacity: 0.7;
-      font-weight: 500; letter-spacing: 0.01em;
-    }
+    .brand h1 { margin: 0; font-size: 1.05rem; font-weight: 800; white-space: nowrap; }
+    .brand p { margin: 0; font-size: 0.68rem; opacity: 0.7; font-weight: 500; }
     .btn {
       border: 0; background: rgba(255,255,255,.1); color: #fff;
       border-radius: 4px; padding: 0.4rem 0.85rem; font: inherit;
       font-size: 0.8rem; font-weight: 600; cursor: pointer; min-height: 34px;
-      transition: background .15s;
     }
     .btn:hover { background: rgba(255,255,255,.18); }
     .accent-bar {
       height: 4px;
       background: linear-gradient(90deg, var(--pl-magenta) 0%, var(--pl-violet) 50%, var(--pl-magenta) 100%);
     }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 1rem 1rem 2.5rem; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0.75rem 1rem 2.5rem; }
     .tabs {
       display: flex; flex-wrap: wrap; gap: 0;
-      background: transparent;
       border-bottom: 2px solid var(--line);
-      margin-bottom: 1.1rem;
-      padding: 0;
-      width: 100%;
+      margin-bottom: 1.1rem; width: 100%;
     }
     .tabs button {
       border: 0; background: transparent; color: var(--muted);
       border-radius: 0; padding: 0.7rem 1.05rem; font: inherit;
       font-size: 0.86rem; font-weight: 600; cursor: pointer;
-      min-height: 42px; position: relative;
-      border-bottom: 3px solid transparent; margin-bottom: -2px;
-      transition: color .15s;
+      min-height: 42px; border-bottom: 3px solid transparent; margin-bottom: -2px;
     }
     .tabs button.active {
-      background: transparent; color: var(--pl-purple);
-      border-bottom-color: var(--pl-magenta);
+      color: var(--pl-purple); border-bottom-color: var(--pl-magenta);
     }
-    .tabs button:not(.active):hover { color: var(--text); background: transparent; }
+    .tabs button:not(.active):hover { color: var(--text); }
     .record-strip {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 0.75rem;
-      box-shadow: 0 1px 2px rgba(54,13,58,.04);
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 0.75rem;
     }
     .record-item {
-      padding: 0.7rem 0.35rem;
-      text-align: center;
+      padding: 0.7rem 0.35rem; text-align: center;
       border-right: 1px solid var(--line);
     }
     .record-item:last-child { border-right: 0; }
     .record-item .l {
       display: block; font-size: 0.62rem; font-weight: 700;
-      letter-spacing: 0.07em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 0.2rem;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem;
     }
     .record-item .v {
-      font-size: 1.4rem; font-weight: 800;
-      letter-spacing: -0.03em; line-height: 1.05;
-      font-variant-numeric: tabular-nums;
+      font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.05; font-variant-numeric: tabular-nums;
     }
     .record-item .v.w { color: var(--pl-green); }
     .record-item .v.l { color: var(--pl-magenta); }
     .record-item .v.gd-pos { color: var(--pl-green); }
     .record-item .v.gd-neg { color: var(--pl-magenta); }
     @media (max-width: 640px) {
+      .wrap { padding: 0.65rem 0.65rem 3rem; }
       .record-strip { grid-template-columns: repeat(4, 1fr); }
       .record-item:nth-child(n+5) { border-top: 1px solid var(--line); }
+      .tabs button { padding: 0.6rem 0.75rem; font-size: 0.8rem; min-height: 38px; }
+      .drawer-head { padding: 0.75rem 0.8rem; }
+      #detail, #drawer { scroll-margin-top: 60px; }
     }
     .form-row {
       display: flex; flex-wrap: wrap; align-items: center;
@@ -149,29 +135,22 @@
       width: 24px; height: 24px; border-radius: 50%;
       display: grid; place-items: center;
       font-size: 0.65rem; font-weight: 800; color: #fff;
-      box-shadow: 0 1px 2px rgba(0,0,0,.12);
     }
     .form-dot.W { background: var(--pl-green); }
     .form-dot.D { background: #8a8496; }
     .form-dot.L { background: var(--pl-magenta); }
     .panel {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 0.9rem;
-      box-shadow: 0 1px 3px rgba(54,13,58,.04);
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 0.9rem;
     }
     .panel-head {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 0.75rem; padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--line);
+      gap: 0.75rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--line);
       background: #faf8fc;
     }
     .panel-head h2 {
       margin: 0; font-size: 0.9rem; font-weight: 800;
-      color: var(--pl-purple); letter-spacing: -0.01em;
-      text-transform: uppercase;
+      color: var(--pl-purple); text-transform: uppercase;
     }
     .panel-head .meta { font-size: 0.74rem; color: var(--muted); font-weight: 500; }
     .hint { color: var(--muted); font-size: 0.78rem; margin: 0; padding: 0.65rem 1rem 0; }
@@ -181,8 +160,7 @@
     }
     .sort-chips {
       display: flex; flex-wrap: wrap; gap: 0.3rem;
-      padding: 0.55rem 1rem; border-bottom: 1px solid var(--line);
-      background: #faf8fc;
+      padding: 0.55rem 1rem; border-bottom: 1px solid var(--line); background: #faf8fc;
     }
     .sort-chips button {
       border: 1px solid var(--line); background: #fff; color: var(--muted);
@@ -197,14 +175,10 @@
     thead th {
       background: var(--pl-purple); color: #fff;
       font-size: 0.64rem; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; padding: 0.6rem 0.5rem;
-      text-align: left; white-space: nowrap;
+      text-transform: uppercase; padding: 0.6rem 0.5rem; text-align: left; white-space: nowrap;
     }
     thead th.n { text-align: right; }
-    tbody td {
-      padding: 0.62rem 0.5rem; border-bottom: 1px solid var(--line);
-      vertical-align: middle;
-    }
+    tbody td { padding: 0.62rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr.player-row { cursor: pointer; }
     tbody tr.player-row:hover { background: var(--row-hover); }
@@ -217,27 +191,14 @@
     .avatar {
       width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto;
       background: linear-gradient(145deg, var(--pl-purple), var(--pl-violet));
-      color: #fff; display: grid; place-items: center;
-      font-size: 0.68rem; font-weight: 800;
+      color: #fff; display: grid; place-items: center; font-size: 0.68rem; font-weight: 800;
     }
     .who strong { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.88rem; }
     .who small { color: var(--muted); font-size: 0.7rem; font-weight: 500; }
-    .match {
-      width: 100%; display: flex; justify-content: space-between;
-      align-items: center; gap: 0.7rem; padding: 0.75rem 1rem;
-      border: 0; border-bottom: 1px solid var(--line);
-      background: transparent; color: inherit; font: inherit;
-      text-align: left; cursor: pointer;
-    }
-    .match:last-child { border-bottom: 0; }
-    .match:hover, .match.active { background: var(--row-hover); }
-    .match .score { font-size: 1.28rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .match .meta { color: var(--muted); font-size: 0.72rem; margin-top: 0.12rem; }
     .pill {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 1.4rem; height: 1.25rem; padding: 0 0.35rem;
-      border-radius: 3px; font-size: 0.64rem; font-weight: 800;
-      margin-right: 0.35rem; color: #fff;
+      border-radius: 3px; font-size: 0.64rem; font-weight: 800; margin-right: 0.35rem; color: #fff;
     }
     .pill.zhW, .pill.W { background: var(--pl-green); }
     .pill.zhD, .pill.D { background: #8a8496; }
@@ -250,8 +211,7 @@
     }
     .drawer-head {
       display: flex; justify-content: space-between; align-items: flex-start;
-      gap: 0.75rem; padding: 0.9rem 1rem;
-      background: var(--pl-purple); color: #fff;
+      gap: 0.75rem; padding: 0.9rem 1rem; background: var(--pl-purple); color: #fff;
     }
     .drawer-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; }
     .drawer-head .sub { margin: 0.2rem 0 0; opacity: 0.75; font-size: 0.78rem; }
@@ -266,9 +226,6 @@
     .chip { border: 1px solid var(--line); background: #f7f4fa; border-radius: 4px; padding: 0.18rem 0.55rem; font-size: 0.74rem; font-weight: 500; }
     .chip strong { font-weight: 800; margin-left: 0.15rem; color: var(--pl-purple); }
     .sec { color: var(--pl-magenta); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0.8rem 0 0.3rem; }
-    .player-block { border: 1px solid var(--line); border-radius: 6px; padding: 0.8rem; margin-bottom: 0.55rem; background: #faf8fc; }
-    .player-block h3 { margin: 0 0 0.35rem; font-size: 0.98rem; font-weight: 800; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: baseline; }
-    .player-block .rating { color: var(--pl-magenta); font-weight: 800; font-size: 1.15rem; }
     .err { background: #fff0f5; border: 1px solid #ffc2d4; color: var(--pl-magenta); padding: 0.8rem 1rem; border-radius: var(--radius); margin-bottom: 0.9rem; font-weight: 600; }
     .hide { display: none !important; }
     footer { margin-top: 1.75rem; padding-top: 0.9rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.74rem; }
@@ -294,7 +251,6 @@
     <div class="tabs" id="main-tabs" role="tablist">
       <button type="button" data-tab="overview" class="active">總覽</button>
       <button type="button" data-tab="all">全部累計</button>
-      <button type="button" data-tab="l10">近 10 場</button>
       <button type="button" data-tab="matches">戰報</button>
     </div>
 
@@ -306,8 +262,8 @@
       <div class="layout">
         <div class="panel">
           <div class="panel-head">
-            <h2>近 10 場球員表現</h2>
-            <span class="meta">按 G+A 排序</span>
+            <h2>球員表現</h2>
+            <span class="meta">累計 G+A</span>
           </div>
           <div class="table-wrap">
             <table>
@@ -368,46 +324,13 @@
       </div>
     </section>
 
-    <section id="view-l10" class="hide">
-      <div class="record-strip" id="l10-record"></div>
-      <div class="form-row" id="l10-form"></div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>近 10 場球員榜</h2>
-          <span class="meta">最近十場</span>
-        </div>
-        <div class="sort-chips" id="l10-sort">
-          <button type="button" data-sort="attack" class="active">進攻</button>
-          <button type="button" data-sort="defense">防守</button>
-          <button type="button" data-sort="rating">評分</button>
-          <button type="button" data-sort="pass">傳球</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th class="pos">#</th>
-                <th>球員</th>
-                <th class="n">場</th>
-                <th class="n" id="l10-metric">G+A</th>
-                <th class="n">G</th>
-                <th class="n">A</th>
-                <th class="n">評分</th>
-              </tr>
-            </thead>
-            <tbody id="l10-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
     <section id="view-matches" class="hide">
       <div class="panel">
         <div class="panel-head">
           <h2>戰報</h2>
-          <span class="meta">點擊展開單場球員數據</span>
+          <span class="meta">點擊展開雙方球員數據</span>
         </div>
-        <p class="hint">具名欄位以 EA 為準 · 事件解碼依研究文件</p>
+        <p class="hint">具名欄位以 EA 為準 · 含對手數據 · 事件解碼依研究文件</p>
         <div id="match-list"></div>
       </div>
     </section>
@@ -438,7 +361,7 @@
       資料每日合併累積 · event 解碼參考
       <a href="https://github.com/1erkandogan/fc27-clubs-api/blob/main/docs/match-events.md">fc27-clubs-api</a>
       · <a href="https://github.com/siumeifc1988-sketch/linking-fc-sync">GitHub</a>
-      · 排版靈感取自 Premier League Stats Centre
+      · 戰報含雙方球員
     </footer>
   </div>
 
