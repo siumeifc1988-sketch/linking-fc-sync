@@ -77,24 +77,6 @@ function metric(p, mode){
   return (p.gA!=null?p.gA:(p.goals+p.assists));
 }
 function avatar(name){ return esc(String(name||"?").slice(0,2).toUpperCase()); }
-function heatScale(vals, v){
-  const nums = (vals||[]).filter(function(x){ return x!=null && !isNaN(x); });
-  if(!nums.length || v==null || isNaN(v)) return "";
-  const min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
-  if(max === min) return "heat-3";
-  const t = (v - min) / (max - min);
-  if(t >= 0.85) return "heat-5";
-  if(t >= 0.65) return "heat-4";
-  if(t >= 0.4) return "heat-3";
-  if(t >= 0.2) return "heat-2";
-  return "heat-1";
-}
-function colVals(list, key, mapFn){
-  return (list||[]).map(function(p){
-    if(mapFn) return mapFn(p);
-    return p[key];
-  });
-}
 
 function renderRecord(el, rec){
   if(!rec){ el.innerHTML=""; return; }
@@ -117,45 +99,25 @@ function renderForm(el, form){
   }).join("");
 }
 function playerRows(list, mode, limit){
-  const sorted = sortPlayers(list, mode).slice(0, limit||99);
-  const vGames = colVals(sorted, "games");
-  const vGoals = colVals(sorted, "goals");
-  const vAst = colVals(sorted, "assists");
-  const vGA = colVals(sorted, null, function(p){ return p.gA!=null?p.gA:(p.goals+p.assists); });
-  const vShots = colVals(sorted, "shots");
-  const vShOn = colVals(sorted, "shotsOn");
-  const vPass = colVals(sorted, "passPct");
-  const vKP = colVals(sorted, "keyPass");
-  const vInt = colVals(sorted, "interceptions");
-  const vTk = colVals(sorted, "tk");
-  const vDef = colVals(sorted, "totalDef");
-  const vDrib = colVals(sorted, "dribbles");
-  const vRat = colVals(sorted, "avgRating");
-  const vMin = colVals(sorted, "minutes");
-  return sorted.map(function(p,i){
+  return sortPlayers(list, mode).slice(0, limit||99).map(function(p,i){
     const ga = p.gA!=null?p.gA:(p.goals+p.assists);
-    const td = function(val, heat, suffix){
-      suffix = suffix || "";
-      return '<td class="n heat '+heat+'">'+(val!=null?val:"-")+suffix+'</td>';
-    };
     return '<tr class="player-row" data-name="'+esc(p.name)+'">'+ 
       '<td class="pos">'+(i+1)+'</td>'+
       '<td><div class="who"><div class="avatar">'+avatar(p.name)+'</div><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.posCN||"")+'</small></div></div></td>'+
-      td(p.games, heatScale(vGames, p.games))+
-      td(p.goals, heatScale(vGoals, p.goals))+
-      td(p.assists, heatScale(vAst, p.assists))+
-      td(ga, heatScale(vGA, ga))+
-      td(p.shots, heatScale(vShots, p.shots))+
-      td(p.shotsOn, heatScale(vShOn, p.shotsOn))+
-      td(p.passPct, heatScale(vPass, p.passPct), "%")+
-      td(p.keyPass, heatScale(vKP, p.keyPass))+
-      td(p.interceptions, heatScale(vInt, p.interceptions))+
-      td(p.tk, heatScale(vTk, p.tk))+
-      td(p.totalDef, heatScale(vDef, p.totalDef))+
-      td(p.dribbles, heatScale(vDrib, p.dribbles))+
-      td(Number(p.avgRating).toFixed(2), heatScale(vRat, p.avgRating))+
-      td(p.minutes, heatScale(vMin, p.minutes))+
-    '</tr>';
+      '<td class="n">'+p.games+'</td>'+
+      '<td class="n">'+p.goals+'</td>'+
+      '<td class="n">'+p.assists+'</td>'+
+      '<td class="n">'+ga+'</td>'+
+      '<td class="n">'+(p.shots!=null?p.shots:"-")+'</td>'+
+      '<td class="n">'+(p.shotsOn!=null?p.shotsOn:"-")+'</td>'+
+      '<td class="n">'+(p.passPct!=null?p.passPct+"%":"-")+'</td>'+
+      '<td class="n">'+(p.keyPass!=null?p.keyPass:"-")+'</td>'+
+      '<td class="n">'+(p.interceptions!=null?p.interceptions:"-")+'</td>'+
+      '<td class="n">'+(p.tk!=null?p.tk:"-")+'</td>'+
+      '<td class="n">'+(p.totalDef!=null?p.totalDef:"-")+'</td>'+
+      '<td class="n">'+(p.dribbles!=null?p.dribbles:"-")+'</td>'+
+      '<td class="n">'+Number(p.avgRating).toFixed(2)+'</td>'+
+      '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>';
   }).join("");
 }
 function matchButtons(list, limit){
@@ -211,6 +173,7 @@ function openPlayer(name){
 let detailMode = "table";
 let detailMatch = null;
 let expandedPlayer = null;
+let detailSort = { key: "rating", dir: -1 };
 
 function ratingClass(r){
   r = num(r);
@@ -241,39 +204,61 @@ function playersOf(raw, clubId){
 function playerList(raw){
   return playersOf(raw, CLUB);
 }
+function fmtPct(n){ return (Number.isFinite(n)?Math.round(n):0)+"%"; }
+function fmtRatio(a,b){ return num(a)+" / "+num(b); }
 function eventExpandHtml(p){
   const ev=decodeEvents(p);
   const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
-  const pct = pa>0 ? Math.round(pm/pa*100) : 0;
+  const pct = pa>0 ? (pm/pa*100) : 0;
   const tkM=num(p.tacklesmade||p.tacklesMade), tkA=num(p.tackleattempts);
+  const tkPct = tkA>0 ? (tkM/tkA*100) : 0;
   const mins=Math.round(num(p.secondsPlayed||p.gameTime)/60);
   const g=num(p.goals), a=num(p.assists), sh=num(p.shots);
   const r=num(p.rating).toFixed(2);
-  const summary = '評分 '+r+' · '+g+'G '+a+'A · 傳 '+pct+'% · 搶截 '+tkM+(tkA?'/'+tkA:'')+(mins?' · '+mins+'′':'');
-  const cards =
-    '<div class="expand-cards">'+
-      '<div class="ec"><span class="el">入球</span><span class="ev">'+g+'</span></div>'+
-      '<div class="ec"><span class="el">助攻</span><span class="ev">'+a+'</span></div>'+
-      '<div class="ec"><span class="el">射門</span><span class="ev">'+sh+'</span></div>'+
-      '<div class="ec"><span class="el">傳球</span><span class="ev">'+pm+'/'+pa+'</span></div>'+
-      '<div class="ec"><span class="el">傳%</span><span class="ev">'+pct+'%</span></div>'+
-      '<div class="ec"><span class="el">搶截</span><span class="ev">'+tkM+(tkA?'/'+tkA:'')+'</span></div>'+
-      '<div class="ec"><span class="el">攔截</span><span class="ev">'+num(ev[6])+'</span></div>'+
-      '<div class="ec"><span class="el">分鐘</span><span class="ev">'+(mins||'-')+'</span></div>'+
-    '</div>';
-  const details =
-    '<details class="expand-details">'+
-      '<summary>展開事件明細</summary>'+
-      '<div class="expand-body">'+
-        '<p class="sec">傳球</p><div class="chips">'+chips(ev,[215,216,30,32,34,24,26,28,36,152,153,143])+'</div>'+
-        '<p class="sec">射門 / 入球</p><div class="chips">'+chips(ev,[217,218,13,14,18,19,214,11])+'</div>'+
-        '<p class="sec">防守</p><div class="chips">'+chips(ev,[0,1,6,156,265,266])+'</div>'+
-        '<p class="sec">盤帶 / 站位 / 球權</p><div class="chips">'+chips(ev,[174,97,111,219,105,106,107,108,109,110])+'</div>'+
-      '</div>'+
-    '</details>';
+  const summary = "評分 "+r+" · "+g+"G "+a+"A · 傳 "+fmtPct(pct)+" · 搶截 "+fmtRatio(tkM,tkA)+(mins?" · "+mins+"′":"");
+
+  function row(label, value){
+    return '<div class="stat-row"><span class="stat-l">'+esc(label)+'</span><span class="stat-v">'+value+'</span></div>';
+  }
+  function group(title, rowsHtml){
+    return '<div class="stat-group"><h4 class="stat-gh">'+esc(title)+'</h4><div class="stat-rows">'+rowsHtml+'</div></div>';
+  }
+
+  const attack = group("進攻",
+    row("入球", String(g))+
+    row("助攻", String(a))+
+    row("射門", String(sh))+
+    row("射正 / 射偏", num(ev[217])+" / "+num(ev[218]))+
+    row("禁區內射正", String(num(ev[13])))+
+    row("禁區外射正", String(num(ev[18])))
+  );
+  const passing = group("傳球",
+    row("成功 / 嘗試", fmtRatio(pm, pa))+
+    row("成功率", fmtPct(pct))+
+    row("向前 / 向後 / 橫傳", num(ev[30])+" / "+num(ev[32])+" / "+num(ev[34]))+
+    row("直塞成功", String(num(ev[152])))+
+    row("傳中成功", String(num(ev[36])))+
+    row("一腳出球", String(num(ev[143])))
+  );
+  const defense = group("防守",
+    row("搶截成功 / 嘗試", fmtRatio(tkM, tkA))+
+    row("搶截成功率", fmtPct(tkPct))+
+    row("攔截", String(num(ev[6])))+
+    row("封堵傳中", String(num(ev[156])))+
+    row("頭錘勝（攻/防）", num(ev[265])+" / "+num(ev[266]))
+  );
+  const activity = group("活動 / 球權",
+    row("上場分鐘", (mins||0)+"′")+
+    row("盤球成功", String(num(ev[174])))+
+    row("帶球推進", String(num(ev[97])))+
+    row("站位好 / 差", num(ev[111])+" / "+num(ev[219]))+
+    row("奪回（後/中/前）", num(ev[108])+" / "+num(ev[109])+" / "+num(ev[110]))+
+    row("失球權（後/中/前）", num(ev[105])+" / "+num(ev[106])+" / "+num(ev[107]))
+  );
+
   return '<div class="expand-c">'+
     '<p class="expand-summary">'+esc(summary)+'</p>'+
-    cards + details +
+    '<div class="stat-grid">'+attack+passing+defense+activity+'</div>'+
   '</div>';
 }
 function summaryHtml(row, usList, themList){
@@ -305,9 +290,40 @@ function summaryHtml(row, usList, themList){
   '</div>';
 }
 function modeTabsHtml(){ return ""; }
+function matchPlayerVal(p, key){
+  if(key==="rating") return num(p.rating);
+  if(key==="goals") return num(p.goals);
+  if(key==="assists") return num(p.assists);
+  if(key==="shots") return num(p.shots);
+  if(key==="pass"){
+    const pm=num(p.passesmade||p.passesMade), pa=num(p.passattempts||p.passAttempts);
+    return pa>0 ? pm/pa*100 : 0;
+  }
+  if(key==="tk") return num(p.tacklesmade||p.tacklesMade);
+  if(key==="mins") return Math.round(num(p.secondsPlayed||p.gameTime)/60);
+  if(key==="name") return String(p.playername||p.name||"").toLowerCase();
+  return 0;
+}
+function sortMatchPlayers(list){
+  const key = detailSort.key || "rating";
+  const dir = detailSort.dir || -1;
+  return (list||[]).slice().sort(function(a,b){
+    const va = matchPlayerVal(a, key), vb = matchPlayerVal(b, key);
+    if(typeof va === "string") return dir * va.localeCompare(vb);
+    return dir * (va - vb) || num(b.rating) - num(a.rating);
+  });
+}
 function tableViewHtml(list, side){
   side = side || "us";
-  const rows = list.map(function(p,i){
+  const sorted = sortMatchPlayers(list);
+  const sk = detailSort.key, dir = detailSort.dir;
+  const th = function(label, key, cls){
+    cls = cls || "n";
+    const active = sk===key ? " sorted" : "";
+    const arrow = sk===key ? (dir>0?" ▲":" ▼") : "";
+    return '<th class="'+cls+' sort'+active+'" data-msort="'+key+'">'+label+arrow+'</th>';
+  };
+  const rows = sorted.map(function(p,i){
     const name=p.playername||p.name||"?";
     const pos=posLabel(p);
     const r=num(p.rating);
@@ -333,8 +349,8 @@ function tableViewHtml(list, side){
   }).join("");
   return '<div class="table-wrap"><table class="detail-table">'+
     '<thead><tr>'+
-      '<th class="pos">#</th><th>位置</th><th>球員</th><th class="n">評分</th>'+
-      '<th class="n">G</th><th class="n">A</th><th class="n">射</th><th class="n">傳%</th><th class="n">搶截</th><th class="n">分</th>'+
+      '<th class="pos">#</th>'+th("位置","name","")+th("球員","name","")+th("評分","rating")+
+      th("G","goals")+th("A","assists")+th("射","shots")+th("傳%","pass")+th("搶截","tk")+th("分","mins")+
     '</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function teamBlockHtml(title, list, side){
@@ -358,6 +374,7 @@ function openDetail(row){
   selectedMatch=row.id;
   detailMatch=row;
   expandedPlayer=null;
+  detailSort = { key: "rating", dir: -1 };
   document.getElementById("detail").hidden=false;
   document.getElementById("drawer").hidden=true;
   document.getElementById("detail-title").textContent=row.type+" · "+row.when+" · "+row.us+"-"+row.them+" vs "+row.opp;
@@ -444,6 +461,15 @@ document.body.addEventListener("click", function(e){
   }
 });
 document.getElementById("detail-body").addEventListener("click", function(e){
+  const th = e.target.closest("th[data-msort]");
+  if(th && detailMatch){
+    const k = th.dataset.msort;
+    if(detailSort.key === k) detailSort.dir = -detailSort.dir;
+    else { detailSort.key = k; detailSort.dir = (k==="name") ? 1 : -1; }
+    expandedPlayer = null;
+    renderDetailBody();
+    return;
+  }
   const row = e.target.closest("[data-pkey]");
   if(row && detailMatch){
     const key = row.dataset.pkey;
