@@ -455,10 +455,7 @@ function render(){
     "歷史 "+((boardAll&&boardAll.totalMatches)||matches.length)+" 場 · 戰報 "+matches.length+" 場";
   renderRecord(document.getElementById("ov-record"), recAll);
   renderForm(document.getElementById("ov-form"), (recAll||{}).form||[]);
-  document.getElementById("ov-top").innerHTML = sortPlayers((boardAll&&boardAll.players)||[], "attack").slice(0,8).map(function(p,i){
-    return '<tr class="player-row" data-name="'+esc(p.name)+'"><td class="pos">'+(i+1)+'</td><td><div class="who"><div class="avatar">'+avatar(p.name)+'</div><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.posCN||"")+'</small></div></div></td>'+
-      '<td class="n">'+p.games+'</td><td class="n">'+p.goals+'</td><td class="n">'+p.assists+'</td><td class="n">'+Number(p.avgRating).toFixed(2)+'</td></tr>';
-  }).join("");
+  document.getElementById("ov-top").innerHTML = playerRows((boardAll&&boardAll.players)||[], "attack", 8);
   renderRecord(document.getElementById("all-record"), recAll);
   renderForm(document.getElementById("all-form"), (recAll||{}).form||[]);
   document.getElementById("all-body").innerHTML = playerRows((boardAll&&boardAll.players)||[], sortAll);
