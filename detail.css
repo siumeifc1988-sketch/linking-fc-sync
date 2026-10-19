@@ -1,6 +1,5 @@
 /* LinKing FC · Match Detail — unified with main PL theme */
 
-/* ---- Summary hero ---- */
 .detail-summary {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -127,7 +126,6 @@ tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-b
 .mc-chev { flex: 0 0 auto; color: var(--muted); font-size: 1.25rem; font-weight: 300; line-height: 1; opacity: 0.6; }
 .match.active .mc-chev { color: var(--pl-purple); opacity: 1; }
 
-/* Two-team match detail */
 .team-block { margin-top: 1rem; }
 .team-block:first-of-type { margin-top: 0.5rem; }
 .team-h {
@@ -143,7 +141,6 @@ tr.expand-tr td { background: #faf8fc; padding: 0.7rem 0.75rem 0.85rem; border-b
   background: rgba(255,255,255,.7); padding: 0.1rem 0.45rem; border-radius: 999px;
 }
 
-/* Sortable table headers */
 th.sort { cursor: pointer; user-select: none; position: relative; }
 th.sort:hover { background: #4a1550 !important; }
 th.sort.sorted { background: #5a1a62 !important; }
@@ -153,3 +150,72 @@ th.sort.sorted::after { content: " ▼"; font-size: 0.55rem; opacity: 0.9; }
 @media (max-width: 640px) {
   .stats-table { font-size: 0.75rem; min-width: 720px; }
 }
+
+/* Expand C: summary + cards + details */
+.expand-c { padding: 0.15rem 0; }
+.expand-summary {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--pl-purple);
+  letter-spacing: -0.01em;
+}
+.expand-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.7rem;
+}
+.expand-cards .ec {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.35rem;
+  text-align: center;
+}
+.expand-cards .el {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 0.12rem;
+}
+.expand-cards .ev {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.expand-details {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.35rem 0.65rem 0.5rem;
+}
+.expand-details summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0.25rem 0;
+  list-style: none;
+}
+.expand-details summary::-webkit-details-marker { display: none; }
+.expand-details summary::before {
+  content: "▸ ";
+  color: var(--pl-magenta);
+  font-weight: 800;
+}
+.expand-details[open] summary::before { content: "▾ "; }
+.expand-details[open] summary { color: var(--pl-purple); margin-bottom: 0.35rem; }
+
+/* Heatmap cells */
+td.heat { border-radius: 3px; }
+td.heat-1 { background: rgba(233,0,82,.06); }
+td.heat-2 { background: rgba(233,0,82,.12); }
+td.heat-3 { background: rgba(150,60,255,.14); }
+td.heat-4 { background: rgba(0,168,90,.18); color: #0a5c32; }
+td.heat-5 { background: rgba(0,168,90,.32); color: #064020; font-weight: 800; }
