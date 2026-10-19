@@ -101,22 +101,22 @@ function renderForm(el, form){
 function playerRows(list, mode, limit){
   return sortPlayers(list, mode).slice(0, limit||99).map(function(p,i){
     const ga = p.gA!=null?p.gA:(p.goals+p.assists);
+    const r = Number(p.avgRating);
+    const pos = p.posCN || "";
     return '<tr class="player-row" data-name="'+esc(p.name)+'">'+ 
       '<td class="pos">'+(i+1)+'</td>'+
-      '<td><div class="who"><div class="avatar">'+avatar(p.name)+'</div><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.posCN||"")+'</small></div></div></td>'+
+      '<td><span class="pos-tag">'+esc(pos||"-")+'</span></td>'+
+      '<td><strong>'+esc(p.name)+'</strong></td>'+
+      '<td class="n"><span class="rating-badge '+ratingClass(r)+'">'+r.toFixed(2)+'</span></td>'+
       '<td class="n">'+p.games+'</td>'+
       '<td class="n">'+p.goals+'</td>'+
       '<td class="n">'+p.assists+'</td>'+
       '<td class="n">'+ga+'</td>'+
       '<td class="n">'+(p.shots!=null?p.shots:"-")+'</td>'+
-      '<td class="n">'+(p.shotsOn!=null?p.shotsOn:"-")+'</td>'+
       '<td class="n">'+(p.passPct!=null?p.passPct+"%":"-")+'</td>'+
       '<td class="n">'+(p.keyPass!=null?p.keyPass:"-")+'</td>'+
       '<td class="n">'+(p.interceptions!=null?p.interceptions:"-")+'</td>'+
       '<td class="n">'+(p.tk!=null?p.tk:"-")+'</td>'+
-      '<td class="n">'+(p.totalDef!=null?p.totalDef:"-")+'</td>'+
-      '<td class="n">'+(p.dribbles!=null?p.dribbles:"-")+'</td>'+
-      '<td class="n">'+Number(p.avgRating).toFixed(2)+'</td>'+
       '<td class="n">'+(p.minutes!=null?p.minutes:"-")+'</td></tr>';
   }).join("");
 }
