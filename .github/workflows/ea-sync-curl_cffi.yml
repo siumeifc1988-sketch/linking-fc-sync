@@ -21,7 +21,7 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt
 
-      - name: Sync EA data
+      - name: Sync EA data (merge into history)
         env:
           EA_PROXY_URL: ${{ secrets.EA_PROXY_URL }}
         run: python scripts/sync.py
@@ -30,5 +30,5 @@ jobs:
         run: |
           git config user.name "pepe-bot"
           git config user.email "pepe-bot@users.noreply.github.com"
-          git add data/matches.json data/meta.json data/aggregated/board.json || true
-          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: curl_cffi sync $(date +%Y%m%d%H%M) [skip ci]" && git push)
+          git add data/matches.json data/meta.json data/aggregated/board.json data/aggregated/board_last10.json || true
+          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: accumulate sync $(date +%Y%m%d%H%M) [skip ci]" && git push)
