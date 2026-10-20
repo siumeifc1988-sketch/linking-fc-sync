@@ -155,8 +155,8 @@ export function PlayerTable({
   });
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] border-collapse text-[0.84rem]">
+    <div className="overflow-x-auto overscroll-x-contain">
+      <table className="w-full min-w-[560px] border-collapse text-[0.84rem] sm:min-w-[640px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -190,7 +190,7 @@ export function PlayerTable({
               </tr>
               {row.getIsExpanded() && (
                 <tr className="border-b border-line bg-[#faf8fc]">
-                  <td colSpan={columns.length} className="px-3 py-3">
+                  <td colSpan={columns.length} className="p-2 sm:px-3 sm:py-3">
                     <CumExpand p={row.original} />
                   </td>
                 </tr>
