@@ -8,16 +8,25 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
       <h4 className="m-0 bg-pl-purple px-2.5 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-wide text-white">
         {title}
       </h4>
-      <div className="py-1">{children}</div>
+      <div className="py-0.5">{children}</div>
     </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[#f0ebf5] px-2.5 py-1.5 text-[0.8rem] last:border-0">
-      <span className="min-w-0 font-semibold text-muted">{label}</span>
-      <span className="tabular whitespace-nowrap text-right font-extrabold">{value}</span>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-[#f0ebf5] px-2.5 py-1.5 text-[0.8rem] last:border-0">
+      <span className="min-w-0 truncate font-semibold text-muted">{label}</span>
+      <span className="tabular shrink-0 text-right font-extrabold text-text">{value}</span>
+    </div>
+  );
+}
+
+/** 外層：在橫向捲動表格內仍貼齊螢幕左側 */
+export function ExpandShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sticky left-0 w-[min(100vw-1.5rem,36rem)] max-w-[100%] px-1 py-1 sm:w-full sm:max-w-none">
+      {children}
     </div>
   );
 }
@@ -27,8 +36,8 @@ export function CumExpand({ p }: { p: BoardPlayer }) {
   const r = Number(p.avgRating).toFixed(2);
   const summary = `評分 ${r} · ${p.games} 場 · ${p.goals}G ${p.assists}A · 傳 ${p.passPct != null ? p.passPct + "%" : "-"}${p.minutes != null ? ` · ${p.minutes}′` : ""}`;
   return (
-    <div className="py-1">
-      <p className="mb-3 text-[0.86rem] font-bold leading-snug tracking-tight text-pl-purple">{summary}</p>
+    <ExpandShell>
+      <p className="mb-2 text-[0.82rem] font-bold leading-snug tracking-tight text-pl-purple">{summary}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Group title="進攻">
           <Row label="入球" value={String(p.goals)} />
@@ -60,7 +69,7 @@ export function CumExpand({ p }: { p: BoardPlayer }) {
           <Row label="平均評分" value={r} />
         </Group>
       </div>
-    </div>
+    </ExpandShell>
   );
 }
 
@@ -80,8 +89,8 @@ export function MatchPlayerExpand({ p }: { p: MatchPlayerRaw }) {
   const summary = `評分 ${r} · ${g}G ${a}A · 傳 ${fmtPct(pct)} · 搶截 ${fmtRatio(tkM, tkA)}${mins ? ` · ${mins}′` : ""}`;
 
   return (
-    <div className="py-1">
-      <p className="mb-3 text-[0.86rem] font-bold leading-snug text-pl-purple">{summary}</p>
+    <ExpandShell>
+      <p className="mb-2 text-[0.82rem] font-bold leading-snug text-pl-purple">{summary}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Group title="進攻">
           <Row label="入球" value={String(g)} />
@@ -113,6 +122,6 @@ export function MatchPlayerExpand({ p }: { p: MatchPlayerRaw }) {
           <Row label="奪回（後/中/前）" value={`${num(ev[108])} / ${num(ev[109])} / ${num(ev[110])}`} />
         </Group>
       </div>
-    </div>
+    </ExpandShell>
   );
 }
