@@ -1,20 +1,16 @@
 import type { BoardPlayer } from "../types";
-import { ratingClass } from "../lib/format";
 
 const METRICS: { key: keyof BoardPlayer | "gA"; label: string; fmt?: (p: BoardPlayer) => string }[] = [
   { key: "avgRating", label: "評分", fmt: (p) => Number(p.avgRating).toFixed(2) },
-  { key: "games", label: "場" },
+  { key: "games", label: "場次" },
   { key: "goals", label: "入球" },
   { key: "assists", label: "助攻" },
   { key: "gA", label: "G+A" },
   { key: "shots", label: "射門" },
-  { key: "shotsOn", label: "射正" },
   { key: "passPct", label: "傳%", fmt: (p) => (p.passPct != null ? `${p.passPct}%` : "-") },
   { key: "keyPass", label: "直塞" },
   { key: "interceptions", label: "攔截" },
   { key: "tk", label: "搶截" },
-  { key: "totalDef", label: "防守合計" },
-  { key: "dribbles", label: "盤球" },
   { key: "minutes", label: "分鐘" },
 ];
 
@@ -34,19 +30,37 @@ export function CompareBar({
 }) {
   if (selected.length < 1) return null;
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-pl-purple px-4 py-3 text-white shadow-lg">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-3">
-        <div className="text-sm font-semibold">
-          已選 <span className="text-pl-gold">{selected.length}</span> 人
-          <span className="ml-2 text-white/70">
-            {selected.map((p) => p.name).join(" · ")}
-          </span>
+    <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-16px)] max-w-[720px] -translate-x-1/2">
+      <div className="flex items-center justify-between gap-3 rounded-[20px] border border-line bg-white/90 px-4 py-3 shadow-[0_16px_48px_rgba(55,0,60,0.18)] backdrop-blur-xl">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="text-[11px] font-extrabold uppercase tracking-widest text-muted">對比</div>
+          <div className="flex -space-x-2">
+            {selected.map((p) => (
+              <div
+                key={p.name}
+                className="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-ink text-[11px] font-extrabold text-white"
+              >
+                {p.name.slice(0, 1)}
+              </div>
+            ))}
+          </div>
+          <div className="hidden gap-1.5 sm:flex">
+            {selected.map((p) => (
+              <span
+                key={p.name}
+                className="rounded-full border border-line bg-bg px-2 py-1 text-[11px] font-semibold"
+              >
+                {p.name}
+              </span>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted">{selected.length}/3</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={onClear}
-            className="rounded border border-white/20 px-3 py-1.5 text-sm font-semibold hover:bg-white/10"
+            className="h-8 rounded-full border border-line bg-bg px-3 text-[12px] font-semibold text-muted hover:text-ink"
           >
             清除
           </button>
@@ -54,7 +68,7 @@ export function CompareBar({
             type="button"
             onClick={onOpen}
             disabled={selected.length < 2}
-            className="rounded bg-pl-magenta px-4 py-1.5 text-sm font-bold disabled:opacity-40"
+            className="h-8 rounded-full bg-ink px-4 text-[12px] font-bold text-white shadow-[0_4px_12px_rgba(19,16,26,0.25)] transition hover:bg-pl-purple disabled:opacity-40"
           >
             對比
           </button>
@@ -74,65 +88,75 @@ export function ComparePanel({
   if (players.length < 2) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-xl bg-surface shadow-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-line bg-pl-purple px-4 py-3 text-white">
-          <h3 className="m-0 text-base font-extrabold">球員對比</h3>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-ink/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative flex max-h-[85vh] w-full max-w-[760px] flex-col overflow-hidden rounded-[20px] border border-line bg-white shadow-[0_24px_64px_rgba(19,16,26,0.3)]">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <h3 className="m-0 text-[15px] font-extrabold tracking-tight">球員對比</h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded bg-white/15 px-3 py-1 text-sm font-semibold hover:bg-white/25"
+            className="grid h-8 w-8 place-items-center rounded-full border border-line bg-bg text-muted hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="overflow-auto p-5">
+          <div
+            className="grid"
+            style={{ gridTemplateColumns: `140px repeat(${players.length}, 1fr)` }}
+          >
+            <div className="py-2 text-[11px] font-bold uppercase tracking-widest text-muted">指標</div>
+            {players.map((p) => (
+              <div key={p.name} className="py-2 text-center">
+                <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-ink text-[13px] font-extrabold text-white">
+                  {p.name.slice(0, 1)}
+                </div>
+                <div className="mt-2 text-[13px] font-bold">{p.name}</div>
+                <div className="text-[11px] text-muted">{p.posCN || ""}</div>
+              </div>
+            ))}
+            {METRICS.map((m) => {
+              const nums = players.map((p) => val(p, m));
+              const max = Math.max(...nums);
+              return (
+                <>
+                  <div
+                    key={`${m.label}-l`}
+                    className="border-t border-[#F5F0F8] py-3 text-[12px] font-semibold text-muted"
+                  >
+                    {m.label}
+                  </div>
+                  {players.map((p, i) => {
+                    const n = nums[i];
+                    const display = m.fmt ? m.fmt(p) : String(p[m.key as keyof BoardPlayer] ?? "-");
+                    const best = nums.length > 1 && n === max;
+                    return (
+                      <div
+                        key={p.name + m.label}
+                        className={`border-t border-[#F5F0F8] py-3 text-center tabular text-[13px] ${
+                          best
+                            ? "rounded-[8px] bg-pink-soft font-extrabold text-pl-magenta"
+                            : "font-semibold text-ink"
+                        }`}
+                      >
+                        {display}
+                      </div>
+                    );
+                  })}
+                </>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex justify-end border-t border-line bg-bg px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 rounded-full bg-ink px-4 text-[13px] font-bold text-white"
           >
             關閉
           </button>
-        </div>
-        <div className="overflow-x-auto p-4">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="border-b border-line px-2 py-2 text-left text-muted">指標</th>
-                {players.map((p) => (
-                  <th key={p.name} className="border-b border-line px-2 py-2 text-center">
-                    <div className="font-bold">{p.name}</div>
-                    <div className="text-xs text-muted">{p.posCN || ""}</div>
-                    <span
-                      className={`mt-1 inline-flex min-w-[2.5rem] justify-center rounded px-1.5 py-0.5 text-xs font-extrabold ${ratingClass(p.avgRating)}`}
-                    >
-                      {Number(p.avgRating).toFixed(2)}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {METRICS.map((m) => {
-                const nums = players.map((p) => val(p, m));
-                const max = Math.max(...nums);
-                const min = Math.min(...nums);
-                return (
-                  <tr key={m.label} className="hover:bg-row-hover">
-                    <td className="border-b border-line px-2 py-2 font-semibold text-muted">{m.label}</td>
-                    {players.map((p, i) => {
-                      const n = nums[i];
-                      const display = m.fmt ? m.fmt(p) : String(p[m.key as keyof BoardPlayer] ?? "-");
-                      const best = nums.length > 1 && n === max && max !== min;
-                      const worst = nums.length > 1 && n === min && max !== min;
-                      return (
-                        <td
-                          key={p.name}
-                          className={`tabular border-b border-line px-2 py-2 text-center font-bold ${
-                            best ? "text-pl-green" : worst ? "text-pl-magenta" : ""
-                          }`}
-                        >
-                          {display}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

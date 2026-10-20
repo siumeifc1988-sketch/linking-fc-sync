@@ -1,19 +1,25 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap");
 
 @theme {
-  --color-pl-purple: #360d3a;
-  --color-pl-purple-deep: #2a0a2e;
-  --color-pl-magenta: #e90052;
-  --color-pl-violet: #963cff;
-  --color-pl-green: #00a85a;
+  --color-ink: #13101a;
+  --color-pl-purple: #37003c;
+  --color-pl-magenta: #ff005a;
+  --color-pl-violet: #7c3aed;
+  --color-pl-green: #16a34a;
+  --color-pl-gray: #9ca3af;
   --color-pl-gold: #c9a227;
-  --color-bg: #f0eef4;
+  --color-muted: #7c7589;
+  --color-line: #ede8f1;
+  --color-line-soft: #f3eff6;
   --color-surface: #ffffff;
-  --color-text: #1a1a1a;
-  --color-muted: #5c5668;
-  --color-line: #e2dce8;
-  --color-row-hover: #f7f4fa;
-  --font-sans: "Inter", "Noto Sans TC", system-ui, sans-serif;
+  --color-bg: #faf8fc;
+  --color-tint: #fcfaff;
+  --color-row-hover: #faf8fc;
+  --color-pink-soft: #fff0f7;
+  --color-text: #13101a;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 html {
@@ -24,10 +30,21 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-ink);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-.tabular {
+.tabular,
+.tabular-nums {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(55, 0, 60, 0.04);
+  overflow: hidden;
 }

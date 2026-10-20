@@ -32,10 +32,11 @@ export function whenHK(ts: number): string {
   }).format(new Date(ts * 1000));
 }
 
+/** Artifact-style rating chip */
 export function ratingClass(r: number): string {
   if (r >= 8) return "bg-pl-green text-white";
-  if (r >= 7) return "bg-pl-gold text-[#1a1200]";
-  if (r >= 6) return "bg-[#8a8496] text-white";
+  if (r >= 7) return "bg-ink text-white";
+  if (r >= 6) return "bg-pl-gray text-white";
   return "bg-pl-magenta text-white";
 }
 

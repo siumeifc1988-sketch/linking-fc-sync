@@ -18,16 +18,16 @@ export function RecordStrip({ record }: { record?: ClubRecord | null }) {
     },
   ];
   return (
-    <div className="mb-3 grid grid-cols-4 overflow-hidden rounded-lg border border-line bg-surface sm:grid-cols-7">
+    <div className="card mb-3 grid grid-cols-4 sm:grid-cols-7">
       {items.map((it) => (
         <div
           key={it.l}
-          className="border-r border-line px-1 py-2.5 text-center last:border-r-0 max-sm:[&:nth-child(n+5)]:border-t"
+          className="border-r border-line px-1 py-3 text-center last:border-r-0 max-sm:[&:nth-child(n+5)]:border-t"
         >
-          <span className="mb-0.5 block text-[0.62rem] font-bold uppercase tracking-wider text-muted">
+          <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-muted">
             {it.l}
           </span>
-          <span className={`tabular text-xl font-extrabold tracking-tight ${it.cls || ""}`}>
+          <span className={`tabular text-[22px] font-extrabold tracking-tight ${it.cls || "text-ink"}`}>
             {it.v}
           </span>
         </div>
@@ -36,22 +36,26 @@ export function RecordStrip({ record }: { record?: ClubRecord | null }) {
   );
 }
 
-export function FormDots({ form }: { form?: FormCode[] }) {
+export function FormDots({ form, compact }: { form?: FormCode[]; compact?: boolean }) {
   if (!form?.length) return null;
   const color: Record<FormCode, string> = {
     W: "bg-pl-green",
-    D: "bg-[#8a8496]",
+    D: "bg-pl-gray",
     L: "bg-pl-magenta",
   };
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-1.5 px-0.5">
-      <span className="mr-1 text-[0.72rem] font-bold uppercase tracking-wider text-muted">
-        近況
-      </span>
+    <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "" : "mb-4 px-0.5"}`}>
+      {!compact && (
+        <span className="mr-1 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+          近況
+        </span>
+      )}
       {form.map((c, i) => (
         <div
           key={i}
-          className={`grid h-6 w-6 place-items-center rounded-full text-[0.65rem] font-extrabold text-white ${color[c]}`}
+          className={`grid place-items-center rounded-full text-[10px] font-extrabold text-white ${
+            compact ? "h-5 w-5" : "h-6 w-6"
+          } ${color[c]}`}
         >
           {c}
         </div>
