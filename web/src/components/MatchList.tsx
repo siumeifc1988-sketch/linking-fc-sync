@@ -43,7 +43,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         id: "pos",
         header: "位置",
         cell: ({ row }) => (
-          <span className="inline-block rounded bg-[#f0ebf5] px-1.5 py-0.5 text-[0.66rem] font-bold text-pl-purple">
+          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted">
             {posLabel(row.original)}
           </span>
         ),
@@ -52,7 +52,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         id: "name",
         accessorFn: (r) => r.playername || r.name || "?",
         header: "球員",
-        cell: ({ getValue }) => <strong>{String(getValue())}</strong>,
+        cell: ({ getValue }) => <strong className="text-[13px] font-bold">{String(getValue())}</strong>,
       },
       {
         id: "rating",
@@ -61,20 +61,20 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         cell: ({ getValue }) => {
           const r = Number(getValue());
           return (
-            <span className={`inline-flex min-w-[2.5rem] justify-center rounded px-1.5 py-0.5 text-[0.82rem] font-extrabold ${ratingClass(r)}`}>
+            <span className={`inline-flex min-w-[2.5rem] justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${ratingClass(r)}`}>
               {r.toFixed(2)}
             </span>
           );
         },
       },
       { id: "goals", accessorFn: (r) => num(r.goals), header: "G", cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span> },
-      { id: "assists", accessorFn: (r) => num(r.assists), header: "A", cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span> },
-      { id: "shots", accessorFn: (r) => num(r.shots), header: "射", cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span> },
+      { id: "assists", accessorFn: (r) => num(r.assists), header: "A", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
+      { id: "shots", accessorFn: (r) => num(r.shots), header: "射", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
       {
         id: "pass",
         accessorFn: (r) => passPct(r),
         header: "傳%",
-        cell: ({ getValue }) => <span className="tabular font-bold">{Math.round(Number(getValue()))}%</span>,
+        cell: ({ getValue }) => <span className="tabular font-semibold">{Math.round(Number(getValue()))}%</span>,
       },
       {
         id: "tk",
@@ -83,14 +83,14 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         cell: ({ row }) => {
           const m = num(row.original.tacklesmade ?? row.original.tacklesMade);
           const a = num(row.original.tackleattempts);
-          return <span className="tabular font-bold">{m}{a ? `/${a}` : ""}</span>;
+          return <span className="tabular font-semibold">{m}{a ? `/${a}` : ""}</span>;
         },
       },
       {
         id: "mins",
         accessorFn: (r) => Math.round(num(r.secondsPlayed ?? r.gameTime) / 60),
         header: "分",
-        cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue() || "-")}</span>,
+        cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() || "-")}</span>,
       },
     ],
     [],
@@ -110,20 +110,20 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
   });
 
   if (!list.length) {
-    return <p className="py-2 text-sm text-muted">沒有球員細項</p>;
+    return <p className="py-2 text-[13px] text-muted">沒有球員細項</p>;
   }
 
   return (
     <div className="overflow-x-auto overscroll-x-contain">
-      <table className="w-full min-w-[480px] border-collapse text-[0.84rem] sm:min-w-[520px]">
+      <table className="w-full min-w-[480px] border-collapse text-[13px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
                 <th
                   key={h.id}
-                  className={`cursor-pointer select-none whitespace-nowrap bg-pl-purple px-1.5 py-2 text-left text-[0.6rem] font-bold uppercase tracking-wider text-white hover:bg-[#4a1550] ${
-                    h.column.getIsSorted() ? "bg-[#5a1a62]" : ""
+                  className={`cursor-pointer select-none whitespace-nowrap bg-ink px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-white ${
+                    h.column.getIsSorted() ? "bg-pl-purple" : ""
                   }`}
                   onClick={h.column.getToggleSortingHandler()}
                 >
@@ -138,18 +138,18 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
           {table.getRowModel().rows.map((row) => (
             <Fragment key={row.id}>
               <tr
-                className={`cursor-pointer border-b border-line hover:bg-row-hover ${row.getIsExpanded() ? "bg-[#f3eef8]" : ""}`}
+                className={`cursor-pointer border-b border-line-soft hover:bg-row-hover ${row.getIsExpanded() ? "bg-tint" : ""}`}
                 onClick={() => row.toggleExpanded()}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-1.5 py-2 align-middle">
+                  <td key={cell.id} className="px-3 py-2.5 align-middle">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
               </tr>
               {row.getIsExpanded() && (
-                <tr className="border-b border-line bg-[#faf8fc]">
-                  <td colSpan={columns.length} className="p-2 sm:px-3 sm:py-3">
+                <tr className="border-b border-line bg-bg">
+                  <td colSpan={columns.length} className="p-2 sm:p-3">
                     <MatchPlayerExpand p={row.original} />
                   </td>
                 </tr>
@@ -179,47 +179,57 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
   return (
     <div className="space-y-4 p-1">
       <div className="grid gap-3 border-b border-line pb-3 sm:grid-cols-[auto_1fr]">
-        <div className="rounded-lg bg-gradient-to-br from-pl-purple to-[#4a1550] px-4 py-3 text-center text-white shadow">
-          <div className="tabular text-3xl font-extrabold tracking-tight">
-            {match.us}-{match.them}
+        <div className="rounded-[14px] bg-gradient-to-br from-pl-purple to-[#4a1450] px-5 py-4 text-center text-white shadow">
+          <div className="tabular text-[28px] font-black tracking-tight">
+            {match.us}:{match.them}
           </div>
-          <div className="mt-0.5 text-xs opacity-85">vs {match.opp}</div>
+          <div className="mt-1 text-[11px] opacity-85">vs {match.opp}</div>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <div className="rounded-md border border-line bg-[#f7f4fa] px-2 py-2">
-            <div className="text-[0.6rem] font-bold uppercase text-muted">結果</div>
-            <div className="font-bold">
+          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">結果</div>
+            <div className="mt-1 font-bold">
               <span
-                className={`mr-1 inline-flex rounded px-1.5 text-xs font-extrabold text-white ${
-                  match.code === "W" ? "bg-pl-green" : match.code === "L" ? "bg-pl-magenta" : "bg-[#8a8496]"
+                className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
+                  match.code === "W"
+                    ? "bg-pl-green/10 text-pl-green"
+                    : match.code === "L"
+                      ? "bg-pl-magenta/10 text-pl-magenta"
+                      : "bg-line text-muted"
                 }`}
               >
                 {match.outcome}
               </span>
             </div>
           </div>
-          <div className="rounded-md border border-line bg-[#f7f4fa] px-2 py-2">
-            <div className="text-[0.6rem] font-bold uppercase text-muted">MOTM</div>
-            <div className="truncate text-sm font-bold">
+          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">MOTM</div>
+            <div className="mt-1 truncate text-[13px] font-bold">
               {(mom && (mom.playername || mom.name)) || "-"}
             </div>
           </div>
-          <div className="rounded-md border border-line bg-[#f7f4fa] px-2 py-2">
-            <div className="text-[0.6rem] font-bold uppercase text-muted">我方均分</div>
-            <div className="tabular font-bold">{avg}</div>
+          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">我方均分</div>
+            <div className="mt-1 tabular text-[13px] font-bold">{avg}</div>
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="mb-2 flex items-center gap-2 rounded-md border-l-[3px] border-pl-purple bg-[#f3eef8] px-2.5 py-2 text-sm font-extrabold text-pl-purple">
-          LinKing FC <span className="rounded-full bg-white/70 px-2 text-xs font-semibold text-muted">{usList.length} 人</span>
+        <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-purple bg-tint px-3 py-2 text-[13px] font-extrabold text-pl-purple">
+          LinKing FC{" "}
+          <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
+            {usList.length} 人
+          </span>
         </h3>
         <MatchPlayerTable list={usList} side="us" />
       </div>
       <div>
-        <h3 className="mb-2 flex items-center gap-2 rounded-md border-l-[3px] border-[#8a8496] bg-[#f2f2f4] px-2.5 py-2 text-sm font-extrabold text-[#4a4458]">
-          {match.opp} <span className="rounded-full bg-white/70 px-2 text-xs font-semibold text-muted">{themList.length} 人</span>
+        <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-gray bg-bg px-3 py-2 text-[13px] font-extrabold text-ink">
+          {match.opp}{" "}
+          <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
+            {themList.length} 人
+          </span>
         </h3>
         <MatchPlayerTable list={themList} side="them" />
       </div>
@@ -227,56 +237,108 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
   );
 }
 
-export function MatchList({ matches }: { matches: ShapedMatch[] }) {
+export function MatchList({
+  matches,
+  asCards = false,
+}: {
+  matches: ShapedMatch[];
+  asCards?: boolean;
+}) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <div>
+    <div className={asCards ? "grid gap-3" : ""}>
       {matches.slice(0, 25).map((m) => {
         const open = expandedId === m.id;
-        const scoreCls =
-          m.code === "W" ? "bg-pl-green" : m.code === "L" ? "bg-pl-magenta" : "bg-[#6b6578]";
-        return (
-          <div key={m.id} className="border-b border-line last:border-0">
+        const codeBg =
+          m.code === "W" ? "bg-pl-green" : m.code === "L" ? "bg-pl-magenta" : "bg-pl-gray";
+
+        const body = (
+          <>
             <button
               type="button"
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-row-hover ${open ? "bg-row-hover" : ""}`}
               onClick={() => setExpandedId(open ? null : m.id)}
+              className={`flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-row-hover sm:gap-4 sm:px-5 ${
+                open ? "bg-tint" : ""
+              }`}
             >
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className={`min-w-[4.2rem] rounded-md px-2 py-1.5 text-center text-lg font-extrabold tabular text-white ${scoreCls}`}>
-                  {m.us} <span className="opacity-75">-</span> {m.them}
-                </div>
-                <div className="min-w-0">
-                  <div className="truncate font-bold">
-                    <span
-                      className={`mr-1.5 inline-flex rounded px-1.5 text-[0.64rem] font-extrabold text-white ${
-                        m.code === "W" ? "bg-pl-green" : m.code === "L" ? "bg-pl-magenta" : "bg-[#8a8496]"
-                      }`}
-                    >
-                      {m.outcome}
-                    </span>
-                    {m.opp}
-                  </div>
-                  <div className="mt-0.5 text-xs text-muted">
+              <div
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-white ${codeBg}`}
+              >
+                {m.code}
+              </div>
+              <div className="grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2 md:flex md:gap-6">
+                <div className="text-right md:text-left">
+                  <div className="text-[13px] font-extrabold">LinKing FC</div>
+                  <div className="hidden text-[11px] text-muted md:block">
                     {m.type} · {m.when}
                     {m.dnf ? " · 離線" : ""}
                   </div>
                 </div>
+                <div className="flex items-center justify-center gap-3 rounded-full border border-line bg-bg px-3 py-1.5 sm:px-4">
+                  <span className="tabular text-[18px] font-black">{m.us}</span>
+                  <span className="text-muted">:</span>
+                  <span className="tabular text-[18px] font-black">{m.them}</span>
+                </div>
+                <div>
+                  <div className="truncate text-[13px] font-extrabold">{m.opp}</div>
+                  <div className="text-[11px] text-muted md:hidden">{m.when}</div>
+                </div>
               </div>
-              <span className={`text-xl font-light text-muted ${open ? "text-pl-purple" : ""}`}>
-                {open ? "▾" : "›"}
-              </span>
+              <div className="hidden items-center gap-2 md:flex">
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${
+                    m.code === "W"
+                      ? "bg-pl-green/10 text-pl-green"
+                      : m.code === "L"
+                        ? "bg-pl-magenta/10 text-pl-magenta"
+                        : "bg-line text-muted"
+                  }`}
+                >
+                  {m.outcome}
+                </span>
+              </div>
+              <div
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border transition ${
+                  open ? "border-ink bg-ink text-white" : "border-line text-muted"
+                }`}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className={`transition ${open ? "rotate-180" : ""}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
             </button>
             {open && (
-              <div className="border-t border-line bg-[#faf8fc] px-2 py-3 sm:px-3 sm:py-4">
+              <div className="border-t border-line bg-bg px-3 py-4 sm:px-5">
                 <MatchDetailBody match={m} />
               </div>
             )}
+          </>
+        );
+
+        if (asCards) {
+          return (
+            <div key={m.id} className="card shadow-[0_4px_20px_rgba(55,0,60,0.04)]">
+              {body}
+            </div>
+          );
+        }
+
+        return (
+          <div key={m.id} className="border-b border-line last:border-0">
+            {body}
           </div>
         );
       })}
-      {!matches.length && <p className="p-4 text-sm text-muted">沒有比賽</p>}
+      {!matches.length && <p className="p-4 text-[13px] text-muted">沒有比賽</p>}
     </div>
   );
 }
