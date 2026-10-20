@@ -34,16 +34,16 @@ export default function App() {
   }, [rowSelection, players]);
 
   return (
-    <div className="min-h-screen pb-24">
-      <header className="sticky top-0 z-50 bg-pl-purple text-white shadow-md">
-        <div className="mx-auto flex h-[52px] max-w-[1180px] items-center justify-between gap-4 px-4">
+    <div className="min-h-screen overflow-x-clip pb-28">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-pl-purple text-white shadow-[0_8px_24px_rgba(55,0,60,0.25)]">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-md bg-gradient-to-br from-pl-magenta to-pl-violet text-xs font-extrabold">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-pl-magenta to-pl-violet text-[12px] font-extrabold shadow-md">
               LK
             </div>
             <div>
-              <h1 className="m-0 text-[1.05rem] font-extrabold">LinKing FC</h1>
-              <p className="m-0 text-[0.68rem] font-medium opacity-70">
+              <h1 className="m-0 text-[15px] font-extrabold tracking-tight">LinKing FC</h1>
+              <p className="m-0 text-[11px] font-semibold text-white/70">
                 {board
                   ? `歷史 ${board.totalMatches} 場 · 戰報 ${matches.length} 場`
                   : "Pro Clubs · Stats Centre"}
@@ -53,7 +53,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => qc.invalidateQueries({ queryKey: ["club"] })}
-            className="rounded bg-white/10 px-3 py-1.5 text-sm font-semibold hover:bg-white/18"
+            className="h-8 rounded-full bg-white/10 px-3 text-[12px] font-bold hover:bg-white/18"
           >
             {isFetching ? "讀取中…" : "重新讀取"}
           </button>
@@ -61,8 +61,8 @@ export default function App() {
         <div className="h-1 bg-gradient-to-r from-pl-magenta via-pl-violet to-pl-magenta" />
       </header>
 
-      <main className="mx-auto max-w-[1180px] px-4 py-3">
-        <div className="mb-4 flex w-full border-b-2 border-line">
+      <main className="mx-auto max-w-[1280px] px-4 py-5">
+        <div className="mb-5 flex gap-1 rounded-[14px] border border-line bg-white p-1 shadow-sm">
           {(
             [
               ["overview", "總覽"],
@@ -74,10 +74,10 @@ export default function App() {
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              className={`-mb-0.5 border-b-[3px] px-4 py-2.5 text-sm font-semibold ${
+              className={`flex-1 rounded-[10px] px-3 py-2.5 text-[13px] font-bold transition ${
                 tab === id
-                  ? "border-pl-magenta text-pl-purple"
-                  : "border-transparent text-muted hover:text-text"
+                  ? "bg-ink text-white shadow-sm"
+                  : "text-muted hover:bg-bg hover:text-ink"
               }`}
             >
               {label}
@@ -86,28 +86,34 @@ export default function App() {
         </div>
 
         {error && (
-          <div className="mb-3 rounded-lg border border-[#ffc2d4] bg-[#fff0f5] px-4 py-3 font-semibold text-pl-magenta">
+          <div className="mb-4 rounded-[12px] border border-pl-magenta/20 bg-pink-soft px-4 py-3 text-[13px] font-semibold text-pl-magenta">
             {(error as Error).message}
           </div>
         )}
-        {isLoading && <p className="text-muted">載入中…</p>}
+        {isLoading && <p className="text-[13px] text-muted">載入中…</p>}
 
         {board && tab === "overview" && (
-          <section>
+          <section className="space-y-4">
             <RecordStrip record={board.record} />
             <FormDots form={board.record?.form} />
             <div className="grid gap-4 lg:grid-cols-[1.4fr_0.95fr]">
-              <div className="overflow-hidden rounded-lg border border-line bg-surface">
-                <div className="flex items-center justify-between border-b border-line bg-[#faf8fc] px-4 py-3">
-                  <h2 className="m-0 text-sm font-extrabold uppercase text-pl-purple">球員表現</h2>
-                  <span className="text-xs text-muted">點欄位排序 · 點列展開</span>
+              <div className="card">
+                <div className="flex items-center justify-between border-b border-line bg-tint px-5 py-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-1 rounded-full bg-pl-magenta" />
+                    <h2 className="m-0 text-[14px] font-extrabold">球員表現</h2>
+                  </div>
+                  <span className="text-[11px] font-semibold text-muted">點欄位排序 · 點列展開</span>
                 </div>
                 <PlayerTable data={players} limit={8} />
               </div>
-              <div className="overflow-hidden rounded-lg border border-line bg-surface">
-                <div className="flex items-center justify-between border-b border-line bg-[#faf8fc] px-4 py-3">
-                  <h2 className="m-0 text-sm font-extrabold uppercase text-pl-purple">最近比賽</h2>
-                  <span className="text-xs text-muted">點擊展開單場</span>
+              <div className="card">
+                <div className="flex items-center justify-between border-b border-line bg-tint px-5 py-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-1 rounded-full bg-pl-magenta" />
+                    <h2 className="m-0 text-[14px] font-extrabold">最近比賽</h2>
+                  </div>
+                  <span className="text-[11px] font-semibold text-muted">點擊展開</span>
                 </div>
                 <MatchList matches={matches.slice(0, 6)} />
               </div>
@@ -116,13 +122,18 @@ export default function App() {
         )}
 
         {board && tab === "all" && (
-          <section>
+          <section className="space-y-4">
             <RecordStrip record={board.record} />
             <FormDots form={board.record?.form} />
-            <div className="overflow-hidden rounded-lg border border-line bg-surface">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-[#faf8fc] px-4 py-3">
-                <h2 className="m-0 text-sm font-extrabold uppercase text-pl-purple">全部累計球員榜</h2>
-                <span className="text-xs text-muted">勾選最多 3 人對比 · 點列展開明細</span>
+            <div className="card">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-tint px-5 py-3.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-1 rounded-full bg-pl-magenta" />
+                  <h2 className="m-0 text-[14px] font-extrabold">全部累計球員榜</h2>
+                </div>
+                <span className="rounded-full border border-line bg-bg px-2 py-0.5 text-[11px] font-semibold text-muted">
+                  勾選最多 3 人對比 · 點列展開
+                </span>
               </div>
               <PlayerTable
                 data={players}
@@ -136,26 +147,29 @@ export default function App() {
         )}
 
         {tab === "matches" && (
-          <section>
-            <div className="overflow-hidden rounded-lg border border-line bg-surface">
-              <div className="flex items-center justify-between border-b border-line bg-[#faf8fc] px-4 py-3">
-                <h2 className="m-0 text-sm font-extrabold uppercase text-pl-purple">戰報</h2>
-                <span className="text-xs text-muted">點擊列展開單場詳情</span>
+          <section className="space-y-4">
+            <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-1 rounded-full bg-pl-magenta" />
+                <h2 className="m-0 text-[14px] font-extrabold">戰報 · 全部比賽</h2>
+                <span className="rounded-full border border-line bg-bg px-2 py-0.5 text-[11px] font-semibold text-muted">
+                  {matches.length} 場
+                </span>
               </div>
-              <p className="m-0 px-4 pt-2 text-xs text-muted">
-                具名欄位以 EA 為準 · 含對手數據 · 事件解碼依研究文件
-              </p>
-              <MatchList matches={matches} />
+              <FormDots form={(board?.record?.form || matches.slice(0, 10).map((m) => m.code))} compact />
             </div>
+            <MatchList matches={matches} asCards />
           </section>
         )}
 
-        <footer className="mt-8 border-t border-line pt-4 text-xs text-muted">
-          React + TanStack Table / Query · 資料每日合併累積 ·{" "}
-          <a className="font-semibold text-pl-purple" href="https://github.com/siumeifc1988-sketch/linking-fc-sync">
-            GitHub
-          </a>
-          {board?.lastUpdatedDisplay ? ` · 更新 ${board.lastUpdatedDisplay}` : null}
+        <footer className="mt-12 flex flex-wrap justify-between gap-4 border-t border-line py-6 text-[11px] text-muted">
+          <span>LinKing FC Stats Centre · React + TanStack Table / Query · GitHub Pages</span>
+          <span>
+            <a className="font-semibold text-pl-purple" href="https://github.com/siumeifc1988-sketch/linking-fc-sync">
+              GitHub
+            </a>
+            {board?.lastUpdatedDisplay ? ` · 更新 ${board.lastUpdatedDisplay}` : null}
+          </span>
         </footer>
       </main>
 
