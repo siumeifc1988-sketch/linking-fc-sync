@@ -114,8 +114,8 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] border-collapse text-[0.84rem]">
+    <div className="overflow-x-auto overscroll-x-contain">
+      <table className="w-full min-w-[480px] border-collapse text-[0.84rem] sm:min-w-[520px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -149,7 +149,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
               </tr>
               {row.getIsExpanded() && (
                 <tr className="border-b border-line bg-[#faf8fc]">
-                  <td colSpan={columns.length} className="px-3 py-3">
+                  <td colSpan={columns.length} className="p-2 sm:px-3 sm:py-3">
                     <MatchPlayerExpand p={row.original} />
                   </td>
                 </tr>
@@ -269,7 +269,7 @@ export function MatchList({ matches }: { matches: ShapedMatch[] }) {
               </span>
             </button>
             {open && (
-              <div className="border-t border-line bg-[#faf8fc] px-3 py-4">
+              <div className="border-t border-line bg-[#faf8fc] px-2 py-3 sm:px-3 sm:py-4">
                 <MatchDetailBody match={m} />
               </div>
             )}
