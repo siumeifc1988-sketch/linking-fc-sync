@@ -11,125 +11,11 @@ import {
   passStyleLabel,
   playerImpact,
   posShort,
-  type SixAttr,
 } from "../lib/cardStats";
+import { GK_RADAR_NOTE, buildRadarProfile, type RadarProfile } from "../lib/radarAxes";
+import { RadarBars, RadarChart } from "./PlayerRadar";
 
-const ATTR_ORDER: (keyof SixAttr)[] = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"];
-const ATTR_CN: Record<keyof SixAttr, string> = {
-  PAC: "速度",
-  SHO: "射門",
-  PAS: "傳球",
-  DRI: "盤帶",
-  DEF: "防守",
-  PHY: "身體",
-};
-
-function Radar({ six }: { six: SixAttr }) {
-  const cx = 110;
-  const cy = 110;
-  const r = 68;
-  const n = 6;
-  const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
-
-  const poly = (scale: number) =>
-    ATTR_ORDER.map((_, i) => {
-      const a = angle(i);
-      return `${cx + Math.cos(a) * r * scale},${cy + Math.sin(a) * r * scale}`;
-    }).join(" ");
-
-  const data = ATTR_ORDER.map((k, i) => {
-    const a = angle(i);
-    const v = six[k] / 99;
-    return `${cx + Math.cos(a) * r * v},${cy + Math.sin(a) * r * v}`;
-  }).join(" ");
-
-  return (
-    <svg viewBox="0 0 220 220" className="mx-auto h-auto w-full max-w-[280px]" role="img" aria-label="六維雷達">
-      <defs>
-        <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#5eead4" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#5eead4" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <circle cx={cx} cy={cy} r={r} fill="url(#radarGlow)" />
-      {[0.25, 0.5, 0.75, 1].map((s) => (
-        <polygon
-          key={s}
-          points={poly(s)}
-          fill={s === 1 ? "rgba(255,255,255,0.02)" : "none"}
-          stroke="rgba(255,255,255,0.14)"
-          strokeWidth="1"
-        />
-      ))}
-      {ATTR_ORDER.map((_, i) => {
-        const a = angle(i);
-        return (
-          <line
-            key={i}
-            x1={cx}
-            y1={cy}
-            x2={cx + Math.cos(a) * r}
-            y2={cy + Math.sin(a) * r}
-            stroke="rgba(255,255,255,0.12)"
-            strokeWidth="1"
-          />
-        );
-      })}
-      <polygon points={data} fill="rgba(45,212,191,0.38)" stroke="#2dd4bf" strokeWidth="2.25" />
-      {ATTR_ORDER.map((k, i) => {
-        const a = angle(i);
-        const v = six[k] / 99;
-        return (
-          <circle
-            key={`${k}-dot`}
-            cx={cx + Math.cos(a) * r * v}
-            cy={cy + Math.sin(a) * r * v}
-            r="2.6"
-            fill="#ccfbf1"
-            stroke="#2dd4bf"
-            strokeWidth="1"
-          />
-        );
-      })}
-      {ATTR_ORDER.map((k, i) => {
-        const a = angle(i);
-        const lx = cx + Math.cos(a) * (r + 18);
-        const ly = cy + Math.sin(a) * (r + 18);
-        return (
-          <text
-            key={k}
-            x={lx}
-            y={ly}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="rgba(255,255,255,0.78)"
-            style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.04em" }}
-          >
-            {k}
-          </text>
-        );
-      })}
-    </svg>
-  );
-}
-
-function StatBar({ label, cn, value }: { label: string; cn: string; value: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-8 shrink-0 text-[11px] font-extrabold tracking-wide text-white/45">{label}</span>
-      <span className="w-8 shrink-0 text-[12px] font-bold text-white/90">{cn}</span>
-      <div className="h-[9px] min-w-0 flex-1 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-violet-500"
-          style={{ width: `${Math.max(6, Math.min(100, value))}%` }}
-        />
-      </div>
-      <span className="tabular w-7 shrink-0 text-right text-[15px] font-black text-white">{value}</span>
-    </div>
-  );
-}
-
-function FutCard({ p, six, ovr }: { p: BoardPlayer; six: SixAttr; ovr: number }) {
+function FutCard({ p, profile, ovr }: { p: BoardPlayer; profile: RadarProfile; ovr: number }) {
   const pos = posShort(p.posCN);
   const ini = initials(p.name);
   const lines = cardNameLines(p.name);
@@ -150,7 +36,7 @@ function FutCard({ p, six, ovr }: { p: BoardPlayer; six: SixAttr; ovr: number })
       </div>
       <div
         className="relative text-[52px] font-black leading-none tracking-tight"
-        title="總評＝賽季均分 55% ＋ 六維平均 45%。實戰推算，非官方屬性。"
+        title="總評＝賽季均分 55% ＋ 推算六維平均 45%。卡片總評，不是雷達的隊內百分位。"
       >
         {ovr}
       </div>
@@ -164,15 +50,25 @@ function FutCard({ p, six, ovr }: { p: BoardPlayer; six: SixAttr; ovr: number })
       <div className="relative text-center text-[10px] font-semibold tracking-[0.16em] text-white/60">
         {lines.small || p.posCN || "PRO CLUBS"}
       </div>
-      <div className="relative mt-auto grid grid-cols-2 gap-x-4 gap-y-1 border-t border-white/20 pt-3 text-[13px] font-bold">
-        {ATTR_ORDER.map((k) => (
-          <div key={k} className="flex items-baseline justify-between">
-            <span className="text-[11px] font-extrabold tracking-wide text-white/65">{k}</span>
-            <span className="tabular text-[15px] font-black">{six[k]}</span>
+      {profile.isGk ? (
+        <p className="relative mb-0 mt-auto border-t border-white/20 pt-3 text-center text-[12px] font-bold leading-relaxed text-white/80">
+          {GK_RADAR_NOTE}
+        </p>
+      ) : (
+        <>
+          <div className="relative mt-auto grid grid-cols-2 gap-x-3 gap-y-1 border-t border-white/20 pt-3 text-[13px] font-bold">
+            {profile.axes.map((a) => (
+              <div key={a.id} className="flex items-baseline justify-between gap-1">
+                <span className="text-[11px] font-extrabold tracking-wide text-white/70">{a.label}</span>
+                <span className="tabular text-[13px] font-black">{a.rawLabel}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p className="relative mb-0 mt-2 text-center text-[9px] font-semibold tracking-wide text-white/55">非官方屬性</p>
+          <p className="relative mb-0 mt-2 text-center text-[9px] font-semibold tracking-wide text-white/55">
+            真實率 · 雷達係隊內百分位
+          </p>
+        </>
+      )}
     </div>
   );
 }
@@ -268,7 +164,12 @@ function ActionButtons({
   );
 }
 
-function copyPayload(p: BoardPlayer, six: SixAttr, ovr: number, impact: ReturnType<typeof playerImpact>): string {
+function copyPayload(
+  p: BoardPlayer,
+  profile: RadarProfile,
+  ovr: number,
+  impact: ReturnType<typeof playerImpact>,
+): string {
   const g = Math.max(1, p.games);
   const gpg = (p.goalsPerGame ?? p.goals / g).toFixed(2);
   const apg = (p.assistsPerGame ?? p.assists / g).toFixed(2);
@@ -277,16 +178,26 @@ function copyPayload(p: BoardPlayer, six: SixAttr, ovr: number, impact: ReturnTy
     impact.winPct == null
       ? "勝率 —"
       : `勝率 ${impact.winPct}%（${impact.wins}勝 ${impact.draws}和 ${impact.losses}負）`;
-  const axes = ATTR_ORDER.map((k) => `${k} ${ATTR_CN[k]} ${six[k]}`).join(" · ");
+  const axes = profile.isGk
+    ? GK_RADAR_NOTE
+    : profile.axes
+        .map((a) => {
+          const pct = a.percentile == null ? "—" : `P${Math.round(a.percentile)}`;
+          return `${a.label} ${a.sub} ${a.rawLabel}（${pct}）`;
+        })
+        .join("\n");
   return [
     `${p.name} · ${posShort(p.posCN)} · ${p.games} 場 · 均分 ${Number(p.avgRating).toFixed(2)}`,
     `進球 ${p.goals}（${gpg}/場） · 助攻 ${p.assists}（${apg}/場） · G+A ${p.gA}`,
     `傳球 ${passAccuracyLabel(p)}${style ? ` · ${style}` : ""}`,
     `${win} · 全場最佳 ${impact.appearances ? impact.mom : "—"}`,
-    `實戰推算 · 非官方屬性 · 總評 ${ovr}`,
+    `卡片總評 ${ovr} · 雷達＝隊內百分位 · 非 FUT`,
+    profile.isGk ? "" : `樣本 ${profile.sampleSize} 人（滿 5 場外場）${profile.lowSample ? " · 此球員未滿 5 場" : ""}`,
     axes,
-    `教練建議：${coachTip(p, six)}`,
-  ].join("\n");
+    `教練建議：${coachTip(p, deriveSix(p))}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 async function writeClipboard(text: string): Promise<boolean> {
@@ -313,16 +224,23 @@ async function writeClipboard(text: string): Promise<boolean> {
 
 export function PlayerCardModal({
   player,
+  squad,
+  clubMatches,
   matches,
   onClose,
 }: {
   player: BoardPlayer;
+  squad: BoardPlayer[];
+  clubMatches?: number;
   matches?: ShapedMatch[];
   onClose: () => void;
 }) {
-  const six = deriveSix(player);
+  const profile = useMemo(
+    () => buildRadarProfile(player, squad, clubMatches),
+    [player, squad, clubMatches],
+  );
   const ovr = overallFromPlayer(player);
-  const tip = coachTip(player, six);
+  const tip = coachTip(player, deriveSix(player));
   const impact = useMemo(() => playerImpact(player.name, matches), [player.name, matches]);
   const g = Math.max(1, player.games);
   const gpg = (player.goalsPerGame ?? player.goals / g).toFixed(2);
@@ -353,7 +271,7 @@ export function PlayerCardModal({
   }, [copied]);
 
   const onCopy = async () => {
-    const ok = await writeClipboard(copyPayload(player, six, ovr, impact));
+    const ok = await writeClipboard(copyPayload(player, profile, ovr, impact));
     setCopied(ok ? "ok" : "fail");
   };
 
@@ -386,7 +304,7 @@ export function PlayerCardModal({
               <p className="m-0 mt-0.5 text-[12px] text-white/55">
                 詳細賽季數據 · Season Detail · {player.games} 場 · 均分 {Number(player.avgRating).toFixed(2)}
               </p>
-              <p className="m-0 text-[11px] font-semibold text-white/35">實戰推算 · 非官方屬性</p>
+              <p className="m-0 text-[11px] font-semibold text-white/35">雷達用真實率的隊內百分位，不是 FUT 六維</p>
             </div>
           </div>
           <button
@@ -401,28 +319,33 @@ export function PlayerCardModal({
 
         <div className="min-h-0 flex-auto overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
           <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-[236px_minmax(0,1fr)_minmax(0,1.08fr)]">
-            <div className="md:col-span-2 lg:col-span-1">
-              <FutCard p={player} six={six} ovr={ovr} />
+            <div className="order-2 md:order-none md:col-span-2 lg:col-span-1">
+              <FutCard p={player} profile={profile} ovr={ovr} />
             </div>
 
-            <div className="flex flex-col rounded-[18px] border border-white/[0.06] bg-[#171b24] px-3 py-3 sm:px-4">
-              <div className="text-center text-[12px] font-bold tracking-wide text-white/45">
-                六維雷達 <span className="tracking-[0.12em]">RADAR</span>
+            <div className="order-1 flex flex-col rounded-[18px] border border-white/[0.06] bg-[#121826] px-2 py-3 sm:px-3 md:order-none">
+              <div className="mb-1 flex items-baseline justify-between gap-2 px-1">
+                <div className="text-[12px] font-bold tracking-wide text-white/70">真實率雷達</div>
+                <div className="text-[11px] font-semibold text-white/40">
+                  {posShort(player.posCN)} · 隊內百分位
+                  {profile.lowSample ? " · 未滿5場" : ""}
+                </div>
               </div>
               <div className="flex flex-1 items-center justify-center py-1">
-                <Radar six={six} />
+                <RadarChart profile={profile} />
               </div>
             </div>
 
-            <div className="flex flex-col rounded-[18px] border border-white/[0.06] bg-[#171b24] px-3 py-3 sm:px-4">
-              <div className="mb-3 text-[12px] font-bold tracking-wide text-white/45">
-                能力條 <span className="tracking-[0.12em]">STAT BARS</span>
+            <div className="order-3 flex flex-col rounded-[18px] border border-white/[0.06] bg-[#171b24] px-3 py-3 sm:px-4 md:order-none">
+              <div className="mb-1 text-[12px] font-bold tracking-wide text-white/45">
+                {profile.isGk ? "門將" : "六項百分位"}
               </div>
-              <div className="space-y-3">
-                {ATTR_ORDER.map((k) => (
-                  <StatBar key={k} label={k} cn={ATTR_CN[k]} value={six[k]} />
-                ))}
-              </div>
+              {!profile.isGk && (
+                <p className="mb-3 mt-0 text-[10px] leading-snug text-white/35">
+                  右方數字同條長係隊內百分位，左邊係真實率。
+                </p>
+              )}
+              <RadarBars profile={profile} />
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
                   <div className="text-[10px] font-bold text-white/40">傳球成功率</div>

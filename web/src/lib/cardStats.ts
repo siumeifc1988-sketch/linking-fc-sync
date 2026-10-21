@@ -23,8 +23,8 @@ function mapRange(v: number, lo: number, hi: number, outLo = 48, outHi = 92): nu
 }
 
 /**
- * 由 Pro Clubs 累計數據推算 40–99 能力分。
- * 權重以「場均效率 + 成功率」為主，貼近實戰表現（非官方 FUT 屬性）。
+ * 由 Pro Clubs 累計數據推算 40–99 能力分，只供卡片總評。
+ * 球員彈窗的雷達與旁邊六項用 radarAxes.ts 的真實率隊內百分位，不用這裡的 PAC/SHO。
  *
  * PAC 活動量｜SHO 射門效率｜PAS 傳球組織｜DRI 盤帶頻率｜DEF 防守動作｜PHY 體能出勤
  */

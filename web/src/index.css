@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap");
 
 @theme {
   --color-ink: #13101a;
@@ -18,7 +17,7 @@
   --color-row-hover: #faf8fc;
   --color-pink-soft: #fff0f7;
   --color-text: #13101a;
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Noto Sans TC", "Noto Sans CJK TC", "PingFang HK", "Microsoft JhengHei", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
