@@ -81,9 +81,7 @@ export function PlayerTable({
         accessorKey: "name",
         header: "球員",
         cell: ({ getValue }) => (
-          <strong className="block max-w-[7.5rem] truncate text-[13px] font-bold sm:max-w-none">
-            {String(getValue())}
-          </strong>
+          <strong className="block truncate text-[13px] font-bold">{String(getValue())}</strong>
         ),
       },
       {
@@ -189,8 +187,8 @@ export function PlayerTable({
   });
 
   return (
-    <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-      <table className="w-full min-w-0 border-collapse text-[13px] sm:min-w-[560px]">
+    <div className="w-full max-w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+      <table className="mobile-fixed w-full border-collapse text-[13px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -233,7 +231,7 @@ export function PlayerTable({
               </tr>
               {row.getIsExpanded() && (
                 <tr className="border-b border-line bg-bg">
-                  <td colSpan={columns.length} className="p-2 sm:p-3">
+                  <td colSpan={columns.length} className="expand-cell p-2 sm:p-3">
                     <CumExpand p={row.original} />
                   </td>
                 </tr>
