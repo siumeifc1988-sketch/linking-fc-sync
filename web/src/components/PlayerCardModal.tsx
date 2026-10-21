@@ -10,15 +10,14 @@ import {
 
 const ATTR_ORDER: (keyof SixAttr)[] = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"];
 const ATTR_CN: Record<keyof SixAttr, string> = {
-  PAC: "速度",
+  PAC: "活動",
   SHO: "射門",
   PAS: "傳球",
   DRI: "盤帶",
   DEF: "防守",
-  PHY: "身體",
+  PHY: "體能",
 };
 
-/** 六維雷達（純 SVG） */
 function Radar({ six }: { six: SixAttr }) {
   const cx = 100;
   const cy = 100;
@@ -60,13 +59,7 @@ function Radar({ six }: { six: SixAttr }) {
   return (
     <svg viewBox="0 0 200 200" className="mx-auto h-44 w-44 sm:h-52 sm:w-52">
       {[0.33, 0.66, 1].map((s) => (
-        <polygon
-          key={s}
-          points={poly(s)}
-          fill="none"
-          stroke="rgba(255,255,255,0.12)"
-          strokeWidth="1"
-        />
+        <polygon key={s} points={poly(s)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
       ))}
       {ATTR_ORDER.map((_, i) => {
         const a = angle(i);
@@ -104,7 +97,6 @@ function StatBar({ label, cn, value }: { label: string; cn: string; value: numbe
   );
 }
 
-/** FIFA 風格左卡 */
 function FutCard({ p, six, ovr }: { p: BoardPlayer; six: SixAttr; ovr: number }) {
   const pos = posShort(p.posCN);
   const ini = initials(p.name);
@@ -140,14 +132,14 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
   const six = deriveSix(player);
   const ovr = overallFromPlayer(player);
   const tip = coachTip(player, six);
-  const gpg = (player.goalsPerGame ?? player.goals / Math.max(1, player.games)).toFixed(2);
-  const apg = (player.assistsPerGame ?? player.assists / Math.max(1, player.games)).toFixed(2);
+  const g = Math.max(1, player.games);
+  const gpg = (player.goalsPerGame ?? player.goals / g).toFixed(2);
+  const apg = (player.assistsPerGame ?? player.assists / g).toFixed(2);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex max-h-[92dvh] w-full max-w-[920px] flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0f1117] text-white shadow-2xl sm:rounded-2xl">
-        {/* header */}
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3.5 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-[15px] font-black">
@@ -159,7 +151,7 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
                 <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-bold">{posShort(player.posCN)}</span>
               </div>
               <p className="m-0 text-[11px] text-white/50">
-                詳細賽季數據 · Season Detail · {player.games} 場
+                賽季實戰推算 · {player.games} 場 · 均分 {Number(player.avgRating).toFixed(2)}
               </p>
             </div>
           </div>
@@ -172,7 +164,6 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
           </button>
         </div>
 
-        {/* body */}
         <div className="overflow-y-auto p-4 sm:p-5">
           <div className="grid gap-4 lg:grid-cols-[220px_1fr_1fr]">
             <FutCard p={player} six={six} ovr={ovr} />
@@ -186,7 +177,7 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/40">
-                能力條 STAT BARS
+                能力條（實戰推算）
               </div>
               <div className="space-y-2.5">
                 {ATTR_ORDER.map((k) => (
@@ -196,7 +187,9 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5">
                   <div className="text-[9px] font-bold uppercase tracking-widest text-white/40">傳球成功率</div>
-                  <div className="mt-1 text-[15px] font-extrabold">{player.passPct != null ? `${player.passPct}%` : "-"}</div>
+                  <div className="mt-1 text-[15px] font-extrabold">
+                    {player.passPct != null ? `${player.passPct}%` : "-"}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5">
                   <div className="text-[9px] font-bold uppercase tracking-widest text-white/40">平均評分</div>
@@ -206,7 +199,6 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
             </div>
           </div>
 
-          {/* bottom stats */}
           <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
             <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center">
               <div className="text-[9px] font-bold uppercase tracking-widest text-white/40">Goals</div>
@@ -226,12 +218,13 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
           </div>
 
           <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[12px] leading-relaxed text-cyan-300/90">
-            <span className="font-bold text-cyan-400">教練建議 COACH TIP → </span>
+            <span className="font-bold text-cyan-400">教練建議 → </span>
             {tip}
           </div>
 
-          <p className="mt-2 text-center text-[9px] text-white/30">
-            能力值由 Pro Clubs 賽季表現推算，僅供視覺參考（非官方 FUT 屬性）
+          <p className="mt-2 text-center text-[9px] leading-relaxed text-white/30">
+            PAC=每90分鐘動作量 · SHO=場均進球+射正 · PAS=傳球%+直塞/助攻 · DRI=場均盤帶 · DEF=防守動作+搶截成功率 ·
+            PHY=場均分鐘+頭錘 · 總評=均分55%+六維45%
           </p>
         </div>
 
