@@ -1,9 +1,9 @@
 import type { RadarProfile } from "../lib/radarAxes";
 import { GK_RADAR_NOTE, radarPoint } from "../lib/radarAxes";
 
-const CX = 180;
+const CX = 200;
 const CY = 168;
-const R = 110;
+const R = 102;
 
 const LABEL_FONT = '"Noto Sans TC", "Noto Sans CJK TC", "PingFang HK", "Microsoft JhengHei", sans-serif';
 
@@ -21,12 +21,12 @@ function ring(scale: number): string {
 }
 
 const LABELS: { i: number; anchor: "middle" | "start" | "end"; x: number; y: number }[] = [
-  { i: 0, anchor: "middle", x: 180, y: 42 },
-  { i: 1, anchor: "start", x: 278, y: 100 },
-  { i: 2, anchor: "start", x: 278, y: 248 },
-  { i: 3, anchor: "middle", x: 180, y: 318 },
-  { i: 4, anchor: "end", x: 82, y: 248 },
-  { i: 5, anchor: "end", x: 82, y: 100 },
+  { i: 0, anchor: "middle", x: 200, y: 28 },
+  { i: 1, anchor: "start", x: 308, y: 96 },
+  { i: 2, anchor: "start", x: 308, y: 236 },
+  { i: 3, anchor: "middle", x: 200, y: 312 },
+  { i: 4, anchor: "end", x: 92, y: 236 },
+  { i: 5, anchor: "end", x: 92, y: 96 },
 ];
 
 export function RadarChart({ profile }: { profile: RadarProfile }) {
@@ -46,12 +46,12 @@ export function RadarChart({ profile }: { profile: RadarProfile }) {
     .join("，");
 
   const hasPlayer = playerPct.some((v) => v != null);
-  const playerFill = profile.lowSample ? "rgba(168,176,194,0.2)" : "rgba(91,140,255,0.28)";
-  const playerStroke = profile.lowSample ? "#a8b0c2" : "#5b8cff";
+  const playerFill = profile.lowSample ? "rgba(213,220,236,0.55)" : "rgba(91,140,255,0.28)";
+  const playerStroke = profile.lowSample ? "#d5dcec" : "#5b8cff";
 
   return (
     <div className="w-full max-w-[420px]">
-      <svg viewBox="0 0 360 340" role="img" aria-label={`六軸雷達：${aria}`} className="mx-auto block h-auto w-full">
+      <svg viewBox="0 0 400 348" role="img" aria-label={`六軸雷達：${aria}`} className="mx-auto block h-auto w-full">
         <g fill="none" stroke="rgba(232,238,252,0.14)" strokeWidth="1">
           {[1, 0.75, 0.5, 0.25].map((s) => (
             <polygon key={s} points={ring(s)} />
@@ -76,10 +76,17 @@ export function RadarChart({ profile }: { profile: RadarProfile }) {
             points={poly(playerPct)}
             fill={playerFill}
             stroke={playerStroke}
-            strokeWidth="2"
+            strokeWidth={profile.lowSample ? 3.5 : 2}
             strokeLinejoin="round"
+            strokeLinecap="round"
           />
         )}
+        {profile.lowSample &&
+          hasPlayer &&
+          profile.axes.map((axis, i) => {
+            const [x, y] = radarPoint(i, axis.percentile ?? 0, CX, CY, R);
+            return <circle key={`${axis.id}-dot`} cx={x} cy={y} r="5" fill="#eef2fb" stroke="#9aa6bd" strokeWidth="1.5" />;
+          })}
         {LABELS.map(({ i, anchor, x, y }) => {
           const axis = profile.axes[i];
           if (!axis) return null;
@@ -88,7 +95,7 @@ export function RadarChart({ profile }: { profile: RadarProfile }) {
               <text x={x} y={y} textAnchor={anchor} fill="#e8eefc" fontSize="13" fontWeight="700">
                 {axis.label}
               </text>
-              <text x={x} y={y + 13} textAnchor={anchor} fill="rgba(232,238,252,0.55)" fontSize="10" fontWeight="500">
+              <text x={x} y={y + 14} textAnchor={anchor} fill="rgba(232,238,252,0.55)" fontSize="10" fontWeight="500">
                 {axis.sub}
               </text>
             </g>
@@ -99,7 +106,7 @@ export function RadarChart({ profile }: { profile: RadarProfile }) {
         <span className="inline-flex items-center gap-1.5">
           <i
             className="inline-block h-[3px] w-4 rounded-sm"
-            style={{ background: profile.lowSample ? "#a8b0c2" : "#5b8cff" }}
+            style={{ background: profile.lowSample ? "#d5dcec" : "#5b8cff" }}
           />
           球員（隊內百分位）
         </span>
@@ -141,7 +148,7 @@ export function RadarBars({ profile }: { profile: RadarProfile }) {
                 className="h-full rounded-full"
                 style={{
                   width: `${pct == null ? 0 : Math.max(0, Math.min(100, pct))}%`,
-                  background: profile.lowSample ? "#a8b0c2" : "#5b8cff",
+                  background: profile.lowSample ? "#d5dcec" : "#5b8cff",
                 }}
               />
             </div>
