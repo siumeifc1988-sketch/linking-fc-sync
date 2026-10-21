@@ -14,6 +14,8 @@ import { CLUB, num, posLabel, ratingClass } from "../lib/format";
 import { passPct } from "../lib/events";
 import { MatchPlayerExpand } from "./StatExpand";
 
+const HIDE = "hide-sm";
+
 function playersOf(raw: ShapedMatch["raw"], clubId: string): MatchPlayerRaw[] {
   const map = (raw.players && raw.players[clubId]) || {};
   const list = Array.isArray(map)
@@ -38,21 +40,27 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         id: "idx",
         header: "#",
         cell: ({ row }) => <span className="font-extrabold text-muted">{row.index + 1}</span>,
+        meta: { cellClass: HIDE },
       },
       {
         id: "pos",
         header: "位置",
         cell: ({ row }) => (
-          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted">
+          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[10px] font-bold text-muted">
             {posLabel(row.original)}
           </span>
         ),
+        meta: { cellClass: HIDE },
       },
       {
         id: "name",
         accessorFn: (r) => r.playername || r.name || "?",
         header: "球員",
-        cell: ({ getValue }) => <strong className="text-[13px] font-bold">{String(getValue())}</strong>,
+        cell: ({ getValue }) => (
+          <strong className="block max-w-[6.5rem] truncate text-[13px] font-bold sm:max-w-none">
+            {String(getValue())}
+          </strong>
+        ),
       },
       {
         id: "rating",
@@ -61,20 +69,41 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         cell: ({ getValue }) => {
           const r = Number(getValue());
           return (
-            <span className={`inline-flex min-w-[2.5rem] justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${ratingClass(r)}`}>
+            <span
+              className={`inline-flex min-w-[2.4rem] justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(r)}`}
+            >
               {r.toFixed(2)}
             </span>
           );
         },
       },
-      { id: "goals", accessorFn: (r) => num(r.goals), header: "G", cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span> },
-      { id: "assists", accessorFn: (r) => num(r.assists), header: "A", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
-      { id: "shots", accessorFn: (r) => num(r.shots), header: "射", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
+      {
+        id: "goals",
+        accessorFn: (r) => num(r.goals),
+        header: "G",
+        cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span>,
+      },
+      {
+        id: "assists",
+        accessorFn: (r) => num(r.assists),
+        header: "A",
+        cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span>,
+      },
+      {
+        id: "shots",
+        accessorFn: (r) => num(r.shots),
+        header: "射",
+        cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span>,
+        meta: { cellClass: HIDE },
+      },
       {
         id: "pass",
         accessorFn: (r) => passPct(r),
         header: "傳%",
-        cell: ({ getValue }) => <span className="tabular font-semibold">{Math.round(Number(getValue()))}%</span>,
+        cell: ({ getValue }) => (
+          <span className="tabular font-semibold">{Math.round(Number(getValue()))}%</span>
+        ),
+        meta: { cellClass: HIDE },
       },
       {
         id: "tk",
@@ -83,14 +112,21 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         cell: ({ row }) => {
           const m = num(row.original.tacklesmade ?? row.original.tacklesMade);
           const a = num(row.original.tackleattempts);
-          return <span className="tabular font-semibold">{m}{a ? `/${a}` : ""}</span>;
+          return (
+            <span className="tabular font-semibold">
+              {m}
+              {a ? `/${a}` : ""}
+            </span>
+          );
         },
+        meta: { cellClass: HIDE },
       },
       {
         id: "mins",
         accessorFn: (r) => Math.round(num(r.secondsPlayed ?? r.gameTime) / 60),
         header: "分",
         cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() || "-")}</span>,
+        meta: { cellClass: HIDE },
       },
     ],
     [],
@@ -114,23 +150,24 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
   }
 
   return (
-    <div className="overflow-x-auto overscroll-x-contain">
-      <table className="w-full min-w-[480px] border-collapse text-[13px]">
+    <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+      <table className="w-full min-w-0 border-collapse text-[13px] sm:min-w-[480px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
-              {hg.headers.map((h) => (
-                <th
-                  key={h.id}
-                  className={`cursor-pointer select-none whitespace-nowrap bg-ink px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-white ${
-                    h.column.getIsSorted() ? "bg-pl-purple" : ""
-                  }`}
-                  onClick={h.column.getToggleSortingHandler()}
-                >
-                  {flexRender(h.column.columnDef.header, h.getContext())}
-                  {{ asc: " ▲", desc: " ▼" }[h.column.getIsSorted() as string] ?? null}
-                </th>
-              ))}
+              {hg.headers.map((h) => {
+                const meta = h.column.columnDef.meta as { cellClass?: string } | undefined;
+                return (
+                  <th
+                    key={h.id}
+                    className={`cursor-pointer select-none whitespace-nowrap bg-ink px-2 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-white sm:px-3 ${h.column.getIsSorted() ? "bg-pl-purple" : ""} ${meta?.cellClass || ""}`}
+                    onClick={h.column.getToggleSortingHandler()}
+                  >
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    {{ asc: " ▲", desc: " ▼" }[h.column.getIsSorted() as string] ?? null}
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
@@ -138,14 +175,17 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
           {table.getRowModel().rows.map((row) => (
             <Fragment key={row.id}>
               <tr
-                className={`cursor-pointer border-b border-line-soft hover:bg-row-hover ${row.getIsExpanded() ? "bg-tint" : ""}`}
+                className={`cursor-pointer border-b border-line-soft active:bg-tint ${row.getIsExpanded() ? "bg-tint" : ""}`}
                 onClick={() => row.toggleExpanded()}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-3 py-2.5 align-middle">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const meta = cell.column.columnDef.meta as { cellClass?: string } | undefined;
+                  return (
+                    <td key={cell.id} className={`px-2 py-3 align-middle sm:px-3 sm:py-2.5 ${meta?.cellClass || ""}`}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  );
+                })}
               </tr>
               {row.getIsExpanded() && (
                 <tr className="border-b border-line bg-bg">
@@ -177,20 +217,20 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
   const avg = usList.length ? (sumR / usList.length).toFixed(2) : "-";
 
   return (
-    <div className="space-y-4 p-1">
-      <div className="grid gap-3 border-b border-line pb-3 sm:grid-cols-[auto_1fr]">
-        <div className="rounded-[14px] bg-gradient-to-br from-pl-purple to-[#4a1450] px-5 py-4 text-center text-white shadow">
-          <div className="tabular text-[28px] font-black tracking-tight">
+    <div className="space-y-3 p-0.5 sm:space-y-4">
+      <div className="grid gap-2 border-b border-line pb-3 sm:grid-cols-[auto_1fr] sm:gap-3">
+        <div className="rounded-[14px] bg-gradient-to-br from-pl-purple to-[#4a1450] px-4 py-3 text-center text-white shadow sm:px-5 sm:py-4">
+          <div className="tabular text-[26px] font-black tracking-tight sm:text-[28px]">
             {match.us}:{match.them}
           </div>
-          <div className="mt-1 text-[11px] opacity-85">vs {match.opp}</div>
+          <div className="mt-1 truncate text-[11px] opacity-85">vs {match.opp}</div>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">結果</div>
-            <div className="mt-1 font-bold">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">結果</div>
+            <div className="mt-1">
               <span
-                className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${
+                className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-extrabold ${
                   match.code === "W"
                     ? "bg-pl-green/10 text-pl-green"
                     : match.code === "L"
@@ -202,15 +242,15 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
               </span>
             </div>
           </div>
-          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">MOTM</div>
-            <div className="mt-1 truncate text-[13px] font-bold">
+          <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">MOTM</div>
+            <div className="mt-1 truncate text-[12px] font-bold sm:text-[13px]">
               {(mom && (mom.playername || mom.name)) || "-"}
             </div>
           </div>
-          <div className="rounded-[12px] border border-line bg-bg px-3 py-2">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">我方均分</div>
-            <div className="mt-1 tabular text-[13px] font-bold">{avg}</div>
+          <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">均分</div>
+            <div className="mt-1 tabular text-[12px] font-bold sm:text-[13px]">{avg}</div>
           </div>
         </div>
       </div>
@@ -226,8 +266,8 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
       </div>
       <div>
         <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-gray bg-bg px-3 py-2 text-[13px] font-extrabold text-ink">
-          {match.opp}{" "}
-          <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
+          <span className="truncate">{match.opp}</span>{" "}
+          <span className="shrink-0 rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
             {themList.length} 人
           </span>
         </h3>
@@ -247,7 +287,7 @@ export function MatchList({
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <div className={asCards ? "grid gap-3" : ""}>
+    <div className={asCards ? "grid gap-2.5 sm:gap-3" : ""}>
       {matches.slice(0, 25).map((m) => {
         const open = expandedId === m.id;
         const codeBg =
@@ -258,48 +298,33 @@ export function MatchList({
             <button
               type="button"
               onClick={() => setExpandedId(open ? null : m.id)}
-              className={`flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-row-hover sm:gap-4 sm:px-5 ${
+              className={`flex min-h-[56px] w-full items-center gap-2.5 px-3 py-3 text-left active:bg-tint sm:gap-4 sm:px-5 sm:py-3.5 ${
                 open ? "bg-tint" : ""
               }`}
             >
               <div
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-white ${codeBg}`}
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-extrabold text-white sm:h-9 sm:w-9 ${codeBg}`}
               >
                 {m.code}
               </div>
-              <div className="grid min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-center gap-2 md:flex md:gap-6">
-                <div className="text-right md:text-left">
-                  <div className="text-[13px] font-extrabold">LinKing FC</div>
-                  <div className="hidden text-[11px] text-muted md:block">
-                    {m.type} · {m.when}
-                    {m.dnf ? " · 離線" : ""}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 rounded-full border border-line bg-bg px-2.5 py-1">
+                    <span className="tabular text-[16px] font-black sm:text-[18px]">{m.us}</span>
+                    <span className="text-muted">:</span>
+                    <span className="tabular text-[16px] font-black sm:text-[18px]">{m.them}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px] font-extrabold">{m.opp}</div>
+                    <div className="truncate text-[10px] text-muted sm:text-[11px]">
+                      {m.type} · {m.when}
+                      {m.dnf ? " · 離線" : ""}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-3 rounded-full border border-line bg-bg px-3 py-1.5 sm:px-4">
-                  <span className="tabular text-[18px] font-black">{m.us}</span>
-                  <span className="text-muted">:</span>
-                  <span className="tabular text-[18px] font-black">{m.them}</span>
-                </div>
-                <div>
-                  <div className="truncate text-[13px] font-extrabold">{m.opp}</div>
-                  <div className="text-[11px] text-muted md:hidden">{m.when}</div>
-                </div>
-              </div>
-              <div className="hidden items-center gap-2 md:flex">
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${
-                    m.code === "W"
-                      ? "bg-pl-green/10 text-pl-green"
-                      : m.code === "L"
-                        ? "bg-pl-magenta/10 text-pl-magenta"
-                        : "bg-line text-muted"
-                  }`}
-                >
-                  {m.outcome}
-                </span>
               </div>
               <div
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border transition ${
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition ${
                   open ? "border-ink bg-ink text-white" : "border-line text-muted"
                 }`}
               >
@@ -317,7 +342,7 @@ export function MatchList({
               </div>
             </button>
             {open && (
-              <div className="border-t border-line bg-bg px-3 py-4 sm:px-5">
+              <div className="border-t border-line bg-bg px-2.5 py-3 sm:px-5 sm:py-4">
                 <MatchDetailBody match={m} />
               </div>
             )}
@@ -326,7 +351,7 @@ export function MatchList({
 
         if (asCards) {
           return (
-            <div key={m.id} className="card shadow-[0_4px_20px_rgba(55,0,60,0.04)]">
+            <div key={m.id} className="card">
               {body}
             </div>
           );
