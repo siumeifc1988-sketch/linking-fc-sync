@@ -10,10 +10,12 @@ EA Pro Clubs API
     ▼
 GitHub Actions（ea-sync-curl_cffi，每 6 小時）
     │  data/matches.json
-    │  data/aggregated/board.json
+    │  data/aggregated/board.json + board_last10.json
     │  data/meta.json
     ├─ GitHub Pages → index.html 讀相對路徑 JSON
-    └─ Discord Bot（bot/）讀 raw.githubusercontent.com
+    ├─ bot/（舊 pepe-bot，只讀 JSON）
+    └─ worker/ Discord Worker 讀同一份 JSON
+Firebase football-signup-64bd9 只存報名時段，唔係數據來源
 ```
 
 ## 抓取
@@ -36,7 +38,7 @@ GitHub Actions（ea-sync-curl_cffi，每 6 小時）
 
 ## Bot
 
-見 `bot/README.md`。Cloudflare Worker 斜線指令，讀同一份公開 JSON。請用獨立 Discord Application，不要掛在 marin-bot。
+`bot/` 係舊的只讀 pepe-bot。Discord 報名同數據指令見 `worker/README.md`。Worker 讀上面嘅 JSON；Firebase 只存當日報名。唔好再由 Worker 寫 EA 比賽。
 
 ## 建議
 
