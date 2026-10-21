@@ -1,44 +1,19 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { BoardPlayer } from "../types";
 import { deriveSix, initials, overallFromPlayer, posShort, type SixAttr } from "../lib/cardStats";
-import cutoutGn from "../assets/cards/gn00925443.png";
 import hkFlag from "../assets/cards/hk-flag.png";
 import hkpl from "../assets/cards/hkpl.png";
 import crest from "../assets/cards/linking-fc-crest.png";
-import "./playerCardFace.css";
 
 export const CARD_DISCLAIMER = "實戰推算 · 非官方屬性";
 
-/** Club Rare is the live default. Common and Highlight only swap the chrome. */
+/** Gold Rare is the live face. Kept so older call sites can still pass a rarity. */
 export type CardRarity = "common" | "rare" | "highlight";
 
-const LEFT: (keyof SixAttr)[] = ["PAC", "SHO", "PAS"];
-const RIGHT: (keyof SixAttr)[] = ["DRI", "DEF", "PHY"];
+const PILL_ORDER: (keyof SixAttr)[] = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"];
 
-const PORTRAITS: Record<string, string> = {
-  gn00925443: cutoutGn,
-};
-
-/**
- * Faceted special-card shield. Top shoulders are folded planes;
- * the bottom eases into a point. Four concentric paths build the metal edge.
- */
-const P0 =
-  "M200 8 L256 20 L308 44 L346 78 L372 118 L386 166 L382 418 C378 478 332 528 200 552 C68 528 22 478 18 418 L14 166 L28 118 L54 78 L92 44 L144 20 Z";
-const P1 =
-  "M200 20 L248 32 L296 54 L330 86 L354 124 L366 170 L362 412 C358 466 318 510 200 532 C82 510 42 466 38 412 L34 170 L46 124 L70 86 L104 54 L152 32 Z";
-const P2 =
-  "M200 30 L242 40 L286 60 L316 90 L338 126 L348 172 L344 406 C340 454 308 494 200 514 C92 494 60 454 56 406 L52 172 L62 126 L84 90 L114 60 L158 40 Z";
-const P3 =
-  "M200 40 L236 50 L276 68 L304 98 L324 132 L332 174 L328 400 C324 444 298 480 200 498 C102 480 76 444 72 400 L68 174 L76 132 L96 98 L124 68 L164 50 Z";
-
-const SHIELD_MASK = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560"><path fill="white" d="${P0}"/></svg>`,
-)}")`;
-
-export function portraitFor(name: string): string | undefined {
-  return PORTRAITS[name.trim().toLowerCase()];
-}
+const GOLD_EDGE =
+  "M18 1 H282 Q299 1 299 19 V394 L150 449 L1 394 V19 Q1 1 18 1 Z";
 
 export type PlayerCardFaceProps = {
   name: string;
@@ -67,200 +42,139 @@ export function cardFaceFromPlayer(
   };
 }
 
-function nameSize(name: string): string {
-  const n = name.trim().length;
-  if (n > 12) return "6.2cqw";
-  if (n > 9) return "7.4cqw";
-  return "8.8cqw";
-}
-
-function ring(outer: string, inner: string) {
-  return `${outer} ${inner}`;
-}
-
-function CardPlate({ id }: { id: string }) {
-  return (
-    <svg className="lk-plate" viewBox="0 0 400 560" aria-hidden="true">
-      <defs>
-        <linearGradient id={`${id}-silver`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--lk-metal-0)" />
-          <stop offset="28%" stopColor="var(--lk-metal-1)" />
-          <stop offset="55%" stopColor="var(--lk-metal-2)" />
-          <stop offset="100%" stopColor="var(--lk-metal-3)" />
-        </linearGradient>
-        <linearGradient id={`${id}-iri`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--lk-iri-0)" />
-          <stop offset="14%" stopColor="var(--lk-iri-1)" />
-          <stop offset="30%" stopColor="var(--lk-iri-2)" />
-          <stop offset="46%" stopColor="var(--lk-iri-3)" />
-          <stop offset="58%" stopColor="var(--lk-iri-4)" />
-          <stop offset="72%" stopColor="var(--lk-iri-5)" />
-          <stop offset="86%" stopColor="var(--lk-iri-1)" />
-          <stop offset="100%" stopColor="var(--lk-iri-0)" />
-        </linearGradient>
-        <linearGradient id={`${id}-lip`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="40%" stopColor="#d5e2f6" />
-          <stop offset="100%" stopColor="#8eaae4" />
-        </linearGradient>
-        <radialGradient id={`${id}-plate`} cx="46%" cy="16%" r="78%">
-          <stop offset="0%" stopColor="#4d78e6" />
-          <stop offset="22%" stopColor="#3266d8" />
-          <stop offset="48%" stopColor="#4124ad" />
-          <stop offset="70%" stopColor="#2d0c33" />
-          <stop offset="100%" stopColor="#120b26" />
-        </radialGradient>
-        <linearGradient id={`${id}-shard`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
-          <stop offset="28%" stopColor="#bfcee9" stopOpacity="0.55" />
-          <stop offset="62%" stopColor="#3266d8" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#1f0f3a" stopOpacity="0.05" />
-        </linearGradient>
-        <mask id={`${id}-r0`} maskUnits="userSpaceOnUse">
-          <rect width="400" height="560" fill="black" />
-          <path fill="white" fillRule="evenodd" d={ring(P0, P1)} />
-        </mask>
-        <mask id={`${id}-r1`} maskUnits="userSpaceOnUse">
-          <rect width="400" height="560" fill="black" />
-          <path fill="white" fillRule="evenodd" d={ring(P1, P2)} />
-        </mask>
-        <mask id={`${id}-r2`} maskUnits="userSpaceOnUse">
-          <rect width="400" height="560" fill="black" />
-          <path fill="white" fillRule="evenodd" d={ring(P2, P3)} />
-        </mask>
-        <clipPath id={`${id}-plate-clip`}>
-          <path d={P3} />
-        </clipPath>
-      </defs>
-
-      <g mask={`url(#${id}-r0)`}>
-        <rect width="400" height="560" fill={`url(#${id}-silver)`} />
-        <ellipse cx="118" cy="48" rx="78" ry="22" fill="#ffffff" opacity="0.85" />
-        <ellipse cx="300" cy="500" rx="70" ry="18" fill="#9eb6e8" opacity="0.55" />
-      </g>
-      <g mask={`url(#${id}-r1)`}>
-        <rect width="400" height="560" fill={`url(#${id}-iri)`} />
-        <ellipse cx="150" cy="36" rx="90" ry="16" fill="#ffffff" opacity="0.8" />
-        <ellipse cx="332" cy="210" rx="18" ry="70" fill="#7eb6ff" opacity="0.7" />
-        <ellipse cx="70" cy="340" rx="16" ry="54" fill="#d9ccff" opacity="0.55" />
-        <ellipse cx="210" cy="530" rx="60" ry="14" fill="#ffffff" opacity="0.35" />
-      </g>
-      <g mask={`url(#${id}-r2)`}>
-        <rect width="400" height="560" fill={`url(#${id}-lip)`} />
-        <ellipse cx="160" cy="56" rx="70" ry="12" fill="#ffffff" opacity="0.9" />
-      </g>
-
-      <path d={P1} fill="none" stroke="#120b26" strokeWidth="1.15" opacity="0.55" />
-      <path d={P2} fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.55" />
-
-      <g clipPath={`url(#${id}-plate-clip)`}>
-        <path d={P3} fill={`url(#${id}-plate)`} />
-        <polygon points="70,90 150,48 130,150" fill="#3266d8" opacity="0.38" />
-        <polygon points="140,46 250,40 210,140 110,110" fill="#bfcee9" opacity="0.16" />
-        <polygon points="210,44 330,86 280,160" fill="#4124ad" opacity="0.34" />
-        <polygon points="248,58 360,112 338,248 214,168" fill={`url(#${id}-shard)`} />
-        <polygon points="268,78 346,124 322,196 252,146" fill="#ffffff" opacity="0.2" />
-        <polygon points="252,62 318,96 286,140" fill="#ffffff" opacity="0.55" />
-        <polygon points="292,150 352,188 330,250" fill="#7eb6ff" opacity="0.28" />
-        <polygon points="64,170 120,150 100,230" fill="#bfcee9" opacity="0.14" />
-        <polygon points="48,240 130,220 100,320" fill="#1f0f3a" opacity="0.35" />
-        <polygon points="40,360 200,330 360,380 300,470 90,450" fill="#120b26" opacity="0.28" />
-        <ellipse cx="168" cy="90" rx="120" ry="36" fill="#ffffff" opacity="0.07" />
-      </g>
-      <path d={P3} fill="none" stroke="#f4f8ff" strokeWidth="1.6" opacity="0.8" />
-      <path d={P3} fill="none" stroke="#3266d8" strokeWidth="3.2" opacity="0.35" />
-
-      {/* Folded top corners — two planes each, so the shoulder reads as bent metal. */}
-      <polygon points="144,20 200,8 176,30 128,34" fill="var(--lk-fold-lite)" />
-      <polygon points="92,44 144,20 128,34 86,52" fill="var(--lk-fold-mid)" opacity="0.9" />
-      <polygon points="54,78 92,44 86,52 62,84" fill="var(--lk-fold-deep)" opacity="0.55" />
-      <polygon points="256,20 200,8 224,30 272,34" fill="var(--lk-fold-lite)" />
-      <polygon points="308,44 256,20 272,34 314,52" fill="var(--lk-fold-mid)" opacity="0.72" />
-      <polygon points="346,78 308,44 314,52 338,84" fill="#7eb6ff" opacity="0.45" />
-    </svg>
-  );
-}
-
-function StatCol({ keys, stats }: { keys: (keyof SixAttr)[]; stats: SixAttr }) {
-  return (
-    <div className="lk-col">
-      {keys.map((key) => (
-        <div key={key} className="lk-stat">
-          <span>{key}</span>
-          <b>{stats[key]}</b>
-        </div>
-      ))}
-    </div>
-  );
-}
-
+/**
+ * Gold Rare face. Structure follows the left card in linking-from-ref:
+ * navy base, gold SVG stroke with a pointed bottom, OVR corner, geometric
+ * middle, name, and frosted stat pills. No portrait.
+ */
 export function PlayerCardFace({
   name,
   overall,
   position,
   stats,
-  portraitSrc,
-  imageUrl,
-  monogram,
-  rarity = "rare",
   className,
 }: PlayerCardFaceProps) {
-  const reactId = useId().replace(/:/g, "");
-  const id = `lk${reactId}`;
-  const explicit = (portraitSrc || imageUrl || "").trim();
-  const requested = explicit || portraitFor(name) || "";
-  const [failed, setFailed] = useState("");
-  const showPhoto = requested.length > 0 && failed !== requested;
-  const ovr = Number.isFinite(overall) ? Math.round(overall) : 0;
-  const nameLabel = (name || "PLAYER").trim();
-  const mark = (monogram || initials(nameLabel) || "?").slice(0, 2);
-  const pos = (position || "—").toUpperCase();
+  const uid = useId().replace(/:/g, "");
+  const grad = `goldGrad-${uid}`;
+  const noise = `noiseGold-${uid}`;
 
   return (
     <div
-      className={`lk-card${className ? ` ${className}` : ""}`}
-      data-rarity={rarity}
-      data-portrait={showPhoto ? "image" : "initials"}
       data-testid="player-card-face"
-      style={{ ["--lk-mask" as string]: SHIELD_MASK }}
+      className={`relative aspect-[300/450] w-full select-none overflow-hidden rounded-[18px] ${className || ""}`}
+      style={{
+        background: "linear-gradient(180deg, #0B1120 0%, #1E293B 100%)",
+        boxShadow:
+          "0 2px 0 rgba(255,215,0,0.15) inset, 0 -1px 0 rgba(255,215,0,0.2) inset, 0 24px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,215,0,0.22)",
+        fontFamily: '"Space Grotesk", "Plus Jakarta Sans", sans-serif',
+        containerType: "inline-size",
+      }}
     >
-      <CardPlate id={id} />
-      <div className="lk-nameband" aria-hidden="true" />
-      <div className="lk-portrait">
-        {showPhoto ? (
-          <img
-            src={requested}
-            alt=""
-            draggable={false}
-            decoding="async"
-            onError={() => setFailed(requested)}
-          />
-        ) : (
-          <div className="lk-mono" aria-hidden="true">
-            {mark}
+      <svg
+        className="pointer-events-none absolute inset-0 z-30 h-full w-full"
+        viewBox="0 0 300 450"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <defs>
+          <linearGradient id={grad} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="25%" stopColor="#FFF8DC" />
+            <stop offset="50%" stopColor="#D4AF37" />
+            <stop offset="75%" stopColor="#FFF4B0" />
+            <stop offset="100%" stopColor="#FFD700" />
+          </linearGradient>
+          <pattern id={noise} width="120" height="120" patternUnits="userSpaceOnUse">
+            <circle cx="10" cy="10" r="0.6" fill="white" opacity="0.05" />
+            <circle cx="60" cy="40" r="0.5" fill="white" opacity="0.04" />
+            <circle cx="90" cy="90" r="0.7" fill="white" opacity="0.03" />
+          </pattern>
+        </defs>
+        <rect width="300" height="450" fill={`url(#${noise})`} opacity="0.8" />
+        <path
+          d={GOLD_EDGE}
+          fill="none"
+          stroke={`url(#${grad})`}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+          opacity="0.95"
+        />
+        <path d={GOLD_EDGE} fill="none" stroke="white" strokeWidth="0.4" opacity="0.15" />
+      </svg>
+
+      <div
+        className="pointer-events-none absolute inset-px rounded-[17px]"
+        style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 18%)" }}
+      />
+
+      <div className="relative z-20 flex items-start justify-between p-[5.5%]">
+        <div className="flex flex-col items-center">
+          <div className="flex h-[68px] w-[56px] flex-col items-center justify-center rounded-[10px] bg-gradient-to-b from-[#FFD700] to-[#C9A227] shadow-[0_4px_12px_rgba(255,215,0,0.4)]">
+            <span className="text-[24px] font-black leading-none text-[#0B1120]">{overall}</span>
+            <span className="mt-[2px] text-[11px] font-bold tracking-[0.18em] text-[#0B1120]">{position}</span>
           </div>
-        )}
-      </div>
-      {rarity === "highlight" ? (
-        <div className="lk-star">
-          <span>★ STAR</span>
+          <div className="mt-2 text-[8px] font-bold tracking-[0.28em] text-[#FFD700]/70">RARE · GOLD</div>
         </div>
-      ) : null}
-      <div className="lk-id">
-        <div className="lk-ovr">{ovr}</div>
-        <div className="lk-pos">{pos}</div>
+        <div className="text-right">
+          <div className="text-[9px] font-bold tracking-[0.38em] text-white/30">FC26 EDITION</div>
+          <div className="ml-auto mt-1 h-px w-8 bg-gradient-to-r from-transparent to-[#FFD700]/60" />
+        </div>
       </div>
-      <div className="lk-name" style={{ fontSize: nameSize(nameLabel) }} title={nameLabel}>
-        {nameLabel}
+
+      <div
+        className="pointer-events-none absolute inset-x-0 top-[13%] h-[48%]"
+        style={{ clipPath: "polygon(0 0, 100% 0, 100% 64%, 0 100%)" }}
+      >
+        <div
+          className="absolute bottom-[-6%] left-1/2 h-[96%] w-[78%] -translate-x-1/2 rounded-t-[999px]"
+          style={{ background: "radial-gradient(85% 68% at 50% 16%, #44597a 0%, #2a3c58 58%, #141c2e 100%)" }}
+        />
+        <div className="absolute bottom-[1%] left-1/2 flex w-[72%] -translate-x-1/2 flex-col items-center">
+          <div className="aspect-square w-[48%] rounded-full border border-white/15 bg-gradient-to-b from-[#516688] to-[#172235] shadow-[0_12px_26px_rgba(0,0,0,0.45)]" />
+          <div className="-mt-[16%] h-[22cqw] w-[90%] rounded-t-[999px] bg-gradient-to-b from-[#425675] to-[#141c2e]" />
+        </div>
+        <img
+          src={crest}
+          alt=""
+          className="absolute left-1/2 top-[22%] w-[24%] -translate-x-1/2 opacity-[0.22]"
+        />
+        <div
+          className="absolute inset-0 opacity-[0.09]"
+          style={{ background: "repeating-linear-gradient(105deg, transparent 0 16px, white 16px 17px)" }}
+        />
       </div>
-      <div className="lk-stats">
-        <StatCol keys={LEFT} stats={stats} />
-        <StatCol keys={RIGHT} stats={stats} />
-      </div>
-      <div className="lk-badges">
-        <img className="lk-flag" src={hkFlag} alt="" draggable={false} />
-        <img className="lk-league" src={hkpl} alt="" draggable={false} />
-        <img className="lk-club" src={crest} alt="" draggable={false} />
+
+      <div className="absolute inset-x-0 bottom-0 z-20 px-[5%] pb-[7.5%] pt-0">
+        <div className="flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold tracking-[0.35em] text-[#FFD700]">LINKING</div>
+            <div className="mt-1 truncate text-[clamp(16px,7.4cqw,26px)] font-black leading-[0.92] tracking-[-0.03em] text-white">
+              {name}
+            </div>
+          </div>
+          <div className="shrink-0 pb-0.5 font-mono text-[10px] text-white/40">
+            ID · {position}
+            {overall}
+          </div>
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-3 gap-[6px]">
+          {PILL_ORDER.map((key) => (
+            <div
+              key={key}
+              className="flex items-center justify-between rounded-[8px] border border-white/[0.08] bg-white/[0.06] px-2 py-1.5 backdrop-blur-sm"
+            >
+              <span className="text-[9px] font-bold tracking-[0.12em] text-white/50">{key}</span>
+              <span className="text-[13px] font-black text-white">{stats[key]}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-2.5">
+          <img src={hkFlag} alt="" className="h-4 w-6 rounded-none object-cover" />
+          <img src={hkpl} alt="" className="h-5 w-auto object-contain" />
+          <img src={crest} alt="" className="h-5 w-5 object-contain" />
+        </div>
       </div>
     </div>
   );
