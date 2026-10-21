@@ -4,8 +4,8 @@ import { fmtPct, fmtRatio, num } from "../lib/format";
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-white">
-      <h4 className="m-0 bg-pl-purple px-2.5 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-wide text-white">
+    <div className="overflow-hidden rounded-[12px] border border-line bg-white">
+      <h4 className="m-0 bg-ink px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
         {title}
       </h4>
       <div className="py-0.5">{children}</div>
@@ -15,14 +15,13 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-[#f0ebf5] px-2.5 py-1.5 text-[0.8rem] last:border-0">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-[#F5F0F8] px-3 py-1.5 text-[13px] last:border-0">
       <span className="min-w-0 truncate font-semibold text-muted">{label}</span>
-      <span className="tabular shrink-0 text-right font-extrabold text-text">{value}</span>
+      <span className="tabular shrink-0 text-right font-extrabold text-ink">{value}</span>
     </div>
   );
 }
 
-/** 外層：在橫向捲動表格內仍貼齊螢幕左側 */
 export function ExpandShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="sticky left-0 w-[min(100vw-1.5rem,36rem)] max-w-[100%] px-1 py-1 sm:w-full sm:max-w-none">
@@ -31,13 +30,12 @@ export function ExpandShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 累計球員展開 */
 export function CumExpand({ p }: { p: BoardPlayer }) {
   const r = Number(p.avgRating).toFixed(2);
   const summary = `評分 ${r} · ${p.games} 場 · ${p.goals}G ${p.assists}A · 傳 ${p.passPct != null ? p.passPct + "%" : "-"}${p.minutes != null ? ` · ${p.minutes}′` : ""}`;
   return (
     <ExpandShell>
-      <p className="mb-2 text-[0.82rem] font-bold leading-snug tracking-tight text-pl-purple">{summary}</p>
+      <p className="mb-2 text-[13px] font-bold leading-snug tracking-tight text-pl-purple">{summary}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Group title="進攻">
           <Row label="入球" value={String(p.goals)} />
@@ -73,7 +71,6 @@ export function CumExpand({ p }: { p: BoardPlayer }) {
   );
 }
 
-/** 單場球員展開 */
 export function MatchPlayerExpand({ p }: { p: MatchPlayerRaw }) {
   const ev = decodeEvents(p);
   const pm = num(p.passesmade ?? p.passesMade);
@@ -90,7 +87,7 @@ export function MatchPlayerExpand({ p }: { p: MatchPlayerRaw }) {
 
   return (
     <ExpandShell>
-      <p className="mb-2 text-[0.82rem] font-bold leading-snug text-pl-purple">{summary}</p>
+      <p className="mb-2 text-[13px] font-bold leading-snug text-pl-purple">{summary}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Group title="進攻">
           <Row label="入球" value={String(g)} />
