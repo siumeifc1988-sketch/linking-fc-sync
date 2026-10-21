@@ -20,10 +20,18 @@ function posColor(posCN) {
   return 0xe74c3c;
 }
 
-function bar(percent) {
+function bar(percent, label) {
   const clamped = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
   const filled = Math.round(clamped / 10);
-  return `${"█".repeat(filled)}${"░".repeat(10 - filled)} ${clamped}%`;
+  const suffix = label == null ? `${clamped}%` : label;
+  return `${"█".repeat(filled)}${"░".repeat(10 - filled)} ${suffix}`;
+}
+
+/** Empty string when there is no denominator, so a 0/0 rate is not drawn as 0%. */
+function rateLine(label, part, whole) {
+  const total = Number(whole) || 0;
+  if (total <= 0) return "";
+  return `${label} ${bar(((Number(part) || 0) / total) * 100)}`;
 }
 
 function lineOf(player) {
@@ -31,13 +39,17 @@ function lineOf(player) {
   return `${player.games}場 ${player.goals}球 ${player.assists}助 ⭐${Number(player.avgRating || 0).toFixed(2)} xG ${Number(player.xg || 0).toFixed(2)}`;
 }
 
-/** Visible body link. Title `url` stays set separately so the embed title is still clickable. */
+/**
+ * Visible body link. Title `url` stays set separately so the embed title is still clickable.
+ * Field values on Discord (especially mobile) print markdown `[text](url)` as literal text,
+ * so the value is a short label plus a bare URL that clients linkify.
+ */
 function statsSiteField(siteUrl) {
   const url = String(siteUrl || "").trim();
   if (!url) return null;
   return {
     name: "🔗 戰績網",
-    value: `[${url}](${url})`,
+    value: `戰績網\n${url}`,
     inline: false,
   };
 }
@@ -76,26 +88,47 @@ export function buildPlayerEmbed(stats, query, siteUrl) {
   const player = found.player;
   const recent = findPlayer(stats.last10?.players, player.name);
   const recentLine = recent.status === "one" ? lineOf(recent.player) : "近10無出場";
+  const rating = Number(player.avgRating || 0);
   const passPct = Number(player.passPct || 0);
+  const tackleAttempts = (Number(player.tk) || 0) + (Number(player.tacklesLost) || 0);
   const fields = [
     {
       name: "👤 球員",
-      value: `**${player.name}** | ${player.posCN || "未知"} | **${player.games}場** | ⭐ ${Number(player.avgRating || 0).toFixed(2)}\n近10：${recentLine}`,
+      value: [
+        `**${player.name}** | ${player.posCN || "未知"} | **${player.games}場** | ⭐ ${rating.toFixed(2)}`,
+        `評分 ${bar(rating * 10, `${rating.toFixed(2)}/10`)}`,
+        `近10：${recentLine}`,
+      ].join("\n"),
       inline: false,
     },
     {
       name: `⚽ 進攻 · ${player.goals}球 ${player.assists}助`,
-      value: `${player.goals}球 (${player.goalsPerGame ?? 0}/場) · ${player.assists}助 (${player.assistsPerGame ?? 0}/場)\n射門 ${player.shots || 0} · 中靶 ${player.shotsOn || 0}\n估算 xG ${Number(player.xg || 0).toFixed(2)} · xA ${Number(player.xa || 0).toFixed(2)}`,
+      value: [
+        `${player.goals}球 (${player.goalsPerGame ?? 0}/場) · ${player.assists}助 (${player.assistsPerGame ?? 0}/場)`,
+        `射門 ${player.shots || 0} · 中靶 ${player.shotsOn || 0}`,
+        rateLine("中靶率", player.shotsOn, player.shots),
+        rateLine("轉化率", player.goals, player.shots),
+        `估算 xG ${Number(player.xg || 0).toFixed(2)} · xA ${Number(player.xa || 0).toFixed(2)}`,
+      ].filter(Boolean).join("\n"),
       inline: false,
     },
     {
       name: `🎯 傳球 · ${player.pm || 0}/${player.pa || 0}`,
-      value: `${bar(passPct)}\n關鍵傳球 ${player.keyPass || 0}\n向前 ${player.passFwd || 0} · 向後 ${player.passBack || 0} · 橫 ${player.passSide || 0}`,
+      value: [
+        `傳球 ${bar(passPct)}`,
+        `關鍵傳球 ${player.keyPass || 0}`,
+        `向前 ${player.passFwd || 0} · 向後 ${player.passBack || 0} · 橫 ${player.passSide || 0}`,
+      ].join("\n"),
       inline: false,
     },
     {
       name: `🛡 防守 · ${player.totalDef || 0}`,
-      value: `攔截 ${player.interceptions || 0} · 搶斷成功 ${player.tk || 0} · 失敗 ${player.tacklesLost || 0}\n封堵 ${player.blocks || 0} · 頭槌防守 ${player.aerialDef || 0} · 盤帶成功 ${player.dribbles || 0}\n上場 ${player.minutes || 0} 分鐘`,
+      value: [
+        `攔截 ${player.interceptions || 0} · 搶斷成功 ${player.tk || 0} · 失敗 ${player.tacklesLost || 0}`,
+        rateLine("搶斷成功率", player.tk, tackleAttempts),
+        `封堵 ${player.blocks || 0} · 頭槌防守 ${player.aerialDef || 0} · 盤帶成功 ${player.dribbles || 0}`,
+        `上場 ${player.minutes || 0} 分鐘`,
+      ].filter(Boolean).join("\n"),
       inline: false,
     },
   ];
