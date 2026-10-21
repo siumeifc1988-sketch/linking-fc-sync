@@ -138,7 +138,7 @@ async function signupCommand(name, body, config) {
     const total = signupRoster(doc.slots).length;
     const embed = buildCallEmbed(dateStr, doc.slots);
     const content = config.discordRoleId
-      ? `<@&${config.discordRoleId}> ⚽ LinKing FC 夠鐘開波！`
+      ? `<@&${config.discordRoleId}> 夠鐘開波！`
       : "@everyone ⚽ LinKing FC 夠鐘開波！";
     return { content, embeds: [embed], total };
   }
