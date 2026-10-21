@@ -52,7 +52,18 @@ body {
   overflow: hidden;
 }
 
-/* iPhone: hide secondary table columns */
+/* expand cell must not widen the table */
+td.expand-cell {
+  max-width: 0;
+  width: 100%;
+}
+
+td.expand-cell > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 @media (max-width: 640px) {
   .hide-sm {
     display: none !important;
@@ -60,9 +71,12 @@ body {
   .card {
     border-radius: 14px;
   }
+  table.mobile-fixed {
+    table-layout: fixed;
+    width: 100%;
+  }
 }
 
-/* safe area helpers */
 .safe-pb {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }

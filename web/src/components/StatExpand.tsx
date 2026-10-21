@@ -15,19 +15,16 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b border-[#F5F0F8] px-3 py-1.5 text-[13px] last:border-0">
-      <span className="min-w-0 truncate font-semibold text-muted">{label}</span>
+    <div className="flex items-center justify-between gap-3 border-b border-[#F5F0F8] px-3 py-2 text-[13px] last:border-0">
+      <span className="min-w-0 shrink font-semibold text-muted">{label}</span>
       <span className="tabular shrink-0 text-right font-extrabold text-ink">{value}</span>
     </div>
   );
 }
 
+/** 不撐開表格、不超出螢幕 */
 export function ExpandShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="sticky left-0 w-[min(100vw-1.5rem,36rem)] max-w-[100%] px-1 py-1 sm:w-full sm:max-w-none">
-      {children}
-    </div>
-  );
+  return <div className="box-border w-full max-w-full overflow-x-hidden px-1 py-1">{children}</div>;
 }
 
 export function CumExpand({ p }: { p: BoardPlayer }) {
@@ -35,8 +32,10 @@ export function CumExpand({ p }: { p: BoardPlayer }) {
   const summary = `評分 ${r} · ${p.games} 場 · ${p.goals}G ${p.assists}A · 傳 ${p.passPct != null ? p.passPct + "%" : "-"}${p.minutes != null ? ` · ${p.minutes}′` : ""}`;
   return (
     <ExpandShell>
-      <p className="mb-2 text-[13px] font-bold leading-snug tracking-tight text-pl-purple">{summary}</p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <p className="mb-2 break-words text-[13px] font-bold leading-snug tracking-tight text-pl-purple">
+        {summary}
+      </p>
+      <div className="grid grid-cols-1 gap-2">
         <Group title="進攻">
           <Row label="入球" value={String(p.goals)} />
           <Row label="助攻" value={String(p.assists)} />
@@ -87,8 +86,8 @@ export function MatchPlayerExpand({ p }: { p: MatchPlayerRaw }) {
 
   return (
     <ExpandShell>
-      <p className="mb-2 text-[13px] font-bold leading-snug text-pl-purple">{summary}</p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <p className="mb-2 break-words text-[13px] font-bold leading-snug text-pl-purple">{summary}</p>
+      <div className="grid grid-cols-1 gap-2">
         <Group title="進攻">
           <Row label="入球" value={String(g)} />
           <Row label="助攻" value={String(a)} />
