@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import type { BoardPlayer } from "../types";
-import portraitSlot from "../assets/portrait-slot.svg";
-import { CARD_DISCLAIMER, cardFaceFromPlayer, PlayerCardFace } from "./PlayerCardFace";
 import { overallFromPlayer } from "../lib/cardStats";
+import { CARD_DISCLAIMER, cardFaceFromPlayer, PlayerCardFace } from "./PlayerCardFace";
+
+const DEMO_NAME = "gn00925443";
 
 /**
- * Two standalone faces on the overview.
- * The second card passes a portrait so the image slot is visible;
- * the chip marks it as a stand-in until real character art is supplied.
+ * Real card faces on the overview. Clicking one still opens the modal.
+ * gn00925443 leads the strip and uses the cutout when that asset is present.
  */
 export function PlayerCardStrip({
   players,
@@ -16,13 +16,20 @@ export function PlayerCardStrip({
   players: BoardPlayer[];
   onOpen?: (player: BoardPlayer) => void;
 }) {
-  const top = useMemo(() => {
-    return [...players]
-      .sort((a, b) => overallFromPlayer(b) - overallFromPlayer(a) || a.name.localeCompare(b.name))
-      .slice(0, 2);
+  const ordered = useMemo(() => {
+    const demo = players.find((p) => p.name.trim().toLowerCase() === DEMO_NAME);
+    const rest = players
+      .filter((p) => p !== demo)
+      .sort(
+        (a, b) =>
+          overallFromPlayer(b) - overallFromPlayer(a) ||
+          b.gA - a.gA ||
+          a.name.localeCompare(b.name),
+      );
+    return demo ? [demo, ...rest] : rest;
   }, [players]);
 
-  if (!top.length) return null;
+  if (!ordered.length) return null;
 
   return (
     <section className="card">
@@ -33,30 +40,21 @@ export function PlayerCardStrip({
         </div>
         <span className="shrink-0 text-[11px] font-semibold text-muted">{CARD_DISCLAIMER}</span>
       </div>
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-1 pt-4 sm:justify-center sm:gap-8 sm:px-5">
-        {top.map((player, index) => {
-          const preview = index === 1;
-          return (
-            <button
-              key={player.name}
-              type="button"
-              className="lk-card-hit w-[min(70vw,220px)] shrink-0 snap-center"
-              onClick={() => onOpen?.(player)}
-              aria-label={`開啟 ${player.name} 球員卡`}
-            >
-              <PlayerCardFace
-                {...cardFaceFromPlayer(player, {
-                  portraitSrc: preview ? portraitSlot : undefined,
-                  portraitNote: preview ? "示意" : undefined,
-                })}
-                fill
-              />
-            </button>
-          );
-        })}
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-4 pt-4 sm:gap-4 sm:px-5">
+        {ordered.map((player) => (
+          <button
+            key={player.name}
+            type="button"
+            className="lk-card-hit w-[min(68vw,210px)] shrink-0 snap-center sm:w-[196px]"
+            onClick={() => onOpen?.(player)}
+            aria-label={`開啟 ${player.name} 球員卡`}
+          >
+            <PlayerCardFace {...cardFaceFromPlayer(player)} />
+          </button>
+        ))}
       </div>
-      <p className="px-3 pb-3.5 pt-2 text-center text-[11px] leading-relaxed text-muted sm:px-5">
-        點卡查看雷達與實戰明細。未提供角色圖時顯示縮寫；「示意」人像只是版位預覽，之後可換成角色圖。
+      <p className="px-3 pb-3.5 pt-0 text-center text-[11px] leading-relaxed text-muted sm:px-5">
+        點卡查看雷達、能力條同實戰總數。角色圖只有 gn00925443，其他人顯示縮寫。
       </p>
     </section>
   );

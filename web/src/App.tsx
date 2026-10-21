@@ -182,7 +182,7 @@ export default function App() {
         <ComparePanel players={selectedPlayers} onClose={() => setCompareOpen(false)} />
       )}
       {cardPlayer && (
-        <PlayerCardModal player={cardPlayer} onClose={() => setCardPlayer(null)} />
+        <PlayerCardModal player={cardPlayer} matches={matches} onClose={() => setCardPlayer(null)} />
       )}
     </div>
   );
