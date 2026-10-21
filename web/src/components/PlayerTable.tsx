@@ -23,8 +23,6 @@ type Props = {
   limit?: number;
 };
 
-const HIDE = "hide-sm";
-
 export function PlayerTable({
   data,
   enableSelect = false,
@@ -57,7 +55,6 @@ export function PlayerTable({
             onClick={(e) => e.stopPropagation()}
           />
         ),
-        meta: { cellClass: "w-10" },
       });
     }
     cols.push(
@@ -65,24 +62,20 @@ export function PlayerTable({
         id: "idx",
         header: "#",
         cell: ({ row }) => <span className="font-extrabold text-muted">{row.index + 1}</span>,
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "posCN",
         header: "位置",
         cell: ({ getValue }) => (
-          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[10px] font-bold text-muted sm:text-[11px]">
+          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted">
             {String(getValue() || "-")}
           </span>
         ),
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "name",
         header: "球員",
-        cell: ({ getValue }) => (
-          <strong className="block truncate text-[13px] font-bold">{String(getValue())}</strong>
-        ),
+        cell: ({ getValue }) => <strong className="text-[13px] font-bold">{String(getValue())}</strong>,
       },
       {
         accessorKey: "avgRating",
@@ -98,22 +91,9 @@ export function PlayerTable({
           );
         },
       },
-      {
-        accessorKey: "games",
-        header: "場",
-        cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span>,
-        meta: { cellClass: HIDE },
-      },
-      {
-        accessorKey: "goals",
-        header: "G",
-        cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span>,
-      },
-      {
-        accessorKey: "assists",
-        header: "A",
-        cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span>,
-      },
+      { accessorKey: "games", header: "場", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
+      { accessorKey: "goals", header: "G", cell: ({ getValue }) => <span className="tabular font-bold">{String(getValue())}</span> },
+      { accessorKey: "assists", header: "A", cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue())}</span> },
       {
         accessorKey: "gA",
         header: "G+A",
@@ -125,7 +105,6 @@ export function PlayerTable({
         accessorKey: "shots",
         header: "射",
         cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue() ?? "-")}</span>,
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "passPct",
@@ -134,31 +113,26 @@ export function PlayerTable({
           const v = getValue() as number | undefined;
           return <span className="tabular font-semibold">{v != null ? `${v}%` : "-"}</span>;
         },
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "keyPass",
         header: "直塞",
         cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue() ?? "-")}</span>,
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "interceptions",
         header: "攔截",
         cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue() ?? "-")}</span>,
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "tk",
         header: "搶截",
         cell: ({ getValue }) => <span className="tabular font-semibold">{String(getValue() ?? "-")}</span>,
-        meta: { cellClass: HIDE },
       },
       {
         accessorKey: "minutes",
         header: "分",
         cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() ?? "-")}</span>,
-        meta: { cellClass: HIDE },
       },
     );
     return cols;
@@ -186,60 +160,110 @@ export function PlayerTable({
     getRowId: (r) => r.name,
   });
 
+  const sorted = table.getRowModel().rows;
+
   return (
-    <div className="w-full max-w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-      <table className="mobile-fixed w-full border-collapse text-[13px]">
-        <thead>
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((h) => {
-                const meta = h.column.columnDef.meta as { cellClass?: string } | undefined;
-                return (
+    <>
+      {/* —— 手機：卡片列 —— */}
+      <div className="sm:hidden">
+        <div className="flex items-center gap-2 border-b border-line bg-ink px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white">
+          {enableSelect && <span className="w-5" />}
+          <span className="flex-1">球員</span>
+          <span className="w-12 text-center">評分</span>
+          <span className="w-8 text-center">G</span>
+          <span className="w-8 text-center">A</span>
+          <span className="w-10 text-center">G+A</span>
+        </div>
+        {sorted.map((row) => {
+          const p = row.original;
+          const open = row.getIsExpanded();
+          return (
+            <div key={row.id} className="border-b border-line-soft">
+              <button
+                type="button"
+                className={`flex w-full items-center gap-2 px-3 py-3 text-left active:bg-tint ${open ? "bg-tint" : ""}`}
+                onClick={() => row.toggleExpanded()}
+              >
+                {enableSelect && (
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 shrink-0 rounded border-line accent-pl-magenta"
+                    checked={row.getIsSelected()}
+                    disabled={!row.getIsSelected() && Object.keys(rowSelection).length >= maxSelect}
+                    onChange={row.getToggleSelectedHandler()}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-bold">{p.name}</div>
+                  <div className="text-[10px] text-muted">{p.posCN || "-"}</div>
+                </div>
+                <span
+                  className={`inline-flex w-12 shrink-0 justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(Number(p.avgRating))}`}
+                >
+                  {Number(p.avgRating).toFixed(2)}
+                </span>
+                <span className="tabular w-8 shrink-0 text-center text-[13px] font-bold">{p.goals}</span>
+                <span className="tabular w-8 shrink-0 text-center text-[13px] font-semibold">{p.assists}</span>
+                <span className="tabular w-10 shrink-0 text-center text-[13px] font-bold text-pl-purple">{p.gA}</span>
+              </button>
+              {open && (
+                <div className="bg-bg px-3 pb-3">
+                  <CumExpand p={p} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {!sorted.length && <p className="p-4 text-[13px] text-muted">沒有球員</p>}
+      </div>
+
+      {/* —— 桌面：完整表格 —— */}
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[640px] border-collapse text-[13px]">
+          <thead>
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
+                {hg.headers.map((h) => (
                   <th
                     key={h.id}
-                    className={`whitespace-nowrap bg-ink px-2 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white sm:px-3 ${
-                      h.column.getCanSort() ? "cursor-pointer select-none active:bg-pl-purple" : ""
-                    } ${h.column.getIsSorted() ? "bg-pl-purple" : ""} ${meta?.cellClass || ""}`}
+                    className={`whitespace-nowrap bg-ink px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white ${
+                      h.column.getCanSort() ? "cursor-pointer select-none hover:bg-pl-purple" : ""
+                    } ${h.column.getIsSorted() ? "bg-pl-purple" : ""}`}
                     onClick={h.column.getToggleSortingHandler()}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
                     {{ asc: " ▲", desc: " ▼" }[h.column.getIsSorted() as string] ?? null}
                   </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <Fragment key={row.id}>
-              <tr
-                className={`min-h-[48px] cursor-pointer border-b border-line-soft active:bg-tint ${row.getIsExpanded() ? "bg-tint" : ""}`}
-                onClick={() => row.toggleExpanded()}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const meta = cell.column.columnDef.meta as { cellClass?: string } | undefined;
-                  return (
-                    <td
-                      key={cell.id}
-                      className={`px-2 py-3 align-middle sm:px-3 sm:py-2.5 ${meta?.cellClass || ""}`}
-                    >
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {sorted.map((row) => (
+              <Fragment key={row.id}>
+                <tr
+                  className={`cursor-pointer border-b border-line-soft hover:bg-row-hover ${row.getIsExpanded() ? "bg-tint" : ""}`}
+                  onClick={() => row.toggleExpanded()}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-3 py-2.5 align-middle">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
-                  );
-                })}
-              </tr>
-              {row.getIsExpanded() && (
-                <tr className="border-b border-line bg-bg">
-                  <td colSpan={columns.length} className="expand-cell p-2 sm:p-3">
-                    <CumExpand p={row.original} />
-                  </td>
+                  ))}
                 </tr>
-              )}
-            </Fragment>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                {row.getIsExpanded() && (
+                  <tr className="border-b border-line bg-bg">
+                    <td colSpan={columns.length} className="p-3">
+                      <CumExpand p={row.original} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
