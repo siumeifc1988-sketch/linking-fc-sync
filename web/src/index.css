@@ -20,6 +20,29 @@
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-card: "Barlow Condensed", "Plus Jakarta Sans", system-ui, sans-serif;
+
+  /* Gold Rare face — PLAYER_CARD.md. Do not reuse --color-ink (that is the app text color).
+     Utilities: bg/text/from/to-card-ink, card-gold, card-gold-light, card-gold-deep,
+     rounded-card, rounded-card-pill, font-display, shadow-gold-card, shadow-gold-badge. */
+  --color-card-ink: #0b1120;
+  --color-card-gold: #ffd700;
+  --color-card-gold-light: #fff8dc;
+  --color-card-gold-deep: #d4af37;
+  --color-card-sheet: #1e293b;
+  --color-card-arch: #2c3e5a;
+  --color-card-arch-deep: #151e32;
+  --color-card-bust: #2a3b55;
+  --color-card-bust-deep: #0f172a;
+  --color-card-shoulder: #25344f;
+  --radius-card: 18px;
+  --radius-card-pill: 8px;
+  --font-display: "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
+  --shadow-gold-badge: 0 4px 12px color-mix(in srgb, var(--color-card-gold) 40%, transparent);
+  --shadow-gold-card:
+    0 2px 0 color-mix(in srgb, var(--color-card-gold) 15%, transparent) inset,
+    0 -1px 0 color-mix(in srgb, var(--color-card-gold) 20%, transparent) inset,
+    0 24px 64px rgb(0 0 0 / 0.45),
+    0 0 0 1px color-mix(in srgb, var(--color-card-gold) 22%, transparent);
 }
 
 html {

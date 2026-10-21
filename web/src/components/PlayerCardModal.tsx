@@ -319,7 +319,7 @@ export function PlayerCardModal({
       >
         <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-gradient-to-b from-[#FFD700] to-[#C9A227] text-[20px] font-black leading-none text-[#0B1120] shadow-[0_8px_22px_rgba(255,215,0,0.28)]">
+            <div className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-gradient-to-b from-card-gold to-card-gold-deep text-[20px] font-black leading-none text-card-ink shadow-gold-badge">
               {ovr}
             </div>
             <div className="min-w-0">

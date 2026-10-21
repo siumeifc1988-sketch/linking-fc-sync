@@ -1,0 +1,46 @@
+/* Paint only. Every color is a Tailwind theme token from index.css @theme. */
+
+.lk-gold {
+  background: linear-gradient(180deg, var(--color-card-ink) 0%, var(--color-card-sheet) 100%);
+  box-shadow: var(--shadow-gold-card);
+  container-type: inline-size;
+}
+
+.lk-gold-sheen {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.12) 0%, transparent 18%);
+}
+
+.lk-gold-arch {
+  background: radial-gradient(
+    80% 60% at 50% 20%,
+    var(--color-card-arch) 0%,
+    var(--color-card-arch-deep) 70%
+  );
+}
+
+.lk-gold-head {
+  background: linear-gradient(180deg, var(--color-card-bust) 0%, var(--color-card-bust-deep) 100%);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.6);
+}
+
+.lk-gold-shoulders {
+  background: linear-gradient(180deg, var(--color-card-shoulder) 0%, var(--color-card-bust-deep) 100%);
+}
+
+.lk-gold-field {
+  background: linear-gradient(
+    180deg,
+    var(--color-card-sheet) 0%,
+    var(--color-card-sheet) 40%,
+    var(--color-card-ink) 100%
+  );
+}
+
+.lk-gold-hatch {
+  background: repeating-linear-gradient(105deg, transparent 0 20px, rgb(255 255 255 / 0.9) 20px 21px);
+  opacity: 0.08;
+}
+
+.lk-gold-rule {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-card-gold) 60%, transparent));
+}
