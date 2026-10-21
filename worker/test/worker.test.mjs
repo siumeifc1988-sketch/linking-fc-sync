@@ -208,7 +208,7 @@ test("GET /health reports club and stats base", async () => {
   const body = await response.json();
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
-  assert.equal(body.version, "1.0.3");
+  assert.equal(body.version, "1.0.4");
   assert.equal(body.clubId, "41026");
   assert.equal(body.platform, "common-gen5");
   assert.equal(body.statsJsonBase, "https://cdn.example/data");
@@ -317,6 +317,27 @@ test("/matches embed reads matches.json in Hong Kong time", async () => {
   assert.equal(payload.embeds[0].description.includes("proclubs.ea.com"), false);
 });
 
+function performanceBlock(embed) {
+  const field = embed.fields.find((item) => item.name === "📊 表現");
+  assert.ok(field);
+  assert.match(field.value, /^```\n[\s\S]*\n```$/);
+  return field.value.slice(4, -4);
+}
+
+function assertAnnotatedBars(block) {
+  const lines = block.split("\n").filter((line) => line.length > 0);
+  assert.ok(lines.length > 0);
+  const columns = lines.map((line) => line.indexOf(" · "));
+  assert.equal(new Set(columns).size, 1, block);
+  assert.ok(columns[0] > 0);
+  for (const line of lines) {
+    assert.match(line, /[█░]/);
+    const note = line.slice(line.indexOf(" · ") + 3).trim();
+    assert.ok(note.length > 0, line);
+  }
+  return lines;
+}
+
 test("/player embed uses board JSON", async () => {
   clearStatsCache();
   const calls = installFetch();
@@ -326,18 +347,32 @@ test("/player embed uses board JSON", async () => {
   const embed = payload.embeds[0];
   const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
   assert.match(embed.title, /SHOHOKU14/);
-  assert.match(embed.fields[0].value, /評分 ███████░░░ 7\.40\/10/);
-  assert.match(embed.fields[1].value, /xG 1.20/);
-  assert.match(embed.fields[1].value, /中靶率 ███████░░░ 67%/);
-  assert.match(embed.fields[1].value, /轉化率 ███░░░░░░░ 33%/);
-  assert.match(embed.fields[2].value, /傳球 ███████░░░ 71%/);
-  assert.match(embed.fields[3].value, /搶斷成功率 ███████░░░ 67%/);
+  const block = performanceBlock(embed);
+  assert.equal(block, [
+    "評分 ███████░░░ 7.40/10  · 近10 ⭐7.40",
+    "中靶 ███████░░░ 67%      · 2/3 射門",
+    "轉化 ███░░░░░░░ 33%      · 1球/3射",
+    "傳球 ███████░░░ 71%      · 20/28 · 關鍵4",
+    "搶斷 ███████░░░ 67%      · 成功2 / 失敗1",
+  ].join("\n"));
+  assertAnnotatedBars(block);
+  const attack = embed.fields.find((field) => field.name.startsWith("⚽"));
+  const passing = embed.fields.find((field) => field.name.startsWith("🎯"));
+  const defense = embed.fields.find((field) => field.name.startsWith("🛡"));
+  assert.equal(attack.value, "1球 (0.5/場) · 2助 (1/場) · xG 1.20 · xA 0.40");
+  assert.equal(passing.value, "向前 8 · 向後 4 · 橫 8");
+  assert.equal(defense.value, "攔截 3 · 封堵 0 · 頭槌防守 1 · 盤帶成功 5 · 90分鐘");
+  for (const field of [attack, passing, defense, embed.fields[0]]) {
+    assert.equal(field.value.includes("█"), false);
+  }
   assert.equal(embed.description.includes("全部累計"), true);
   assert.equal(embed.url, site);
   const link = embed.fields.find((field) => field.name === "🔗 戰績網");
   assert.ok(link);
-  assert.equal(link.value, `戰績網\n${site}`);
+  assert.equal(link.value, site);
+  assert.equal(link.value.includes("戰績網"), false);
   assert.equal(link.value.includes("]("), false);
+  assert.equal(embed.fields.filter((field) => String(field.value).includes(site)).length, 1);
   assert.equal(embed.image, undefined);
   assert.equal(embed.thumbnail, undefined);
 });
@@ -357,11 +392,34 @@ test("/player bars skip rates that have no attempts", () => {
     "Quiet",
     "https://siumeifc1988-sketch.github.io/linking-fc-sync/",
   );
-  assert.match(embed.fields[0].value, /評分 /);
-  assert.match(embed.fields[2].value, /傳球 /);
-  assert.equal(embed.fields[1].value.includes("中靶率"), false);
-  assert.equal(embed.fields[1].value.includes("轉化率"), false);
-  assert.equal(embed.fields[3].value.includes("搶斷成功率"), false);
+  const lines = assertAnnotatedBars(performanceBlock(embed));
+  assert.equal(lines[0].includes("近10無出場"), true);
+  assert.equal(lines.some((line) => line.startsWith("傳球 ")), true);
+  assert.equal(lines.some((line) => line.startsWith("中靶 ")), false);
+  assert.equal(lines.some((line) => line.startsWith("轉化 ")), false);
+  assert.equal(lines.some((line) => line.startsWith("搶斷 ")), false);
+  assert.equal(embed.fields.find((field) => field.name.startsWith("🎯")).value.includes("關鍵"), false);
+});
+
+test("/player bars skip passing when there are no pass attempts", () => {
+  const quiet = {
+    ...players[0],
+    name: "NoPass",
+    pa: 0,
+    pm: 0,
+    passPct: 0,
+    keyPass: 3,
+  };
+  const embed = buildPlayerEmbed(
+    { board: { ...board, players: [quiet] }, meta, last10: { players: [] } },
+    "NoPass",
+    "",
+  );
+  const lines = assertAnnotatedBars(performanceBlock(embed));
+  assert.equal(lines.some((line) => line.startsWith("傳球 ")), false);
+  assert.equal(lines.some((line) => line.startsWith("中靶 ")), true);
+  assert.equal(embed.fields.find((field) => field.name.startsWith("🎯")).value.includes("關鍵 3"), true);
+  assert.equal(embed.fields.some((field) => field.name === "🔗 戰績網"), false);
 });
 
 test("/player miss and ambiguous embeds still link the stats site", () => {
@@ -374,7 +432,8 @@ test("/player miss and ambiguous embeds still link the stats site", () => {
   ]) {
     assert.equal(embed.url, site);
     const link = embed.fields.find((field) => field.name === "🔗 戰績網");
-    assert.equal(link.value, `戰績網\n${site}`);
+    assert.equal(link.value, site);
+    assert.equal(link.value.includes("戰績網"), false);
     assert.equal(link.value.includes("]("), false);
     assert.equal(embed.image, undefined);
     assert.equal(embed.thumbnail, undefined);
