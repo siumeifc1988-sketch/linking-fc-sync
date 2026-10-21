@@ -6,6 +6,7 @@ import { FormDots, RecordStrip } from "./components/RecordStrip";
 import { PlayerTable } from "./components/PlayerTable";
 import { MatchList } from "./components/MatchList";
 import { CompareBar, ComparePanel } from "./components/ComparePanel";
+import { PlayerCardModal } from "./components/PlayerCardModal";
 import type { BoardPlayer } from "./types";
 
 type Tab = "overview" | "all" | "matches";
@@ -14,6 +15,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("overview");
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [compareOpen, setCompareOpen] = useState(false);
+  const [cardPlayer, setCardPlayer] = useState<BoardPlayer | null>(null);
   const qc = useQueryClient();
 
   const { data, error, isLoading, isFetching } = useQuery({
@@ -77,9 +79,7 @@ export default function App() {
               type="button"
               onClick={() => setTab(id)}
               className={`min-h-[44px] flex-1 rounded-[10px] px-2 text-[13px] font-bold transition active:scale-[0.98] sm:px-3 ${
-                tab === id
-                  ? "bg-ink text-white shadow-sm"
-                  : "text-muted"
+                tab === id ? "bg-ink text-white shadow-sm" : "text-muted"
               }`}
             >
               {label}
@@ -105,9 +105,9 @@ export default function App() {
                     <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
                     <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">球員表現</h2>
                   </div>
-                  <span className="hide-sm text-[11px] font-semibold text-muted">點列展開</span>
+                  <span className="text-[11px] font-semibold text-muted">點名開卡</span>
                 </div>
-                <PlayerTable data={players} limit={8} />
+                <PlayerTable data={players} limit={8} onOpenCard={setCardPlayer} />
               </div>
               <div className="card">
                 <div className="flex items-center justify-between border-b border-line bg-tint px-3 py-3 sm:px-5 sm:py-3.5">
@@ -132,7 +132,7 @@ export default function App() {
                   <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
                   <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">全部累計</h2>
                 </div>
-                <span className="text-[11px] font-semibold text-muted">最多勾 3 人對比</span>
+                <span className="text-[11px] font-semibold text-muted">點名開卡 · 勾選對比</span>
               </div>
               <PlayerTable
                 data={players}
@@ -140,6 +140,7 @@ export default function App() {
                 rowSelection={rowSelection}
                 onRowSelectionChange={setRowSelection}
                 maxSelect={3}
+                onOpenCard={setCardPlayer}
               />
             </div>
           </section>
@@ -177,6 +178,9 @@ export default function App() {
       />
       {compareOpen && selectedPlayers.length >= 2 && (
         <ComparePanel players={selectedPlayers} onClose={() => setCompareOpen(false)} />
+      )}
+      {cardPlayer && (
+        <PlayerCardModal player={cardPlayer} onClose={() => setCardPlayer(null)} />
       )}
     </div>
   );
