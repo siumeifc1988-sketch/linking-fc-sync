@@ -14,33 +14,83 @@ function clamp(n: number, min = 40, max = 99): number {
   return Math.max(min, Math.min(max, Math.round(n)));
 }
 
-/** 由 Pro Clubs 累計數據推算 0–99 視覺能力（非官方 FUT 屬性） */
-export function deriveSix(p: BoardPlayer): SixAttr {
-  const g = Math.max(1, p.games || 1);
-  const gpg = p.goalsPerGame ?? p.goals / g;
-  const apg = p.assistsPerGame ?? p.assists / g;
-  const shotAcc = p.shots ? (p.shotsOn || 0) / p.shots : 0;
-  const dpg = (p.dribbles || 0) / g;
-  const defPg = (p.totalDef || 0) / g;
-  const tkPg = (p.tk || 0) / g;
-  const intPg = (p.interceptions || 0) / g;
-  const kpPg = (p.keyPass || 0) / g;
-  const minPg = (p.minutes || 0) / g;
-  const aerialPg = (p.aerialDef || 0) / g;
-  const pass = p.passPct ?? 65;
-
-  return {
-    PAC: clamp(48 + Math.min(40, dpg * 2.2 + tkPg * 1.5)),
-    SHO: clamp(45 + gpg * 28 + shotAcc * 18 + Math.min(12, (p.xg || 0) / g * 10)),
-    PAS: clamp(pass * 0.72 + Math.min(28, kpPg * 6 + apg * 8)),
-    DRI: clamp(48 + Math.min(42, dpg * 2.8)),
-    DEF: clamp(38 + Math.min(52, defPg * 7 + intPg * 4 + tkPg * 3)),
-    PHY: clamp(50 + Math.min(28, minPg / 2.8) + Math.min(16, aerialPg * 6)),
-  };
+/** 把實戰數值線性映射到能力分（錨點依 Pro Clubs 常見區間） */
+function mapRange(v: number, lo: number, hi: number, outLo = 48, outHi = 92): number {
+  if (!Number.isFinite(v)) return outLo;
+  const t = Math.max(0, Math.min(1, (v - lo) / Math.max(0.0001, hi - lo)));
+  return clamp(outLo + t * (outHi - outLo));
 }
 
+/**
+ * 由 Pro Clubs 累計數據推算 40–99 能力分。
+ * 權重以「場均效率 + 成功率」為主，貼近實戰表現（非官方 FUT 屬性）。
+ *
+ * PAC 活動量｜SHO 射門效率｜PAS 傳球組織｜DRI 盤帶頻率｜DEF 防守動作｜PHY 體能出勤
+ */
+export function deriveSix(p: BoardPlayer): SixAttr {
+  const g = Math.max(1, p.games || 1);
+  const mins = Math.max(1, p.minutes || g * 60);
+  const minPg = mins / g;
+
+  const gpg = p.goalsPerGame ?? p.goals / g;
+  const apg = p.assistsPerGame ?? p.assists / g;
+  const shots = p.shots || 0;
+  const shotsOn = p.shotsOn || 0;
+  const shotAcc = shots > 0 ? shotsOn / shots : 0;
+  const spg = shots / g;
+  const xgPg = (p.xg || 0) / g;
+
+  const passPct = p.passPct ?? 65;
+  const kpPg = (p.keyPass || 0) / g;
+  const dpg = (p.dribbles || 0) / g;
+  const tk = p.tk || 0;
+  const tkLost = p.tacklesLost || 0;
+  const tkPg = tk / g;
+  const intPg = (p.interceptions || 0) / g;
+  const defPg = (p.totalDef || tk + (p.interceptions || 0)) / g;
+  const tkSucc = tk + tkLost > 0 ? tk / (tk + tkLost) : 0.5;
+  const aerialPg = (p.aerialDef || 0) / g;
+
+  // 每 90 分鐘動作量（活動／推進代理，非真實速度）
+  const actionsPer90 = ((p.dribbles || 0) + tk + (p.interceptions || 0) + (p.keyPass || 0)) / (mins / 90);
+
+  // —— SHO：進球效率為主，射正率與 xG 為輔 ——
+  // 場均 0 球≈50、0.4≈68、0.8≈82、1.2+≈92
+  let SHO = mapRange(gpg, 0, 1.2, 50, 92);
+  SHO = clamp(SHO + shotAcc * 8 + Math.min(6, xgPg * 5) + Math.min(4, spg));
+
+  // —— PAS：傳球成功率為主，直塞／助攻加分 ——
+  // 65%≈58、75%≈72、85%≈88
+  let PAS = mapRange(passPct, 60, 88, 52, 90);
+  PAS = clamp(PAS + Math.min(8, kpPg * 3) + Math.min(6, apg * 10));
+
+  // —— DRI：場均盤帶次數 ——
+  // 5≈55、12≈72、22≈90
+  const DRI = mapRange(dpg, 3, 22, 50, 90);
+
+  // —— DEF：場均防守動作 + 搶截成功率 ——
+  // 2 次≈55、5 次≈72、9 次≈90
+  let DEF = mapRange(defPg, 1.5, 9, 48, 90);
+  DEF = clamp(DEF + (tkSucc - 0.45) * 18 + Math.min(4, intPg));
+
+  // —— PHY：場均上場時間 + 頭錘防守（出勤／對抗代理）——
+  // 50 分≈55、75 分≈72、90 分≈85
+  let PHY = mapRange(minPg, 40, 95, 52, 88);
+  PHY = clamp(PHY + Math.min(8, aerialPg * 4) + Math.min(4, g / 15));
+
+  // —— PAC：每 90 分鐘有效動作量（活動節奏，非 sprint 速度）——
+  // 15≈55、35≈72、55≈90
+  const PAC = mapRange(actionsPer90, 12, 55, 50, 90);
+
+  return { PAC, SHO, PAS, DRI, DEF, PHY };
+}
+
+/** 總評：賽季均分權重 55% + 六維平均 45% */
 export function overallFromPlayer(p: BoardPlayer): number {
-  return clamp((p.avgRating || 6) * 10, 50, 99);
+  const six = deriveSix(p);
+  const sixAvg = (six.PAC + six.SHO + six.PAS + six.DRI + six.DEF + six.PHY) / 6;
+  const fromRating = clamp((p.avgRating || 6.5) * 10, 50, 96);
+  return clamp(fromRating * 0.55 + sixAvg * 0.45, 50, 96);
 }
 
 export function posShort(posCN?: string): string {
@@ -59,18 +109,24 @@ export function initials(name: string): string {
 }
 
 export function coachTip(p: BoardPlayer, six: SixAttr): string {
+  const g = Math.max(1, p.games || 1);
+  const gpg = p.goalsPerGame ?? p.goals / g;
+  const apg = p.assistsPerGame ?? p.assists / g;
+
+  if (gpg >= 0.7) return "進球效率極高，建議主打禁區終結，減少過深回撤。";
+  if (apg >= 0.45 || (p.keyPass || 0) / g >= 3) return "創造力突出，適合當組織核心，專注最後一傳與直塞。";
+  if ((p.passPct || 0) >= 80) return "傳球極穩，適合控場與節奏掌控，可多做安全轉移。";
+  if ((p.totalDef || 0) / g >= 5) return "防守貢獻高，適合後腰／中衛屏障，鞏固中後場。";
+
   const entries = Object.entries(six) as [keyof SixAttr, number][];
   entries.sort((a, b) => b[1] - a[1]);
-  const top = entries[0][0];
   const tips: Record<keyof SixAttr, string> = {
-    PAC: "活動量大，適合邊路或前插節奏，保持高位壓迫。",
-    SHO: "射門效率突出，建議多給禁區機會與射門選擇。",
-    PAS: "傳球組織出色，適合當組織核心，專注最後一傳。",
-    DRI: "盤帶推進強，可擔任自由人或邊路破局點。",
-    DEF: "防守貢獻高，適合後腰／中衛，鞏固中場屏障。",
-    PHY: "體能與對抗穩定，適合全場高強度角色。",
+    PAC: "活動節奏快，適合邊路或前插壓迫，保持高位參與。",
+    SHO: "射門效率相對突出，建議多給禁區機會。",
+    PAS: "傳球組織較穩，適合串連中場與前場。",
+    DRI: "盤帶次數多，可擔任推進點或邊路破局。",
+    DEF: "防守動作積極，適合回收保護與中場攔截。",
+    PHY: "出勤與對抗穩定，適合全場高強度角色。",
   };
-  if ((p.goalsPerGame || 0) >= 0.6) return "進球效率極高，建議主打前場終結點。";
-  if ((p.passPct || 0) >= 80) return "傳球成功率極高，適合控場與節奏掌控。";
-  return tips[top];
+  return tips[entries[0][0]];
 }
