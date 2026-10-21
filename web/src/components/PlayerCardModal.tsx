@@ -208,6 +208,66 @@ function MiniStat({
   );
 }
 
+function RealTotals({
+  goals,
+  gpg,
+  assists,
+  apg,
+  winPct,
+  mom,
+  appearances,
+}: {
+  goals: number;
+  gpg: string;
+  assists: number;
+  apg: string;
+  winPct: number | null;
+  mom: number;
+  appearances: number;
+}) {
+  return (
+    <>
+      <MiniStat label="GOALS" value={String(goals)} sub={`${gpg}/場`} />
+      <MiniStat label="ASSISTS" value={String(assists)} sub={`${apg}/場`} />
+      <MiniStat
+        label="WIN%"
+        tone="win"
+        value={winPct == null ? "—" : `${winPct}%`}
+        sub={appearances ? `${mom} MOM` : "無出場樣本"}
+      />
+    </>
+  );
+}
+
+function ActionButtons({
+  onClose,
+  onCopy,
+  copied,
+}: {
+  onClose: () => void;
+  onCopy: () => void;
+  copied: "idle" | "ok" | "fail";
+}) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onClose}
+        className="h-12 min-h-12 flex-1 rounded-full bg-white text-[14px] font-extrabold tracking-wide text-ink"
+      >
+        關閉 CLOSE
+      </button>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="h-12 min-h-12 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[13px] font-extrabold tracking-wide text-white/85 sm:min-w-[148px] sm:shrink-0"
+      >
+        {copied === "ok" ? "已複製 COPIED" : copied === "fail" ? "複製失敗" : "複製數據 COPY"}
+      </button>
+    </>
+  );
+}
+
 function copyPayload(p: BoardPlayer, six: SixAttr, ovr: number, impact: ReturnType<typeof playerImpact>): string {
   const g = Math.max(1, p.games);
   const gpg = (p.goalsPerGame ?? p.goals / g).toFixed(2);
@@ -306,7 +366,7 @@ export function PlayerCardModal({
         aria-labelledby="player-card-title"
         className="relative flex max-h-[94dvh] w-full max-w-[980px] flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#10131a] text-white shadow-2xl sm:rounded-[24px]"
       >
-        <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
+        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-[#2f62ff] text-[20px] font-black leading-none shadow-[0_8px_22px_rgba(47,98,255,0.4)]">
               {ovr}
@@ -339,7 +399,7 @@ export function PlayerCardModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
+        <div className="min-h-0 flex-auto overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
           <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-[236px_minmax(0,1fr)_minmax(0,1.08fr)]">
             <div className="md:col-span-2 lg:col-span-1">
               <FutCard p={player} six={six} ovr={ovr} />
@@ -386,34 +446,41 @@ export function PlayerCardModal({
             {tip}
           </div>
 
-          <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-stretch">
-            <div className="grid grid-cols-3 gap-2 lg:w-[360px] lg:shrink-0">
-              <MiniStat label="GOALS" value={String(player.goals)} sub={`${gpg}/場`} />
-              <MiniStat label="ASSISTS" value={String(player.assists)} sub={`${apg}/場`} />
-              <MiniStat
-                label="WIN%"
-                tone="win"
-                value={impact.winPct == null ? "—" : `${impact.winPct}%`}
-                sub={impact.appearances ? `${impact.mom} MOM` : "無出場樣本"}
+          <div className="mt-3 grid grid-cols-3 gap-2 lg:hidden">
+            <RealTotals
+              goals={player.goals}
+              gpg={gpg}
+              assists={player.assists}
+              apg={apg}
+              winPct={impact.winPct}
+              mom={impact.mom}
+              appearances={impact.appearances}
+            />
+          </div>
+
+          <div className="mt-3 hidden items-stretch gap-3 lg:flex">
+            <div className="grid w-[360px] shrink-0 grid-cols-3 gap-2">
+              <RealTotals
+                goals={player.goals}
+                gpg={gpg}
+                assists={player.assists}
+                apg={apg}
+                winPct={impact.winPct}
+                mom={impact.mom}
+                appearances={impact.appearances}
               />
             </div>
-            <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-stretch">
-              <button
-                type="button"
-                onClick={onClose}
-                className="h-12 min-h-12 flex-1 rounded-full bg-white text-[14px] font-extrabold tracking-wide text-ink"
-              >
-                關閉 CLOSE
-              </button>
-              <button
-                type="button"
-                onClick={onCopy}
-                className="h-12 min-h-12 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[13px] font-extrabold tracking-wide text-white/85 sm:min-w-[148px] sm:shrink-0"
-              >
-                {copied === "ok" ? "已複製 COPIED" : copied === "fail" ? "複製失敗" : "複製數據 COPY"}
-              </button>
+            <div className="flex min-w-0 flex-1 items-stretch gap-2">
+              <ActionButtons onClose={onClose} onCopy={onCopy} copied={copied} />
             </div>
           </div>
+        </div>
+
+        <div
+          className="flex shrink-0 gap-2 border-t border-white/10 bg-[#0e1118] px-4 py-3 lg:hidden"
+          style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+        >
+          <ActionButtons onClose={onClose} onCopy={onCopy} copied={copied} />
         </div>
       </div>
     </div>
