@@ -1,0 +1,8 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit real values.
+DISCORD_PUBLIC_KEY=
+DISCORD_BOT_TOKEN=
+DISCORD_APPLICATION_ID=
+DISCORD_ROLE_ID=
+FIREBASE_API_KEY=
+TAVILY_API_KEY=
+REGISTER_SECRET=

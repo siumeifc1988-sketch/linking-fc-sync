@@ -2,6 +2,8 @@
 
 LinKing FC 的 Discord 斜線指令。只讀這個倉庫的公開 JSON，不爬 EA，不連 Firebase。
 
+報名、`/chat`、`/rank` 同 HTTP health 喺 [`worker/`](../worker/README.md)。呢個目錄係舊的只讀指令。
+
 指令：
 
 | 指令 | 作用 |

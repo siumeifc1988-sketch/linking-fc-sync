@@ -1,0 +1,12 @@
+name = "linking-fc-discord"
+main = "src/index.js"
+compatibility_date = "2026-10-21"
+
+# Public defaults. Secrets are NOT listed here — set them with `wrangler secret put`.
+[vars]
+CLUB_ID = "41026"
+PLATFORM = "common-gen5"
+SITE_URL = "https://siumeifc1988-sketch.github.io/linking-fc-sync/"
+STATS_JSON_BASE = "https://raw.githubusercontent.com/siumeifc1988-sketch/linking-fc-sync/main/data"
+FIREBASE_PROJECT_ID = "football-signup-64bd9"
+WORKER_VERSION = "1.0.0"
