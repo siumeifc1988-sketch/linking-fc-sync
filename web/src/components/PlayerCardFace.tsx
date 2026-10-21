@@ -12,28 +12,32 @@ export const CARD_DISCLAIMER = "實戰推算 · 非官方屬性";
 /** Club Rare is the live default. Common and Highlight only swap the chrome. */
 export type CardRarity = "common" | "rare" | "highlight";
 
-const ATTRS: (keyof SixAttr)[] = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"];
+const LEFT: (keyof SixAttr)[] = ["PAC", "SHO", "PAS"];
+const RIGHT: (keyof SixAttr)[] = ["DRI", "DEF", "PHY"];
 
 const PORTRAITS: Record<string, string> = {
   gn00925443: cutoutGn,
 };
 
 /**
- * Shield silhouette traced toward the special-card reference:
- * shallow top arch, long straight sides, short bottom point.
+ * Faceted special-card shield. Top shoulders are folded planes;
+ * the bottom eases into a point. Four concentric paths build the metal edge.
  */
-const OUTER =
-  "M 200 10 C 278 12 340 28 366 48 C 386 64 394 88 394 114 L 390 444 C 390 486 318 522 200 530 C 82 522 10 486 10 444 L 6 114 C 6 88 14 64 34 48 C 60 28 122 12 200 10 Z";
-const INNER =
-  "M 200 28 C 268 30 326 44 348 62 C 366 76 374 98 374 122 L 370 440 C 370 474 306 506 200 514 C 94 506 30 474 30 440 L 26 122 C 26 98 34 76 52 62 C 74 44 132 30 200 28 Z";
+const P0 =
+  "M200 8 L256 20 L308 44 L346 78 L372 118 L386 166 L382 418 C378 478 332 528 200 552 C68 528 22 478 18 418 L14 166 L28 118 L54 78 L92 44 L144 20 Z";
+const P1 =
+  "M200 20 L248 32 L296 54 L330 86 L354 124 L366 170 L362 412 C358 466 318 510 200 532 C82 510 42 466 38 412 L34 170 L46 124 L70 86 L104 54 L152 32 Z";
+const P2 =
+  "M200 30 L242 40 L286 60 L316 90 L338 126 L348 172 L344 406 C340 454 308 494 200 514 C92 494 60 454 56 406 L52 172 L62 126 L84 90 L114 60 L158 40 Z";
+const P3 =
+  "M200 40 L236 50 L276 68 L304 98 L324 132 L332 174 L328 400 C324 444 298 480 200 498 C102 480 76 444 72 400 L68 174 L76 132 L96 98 L124 68 L164 50 Z";
 
 const SHIELD_MASK = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 536"><path fill="white" d="${OUTER}"/></svg>`,
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560"><path fill="white" d="${P0}"/></svg>`,
 )}")`;
 
 export function portraitFor(name: string): string | undefined {
-  const key = name.trim().toLowerCase();
-  return PORTRAITS[key];
+  return PORTRAITS[name.trim().toLowerCase()];
 }
 
 export type PlayerCardFaceProps = {
@@ -41,13 +45,10 @@ export type PlayerCardFaceProps = {
   overall: number;
   position: string;
   stats: SixAttr;
-  /** Explicit portrait. Wins over the built-in demo cutout. */
   portraitSrc?: string | null;
   imageUrl?: string | null;
   monogram?: string;
-  /** Defaults to Club Rare (purple special). */
   rarity?: CardRarity;
-  showDisclaimer?: boolean;
   className?: string;
 };
 
@@ -68,75 +69,128 @@ export function cardFaceFromPlayer(
 
 function nameSize(name: string): string {
   const n = name.trim().length;
-  if (n > 12) return "6cqw";
-  if (n > 9) return "7.1cqw";
-  return "8.4cqw";
+  if (n > 12) return "6.2cqw";
+  if (n > 9) return "7.4cqw";
+  return "8.8cqw";
+}
+
+function ring(outer: string, inner: string) {
+  return `${outer} ${inner}`;
 }
 
 function CardPlate({ id }: { id: string }) {
   return (
-    <svg className="lk-plate" viewBox="0 0 400 536" aria-hidden="true">
+    <svg className="lk-plate" viewBox="0 0 400 560" aria-hidden="true">
       <defs>
-        <linearGradient id={`${id}-rim`} x1="8%" y1="0%" x2="92%" y2="100%">
-          <stop offset="0%" stopColor="var(--lk-rim-0)" />
-          <stop offset="14%" stopColor="var(--lk-rim-1)" />
-          <stop offset="30%" stopColor="var(--lk-rim-2)" />
-          <stop offset="46%" stopColor="var(--lk-rim-4)" />
-          <stop offset="58%" stopColor="var(--lk-rim-5)" />
-          <stop offset="74%" stopColor="var(--lk-rim-6)" />
-          <stop offset="88%" stopColor="var(--lk-rim-3)" />
-          <stop offset="100%" stopColor="var(--lk-rim-7)" />
+        <linearGradient id={`${id}-silver`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--lk-metal-0)" />
+          <stop offset="28%" stopColor="var(--lk-metal-1)" />
+          <stop offset="55%" stopColor="var(--lk-metal-2)" />
+          <stop offset="100%" stopColor="var(--lk-metal-3)" />
         </linearGradient>
-        <radialGradient id={`${id}-plate`} cx="48%" cy="18%" r="82%">
-          <stop offset="0%" stopColor="var(--lk-plate-0)" />
-          <stop offset="26%" stopColor="var(--lk-plate-1)" />
-          <stop offset="52%" stopColor="var(--lk-plate-2)" />
-          <stop offset="76%" stopColor="var(--lk-plate-3)" />
-          <stop offset="100%" stopColor="var(--lk-plate-4)" />
-        </radialGradient>
-        <linearGradient id={`${id}-shard`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.78" />
-          <stop offset="36%" stopColor="var(--lk-crystal)" stopOpacity="0.34" />
-          <stop offset="100%" stopColor="var(--lk-plate-1)" stopOpacity="0.02" />
+        <linearGradient id={`${id}-iri`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="var(--lk-iri-0)" />
+          <stop offset="14%" stopColor="var(--lk-iri-1)" />
+          <stop offset="30%" stopColor="var(--lk-iri-2)" />
+          <stop offset="46%" stopColor="var(--lk-iri-3)" />
+          <stop offset="58%" stopColor="var(--lk-iri-4)" />
+          <stop offset="72%" stopColor="var(--lk-iri-5)" />
+          <stop offset="86%" stopColor="var(--lk-iri-1)" />
+          <stop offset="100%" stopColor="var(--lk-iri-0)" />
         </linearGradient>
-        <radialGradient id={`${id}-vig`} cx="50%" cy="16%" r="78%">
-          <stop offset="0%" stopColor="var(--lk-vig)" stopOpacity="0" />
-          <stop offset="55%" stopColor="var(--lk-vig)" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="var(--lk-vig)" stopOpacity="0.72" />
+        <linearGradient id={`${id}-lip`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="40%" stopColor="#d5e2f6" />
+          <stop offset="100%" stopColor="#8eaae4" />
+        </linearGradient>
+        <radialGradient id={`${id}-plate`} cx="46%" cy="16%" r="78%">
+          <stop offset="0%" stopColor="#4d78e6" />
+          <stop offset="22%" stopColor="#3266d8" />
+          <stop offset="48%" stopColor="#4124ad" />
+          <stop offset="70%" stopColor="#2d0c33" />
+          <stop offset="100%" stopColor="#120b26" />
         </radialGradient>
-        <clipPath id={`${id}-inner`}>
-          <path d={INNER} />
-        </clipPath>
-        <mask id={`${id}-edge`} maskUnits="userSpaceOnUse">
-          <path d={OUTER} fill="white" />
-          <path d={INNER} fill="black" />
+        <linearGradient id={`${id}-shard`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="28%" stopColor="#bfcee9" stopOpacity="0.55" />
+          <stop offset="62%" stopColor="#3266d8" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#1f0f3a" stopOpacity="0.05" />
+        </linearGradient>
+        <mask id={`${id}-r0`} maskUnits="userSpaceOnUse">
+          <rect width="400" height="560" fill="black" />
+          <path fill="white" fillRule="evenodd" d={ring(P0, P1)} />
         </mask>
+        <mask id={`${id}-r1`} maskUnits="userSpaceOnUse">
+          <rect width="400" height="560" fill="black" />
+          <path fill="white" fillRule="evenodd" d={ring(P1, P2)} />
+        </mask>
+        <mask id={`${id}-r2`} maskUnits="userSpaceOnUse">
+          <rect width="400" height="560" fill="black" />
+          <path fill="white" fillRule="evenodd" d={ring(P2, P3)} />
+        </mask>
+        <clipPath id={`${id}-plate-clip`}>
+          <path d={P3} />
+        </clipPath>
       </defs>
 
-      <g mask={`url(#${id}-edge)`}>
-        <rect x="0" y="0" width="400" height="536" fill={`url(#${id}-rim)`} />
-        <ellipse cx="108" cy="58" rx="96" ry="30" fill="#ffffff" opacity="0.55" />
-        <ellipse cx="312" cy="468" rx="78" ry="24" fill="var(--lk-rim-3)" opacity="0.5" />
+      <g mask={`url(#${id}-r0)`}>
+        <rect width="400" height="560" fill={`url(#${id}-silver)`} />
+        <ellipse cx="118" cy="48" rx="78" ry="22" fill="#ffffff" opacity="0.85" />
+        <ellipse cx="300" cy="500" rx="70" ry="18" fill="#9eb6e8" opacity="0.55" />
+      </g>
+      <g mask={`url(#${id}-r1)`}>
+        <rect width="400" height="560" fill={`url(#${id}-iri)`} />
+        <ellipse cx="150" cy="36" rx="90" ry="16" fill="#ffffff" opacity="0.8" />
+        <ellipse cx="332" cy="210" rx="18" ry="70" fill="#7eb6ff" opacity="0.7" />
+        <ellipse cx="70" cy="340" rx="16" ry="54" fill="#d9ccff" opacity="0.55" />
+        <ellipse cx="210" cy="530" rx="60" ry="14" fill="#ffffff" opacity="0.35" />
+      </g>
+      <g mask={`url(#${id}-r2)`}>
+        <rect width="400" height="560" fill={`url(#${id}-lip)`} />
+        <ellipse cx="160" cy="56" rx="70" ry="12" fill="#ffffff" opacity="0.9" />
       </g>
 
-      <g clipPath={`url(#${id}-inner)`}>
-        <path d={INNER} fill={`url(#${id}-plate)`} />
-        <polygon points="28,78 150,36 118,168" fill="var(--lk-facet)" opacity="0.22" />
-        <polygon points="110,34 250,28 214,150 86,120" fill="var(--lk-crystal)" opacity="0.14" />
-        <polygon points="188,32 348,78 300,168" fill="var(--lk-facet)" opacity="0.16" />
-        <polygon points="236,46 374,108 346,262 204,178" fill={`url(#${id}-shard)`} />
-        <polygon points="278,74 362,132 336,214 258,154" fill="#ffffff" opacity="0.16" />
-        <polygon points="246,50 322,92 286,142" fill="#ffffff" opacity="0.32" />
-        <polygon points="24,176 96,148 78,236" fill="var(--lk-crystal)" opacity="0.16" />
-        <polygon points="36,248 118,228 92,328" fill="var(--lk-facet-deep)" opacity="0.28" />
-        <polygon points="250,250 372,210 368,340 268,300" fill="var(--lk-crystal)" opacity="0.08" />
-        <polygon points="40,340 200,300 360,360 300,460 80,440" fill="var(--lk-vig)" opacity="0.28" />
-        <rect x="0" y="0" width="400" height="536" fill={`url(#${id}-vig)`} />
-        <ellipse cx="168" cy="78" rx="130" ry="40" fill="#ffffff" opacity="0.07" />
+      <path d={P1} fill="none" stroke="#120b26" strokeWidth="1.15" opacity="0.55" />
+      <path d={P2} fill="none" stroke="#ffffff" strokeWidth="0.9" opacity="0.55" />
+
+      <g clipPath={`url(#${id}-plate-clip)`}>
+        <path d={P3} fill={`url(#${id}-plate)`} />
+        <polygon points="70,90 150,48 130,150" fill="#3266d8" opacity="0.38" />
+        <polygon points="140,46 250,40 210,140 110,110" fill="#bfcee9" opacity="0.16" />
+        <polygon points="210,44 330,86 280,160" fill="#4124ad" opacity="0.34" />
+        <polygon points="248,58 360,112 338,248 214,168" fill={`url(#${id}-shard)`} />
+        <polygon points="268,78 346,124 322,196 252,146" fill="#ffffff" opacity="0.2" />
+        <polygon points="252,62 318,96 286,140" fill="#ffffff" opacity="0.55" />
+        <polygon points="292,150 352,188 330,250" fill="#7eb6ff" opacity="0.28" />
+        <polygon points="64,170 120,150 100,230" fill="#bfcee9" opacity="0.14" />
+        <polygon points="48,240 130,220 100,320" fill="#1f0f3a" opacity="0.35" />
+        <polygon points="40,360 200,330 360,380 300,470 90,450" fill="#120b26" opacity="0.28" />
+        <ellipse cx="168" cy="90" rx="120" ry="36" fill="#ffffff" opacity="0.07" />
       </g>
-      <path d={INNER} fill="none" stroke="var(--lk-inner-line)" strokeWidth="1.7" />
-      <path d={OUTER} fill="none" stroke="rgba(255,255,255,0.42)" strokeWidth="1.25" />
+      <path d={P3} fill="none" stroke="#f4f8ff" strokeWidth="1.6" opacity="0.8" />
+      <path d={P3} fill="none" stroke="#3266d8" strokeWidth="3.2" opacity="0.35" />
+
+      {/* Folded top corners — two planes each, so the shoulder reads as bent metal. */}
+      <polygon points="144,20 200,8 176,30 128,34" fill="var(--lk-fold-lite)" />
+      <polygon points="92,44 144,20 128,34 86,52" fill="var(--lk-fold-mid)" opacity="0.9" />
+      <polygon points="54,78 92,44 86,52 62,84" fill="var(--lk-fold-deep)" opacity="0.55" />
+      <polygon points="256,20 200,8 224,30 272,34" fill="var(--lk-fold-lite)" />
+      <polygon points="308,44 256,20 272,34 314,52" fill="var(--lk-fold-mid)" opacity="0.72" />
+      <polygon points="346,78 308,44 314,52 338,84" fill="#7eb6ff" opacity="0.45" />
     </svg>
+  );
+}
+
+function StatCol({ keys, stats }: { keys: (keyof SixAttr)[]; stats: SixAttr }) {
+  return (
+    <div className="lk-col">
+      {keys.map((key) => (
+        <div key={key} className="lk-stat">
+          <span>{key}</span>
+          <b>{stats[key]}</b>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -149,7 +203,6 @@ export function PlayerCardFace({
   imageUrl,
   monogram,
   rarity = "rare",
-  showDisclaimer = true,
   className,
 }: PlayerCardFaceProps) {
   const reactId = useId().replace(/:/g, "");
@@ -172,6 +225,7 @@ export function PlayerCardFace({
       style={{ ["--lk-mask" as string]: SHIELD_MASK }}
     >
       <CardPlate id={id} />
+      <div className="lk-nameband" aria-hidden="true" />
       <div className="lk-portrait">
         {showPhoto ? (
           <img
@@ -193,32 +247,20 @@ export function PlayerCardFace({
         </div>
       ) : null}
       <div className="lk-id">
-        <div
-          className="lk-ovr"
-          title="總評＝賽季均分 55% ＋ 六維平均 45%。實戰推算，非官方屬性。"
-        >
-          {ovr}
-        </div>
+        <div className="lk-ovr">{ovr}</div>
         <div className="lk-pos">{pos}</div>
       </div>
-      <div className="lk-stack">
-        <div className="lk-name" style={{ fontSize: nameSize(nameLabel) }} title={nameLabel}>
-          {nameLabel}
-        </div>
-        <div className="lk-stats">
-          {ATTRS.map((key, index) => (
-            <div key={key} className={`lk-stat${index === 3 ? " lk-split" : ""}`}>
-              <span>{key}</span>
-              <b>{stats[key]}</b>
-            </div>
-          ))}
-        </div>
-        {showDisclaimer ? <div className="lk-disclaimer">{CARD_DISCLAIMER}</div> : null}
-        <div className="lk-badges">
-          <img className="lk-flag" src={hkFlag} alt="" draggable={false} />
-          <img className="lk-league" src={hkpl} alt="" draggable={false} />
-          <img className="lk-club" src={crest} alt="" draggable={false} />
-        </div>
+      <div className="lk-name" style={{ fontSize: nameSize(nameLabel) }} title={nameLabel}>
+        {nameLabel}
+      </div>
+      <div className="lk-stats">
+        <StatCol keys={LEFT} stats={stats} />
+        <StatCol keys={RIGHT} stats={stats} />
+      </div>
+      <div className="lk-badges">
+        <img className="lk-flag" src={hkFlag} alt="" draggable={false} />
+        <img className="lk-league" src={hkpl} alt="" draggable={false} />
+        <img className="lk-club" src={crest} alt="" draggable={false} />
       </div>
     </div>
   );

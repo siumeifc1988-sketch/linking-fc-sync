@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { BoardPlayer } from "../types";
 import { overallFromPlayer } from "../lib/cardStats";
-import { CARD_DISCLAIMER, cardFaceFromPlayer, PlayerCardFace } from "./PlayerCardFace";
+import { cardFaceFromPlayer, PlayerCardFace } from "./PlayerCardFace";
 
 const DEMO_NAME = "gn00925443";
 
@@ -38,14 +38,14 @@ export function PlayerCardStrip({
           <div className="h-3.5 w-1 shrink-0 rounded-full bg-pl-magenta" />
           <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">球員卡</h2>
         </div>
-        <span className="shrink-0 text-[11px] font-semibold text-muted">{CARD_DISCLAIMER}</span>
+        <span className="shrink-0 text-[11px] font-semibold text-muted">點卡看詳細</span>
       </div>
       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-4 pt-4 sm:gap-4 sm:px-5">
         {ordered.map((player) => (
           <button
             key={player.name}
             type="button"
-            className="lk-card-hit w-[min(68vw,210px)] shrink-0 snap-center sm:w-[196px]"
+            className="lk-card-hit w-[min(76vw,250px)] shrink-0 snap-center sm:w-[228px]"
             onClick={() => onOpen?.(player)}
             aria-label={`開啟 ${player.name} 球員卡`}
           >

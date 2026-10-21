@@ -1,33 +1,30 @@
-/* FUT shield. Palette: #120B26 #1F0F3A #4124AD #3266D8 #BFCEE9, header #2D0C33. */
+/* Club Rare shield. Metal is layered; the plate is crystalline, not a flat fill. */
 
 .lk-card {
-  --lk-rim-0: #f7faff;
-  --lk-rim-1: #bfcee9;
-  --lk-rim-2: #7aa6ff;
-  --lk-rim-3: #3266d8;
-  --lk-rim-4: #efe4ff;
-  --lk-rim-5: #d4af5f;
-  --lk-rim-6: #4124ad;
-  --lk-rim-7: #e7eef8;
-  --lk-plate-0: #3a6adf;
-  --lk-plate-1: #4124ad;
-  --lk-plate-2: #2d0c33;
-  --lk-plate-3: #1f0f3a;
-  --lk-plate-4: #120b26;
-  --lk-crystal: #c5d4f5;
-  --lk-facet: #3266d8;
-  --lk-facet-deep: #2d0c33;
-  --lk-vig: #120b26;
-  --lk-inner-line: rgba(191, 206, 233, 0.72);
+  --lk-metal-0: #f7fbff;
+  --lk-metal-1: #bfcee9;
+  --lk-metal-2: #6d7fa8;
+  --lk-metal-3: #d5deee;
+  --lk-fold-lite: #f7fbff;
+  --lk-fold-mid: #3266d8;
+  --lk-fold-deep: #1f0f3a;
+  --lk-iri-0: #f7fbff;
+  --lk-iri-1: #bfcee9;
+  --lk-iri-2: #7eb6ff;
+  --lk-iri-3: #3266d8;
+  --lk-iri-4: #d7c8ff;
+  --lk-iri-5: #4124ad;
   --lk-mask: none;
 
   position: relative;
   width: 100%;
-  aspect-ratio: 400 / 536;
+  aspect-ratio: 400 / 560;
   container-type: inline-size;
   color: #fff;
   font-family: var(--font-card), "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
   line-height: 1;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-mask-image: var(--lk-mask);
   mask-image: var(--lk-mask);
@@ -35,59 +32,51 @@
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  filter: drop-shadow(0 12px 16px rgba(18, 11, 38, 0.42));
+  filter: drop-shadow(0 14px 16px rgba(18, 11, 38, 0.4));
 }
 
 .lk-card[data-rarity="common"] {
-  --lk-rim-0: #ffffff;
-  --lk-rim-1: #e5ebf1;
-  --lk-rim-2: #c5ced8;
-  --lk-rim-3: #8e98a6;
-  --lk-rim-4: #f4f6f8;
-  --lk-rim-5: #d5dbe3;
-  --lk-rim-6: #6d7684;
-  --lk-rim-7: #f7f8fa;
-  --lk-plate-0: #a3adba;
-  --lk-plate-1: #7b8796;
-  --lk-plate-2: #3e4754;
-  --lk-plate-3: #232a33;
-  --lk-plate-4: #12161c;
-  --lk-crystal: #e7edf3;
-  --lk-facet: #9aa6b4;
-  --lk-facet-deep: #2c343e;
-  --lk-vig: #10141a;
-  --lk-inner-line: rgba(255, 255, 255, 0.78);
+  --lk-metal-0: #ffffff;
+  --lk-metal-1: #e6ebf1;
+  --lk-metal-2: #9aa3b0;
+  --lk-metal-3: #f4f6f8;
+  --lk-fold-lite: #ffffff;
+  --lk-fold-mid: #c5ced8;
+  --lk-fold-deep: #5c6572;
+  --lk-iri-0: #ffffff;
+  --lk-iri-1: #d5dbe3;
+  --lk-iri-2: #eef1f4;
+  --lk-iri-3: #8e98a6;
+  --lk-iri-4: #f7f8fa;
+  --lk-iri-5: #6d7684;
 }
 
-/* Club Rare plate, gold rim, top ★ STAR bar. */
 .lk-card[data-rarity="highlight"] {
-  --lk-rim-0: #fff8e6;
-  --lk-rim-1: #f6e7b2;
-  --lk-rim-2: #d4af5f;
-  --lk-rim-3: #fff3c9;
-  --lk-rim-4: #a67c2d;
-  --lk-rim-5: #d4af5f;
-  --lk-rim-6: #f8e7b0;
-  --lk-rim-7: #fffaf0;
-  --lk-inner-line: #d4af5f;
+  --lk-metal-0: #fff8e4;
+  --lk-metal-1: #f3e2a4;
+  --lk-metal-2: #d4af5f;
+  --lk-metal-3: #fff1c4;
+  --lk-fold-lite: #fff6d4;
+  --lk-fold-mid: #d4af5f;
+  --lk-fold-deep: #8a6420;
 }
 
 .lk-plate {
   position: absolute;
   inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
-  display: block;
   pointer-events: none;
 }
 
 .lk-portrait {
   position: absolute;
-  left: 12%;
-  right: 10%;
-  top: 8%;
-  height: 52%;
-  z-index: 1;
+  top: 4%;
+  right: 5%;
+  left: 14%;
+  z-index: 3;
+  height: 56%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -95,105 +84,122 @@
 }
 
 .lk-portrait img {
-  height: 100%;
   width: auto;
-  max-width: 100%;
+  max-width: 118%;
+  height: 108%;
   object-fit: contain;
   object-position: center bottom;
-  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.32));
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.28));
 }
 
 .lk-mono {
   display: grid;
-  height: 78%;
   width: 100%;
+  height: 70%;
+  margin-top: 10%;
   place-items: center;
-  margin-top: 8%;
+  color: #fff;
   font-size: 26cqw;
   font-weight: 900;
   letter-spacing: -0.04em;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow:
-    0 2px 0 rgba(18, 11, 38, 0.45),
-    0 14px 28px rgba(50, 102, 216, 0.35);
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.45);
 }
 
 .lk-id {
   position: absolute;
-  top: 6.2%;
-  left: 8%;
-  z-index: 3;
+  top: 7.6%;
+  left: 8.2%;
+  z-index: 5;
   text-align: left;
-  text-shadow:
-    0 1px 0 rgba(18, 11, 38, 0.85),
-    0 0 14px rgba(18, 11, 38, 0.72),
-    0 8px 14px rgba(0, 0, 0, 0.35);
 }
 
 .lk-ovr {
-  font-size: 19.5cqw;
+  color: #fff;
+  font-size: 22cqw;
   font-weight: 900;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
   line-height: 0.78;
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.55);
 }
 
 .lk-pos {
-  margin-top: 0.7cqw;
-  font-size: 5.5cqw;
+  margin-top: 0.55cqw;
+  color: #fff;
+  font-size: 6.6cqw;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.04em;
   line-height: 1;
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.5);
 }
 
 .lk-star {
   position: absolute;
-  top: 3.1%;
+  top: 2.6%;
   left: 50%;
-  z-index: 4;
+  z-index: 6;
   transform: translateX(-50%);
   color: #d4af5f;
-  font-size: 3.5cqw;
+  font-size: 3.4cqw;
   font-weight: 800;
-  letter-spacing: 0.2em;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.18em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .lk-star span {
   border-bottom: 1.5px solid #d4af5f;
-  padding-bottom: 0.18em;
+  padding-bottom: 0.16em;
 }
 
-.lk-stack {
+.lk-nameband {
   position: absolute;
-  right: 6.5%;
-  bottom: 6.4%;
-  left: 6.5%;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1.05cqw;
+  top: 51.2%;
+  left: 12%;
+  z-index: 2;
+  width: 76%;
+  height: 7.6%;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0) 18%, rgba(18, 11, 38, 0.22) 100%),
+    linear-gradient(100deg, #243456 0%, #8ea4c9 20%, #d5e1f2 38%, #4e73c2 56%, #c5d3ea 76%, #2a3d64 100%);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    inset 0 -2px 0 rgba(8, 6, 20, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  clip-path: polygon(4% 0, 96% 0, 100% 50%, 96% 100%, 4% 100%, 0 50%);
 }
 
 .lk-name {
+  position: absolute;
+  top: 52.4%;
+  right: 14%;
+  left: 14%;
+  z-index: 5;
   overflow: hidden;
-  text-align: center;
-  font-size: 8.4cqw;
+  height: 5.8%;
+  color: #fff;
   font-weight: 800;
   letter-spacing: 0.01em;
-  line-height: 0.95;
+  line-height: 1;
+  text-align: center;
   text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.55);
   white-space: nowrap;
-  text-shadow:
-    0 2px 0 rgba(18, 11, 38, 0.55),
-    0 8px 16px rgba(0, 0, 0, 0.55);
 }
 
 .lk-stats {
+  position: absolute;
+  top: 61.2%;
+  right: 12%;
+  left: 12%;
+  z-index: 4;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 1.15cqw;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 10%;
+}
+
+.lk-col {
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  row-gap: 0.35cqw;
 }
 
 .lk-stat {
@@ -202,58 +208,49 @@
 
 .lk-stat span {
   display: block;
-  font-size: 3.7cqw;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 3.35cqw;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  opacity: 0.84;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.45);
 }
 
 .lk-stat b {
   display: block;
-  margin-top: 0.22cqw;
-  font-size: 6.1cqw;
+  margin-top: 0.02cqw;
+  color: #fff;
+  font-size: 6.5cqw;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 0 rgba(18, 11, 38, 0.55);
-}
-
-.lk-split {
-  box-shadow: inset 1px 0 0 rgba(191, 206, 233, 0.38);
-}
-
-.lk-disclaimer {
-  text-align: center;
-  font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(8px, 3.05cqw, 12px);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.72);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  white-space: nowrap;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 0 rgba(8, 6, 20, 0.5);
 }
 
 .lk-badges {
+  position: absolute;
+  right: 8%;
+  bottom: 5.4%;
+  left: 8%;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3.4cqw;
-  margin-top: 0.2cqw;
+  gap: 7.2cqw;
 }
 
 .lk-flag {
   display: block;
-  height: 6.8cqw;
-  width: auto;
-  aspect-ratio: 3 / 2;
+  width: 10.6cqw;
+  height: 7.1cqw;
   border-radius: 0;
-  object-fit: contain;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  object-fit: fill;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .lk-league {
   display: block;
-  height: 8.6cqw;
   width: auto;
+  height: 10.6cqw;
   border-radius: 0;
   object-fit: contain;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
@@ -261,8 +258,8 @@
 
 .lk-club {
   display: block;
-  height: 9.4cqw;
-  width: 9.4cqw;
+  width: 10.8cqw;
+  height: 10.8cqw;
   border-radius: 50%;
   object-fit: cover;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
@@ -273,11 +270,11 @@
   margin: 0;
   padding: 0;
   border: 0;
+  border-radius: 12px;
   background: transparent;
   color: inherit;
   text-align: inherit;
   cursor: pointer;
-  border-radius: 12px;
 }
 
 .lk-card-hit:focus-visible {

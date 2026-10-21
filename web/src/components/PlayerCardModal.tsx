@@ -351,8 +351,8 @@ export function PlayerCardModal({
         </div>
 
         <div className="min-h-0 flex-auto overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
-          <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-[250px_minmax(0,1fr)_minmax(0,1.05fr)]">
-            <div className="mx-auto w-full max-w-[250px] md:col-span-2 lg:col-span-1 lg:mx-0 lg:max-w-none">
+          <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 lg:grid-cols-[268px_minmax(0,1fr)_minmax(0,1.02fr)]">
+            <div className="mx-auto w-full max-w-[268px] md:col-span-2 lg:col-span-1 lg:mx-0 lg:max-w-none">
               <PlayerCardFace {...cardFaceFromPlayer(player)} />
             </div>
 
