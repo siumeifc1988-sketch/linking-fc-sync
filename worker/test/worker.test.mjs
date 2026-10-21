@@ -8,7 +8,7 @@ import test from "node:test";
 import worker from "../src/index.js";
 import { clearStatsCache } from "../src/stats.js";
 import { buildBalancedTeams, decodeSignupDocument, encodeSignupBody, placeSignup, removeSignup } from "../src/signup.js";
-import { buildRankEmbed } from "../src/views.js";
+import { buildPlayerEmbed, buildRankEmbed } from "../src/views.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -323,9 +323,33 @@ test("/player embed uses board JSON", async () => {
   await post(interaction("player", [{ name: "球員", value: "sho" }]), collector());
   const webhook = calls.find((call) => call.href.includes("/webhooks/"));
   const payload = JSON.parse(webhook.body);
-  assert.match(payload.embeds[0].title, /SHOHOKU14/);
-  assert.match(payload.embeds[0].fields[1].value, /xG 1.20/);
-  assert.equal(payload.embeds[0].description.includes("全部累計"), true);
+  const embed = payload.embeds[0];
+  const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
+  assert.match(embed.title, /SHOHOKU14/);
+  assert.match(embed.fields[1].value, /xG 1.20/);
+  assert.equal(embed.description.includes("全部累計"), true);
+  assert.equal(embed.url, site);
+  const link = embed.fields.find((field) => field.name === "🔗 戰績網");
+  assert.ok(link);
+  assert.equal(link.value, `[${site}](${site})`);
+  assert.equal(embed.image, undefined);
+  assert.equal(embed.thumbnail, undefined);
+});
+
+test("/player miss and ambiguous embeds still link the stats site", () => {
+  const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
+  const stats = { board, meta, last10: { players: [] } };
+  for (const embed of [
+    buildPlayerEmbed(stats, "", site),
+    buildPlayerEmbed(stats, "nobody", site),
+    buildPlayerEmbed(stats, "k", site),
+  ]) {
+    assert.equal(embed.url, site);
+    const link = embed.fields.find((field) => field.name === "🔗 戰績網");
+    assert.equal(link.value, `[${site}](${site})`);
+    assert.equal(embed.image, undefined);
+    assert.equal(embed.thumbnail, undefined);
+  }
 });
 
 test("/signup writes only the signup document and moves slots", async () => {

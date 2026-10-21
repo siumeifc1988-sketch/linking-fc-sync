@@ -31,26 +31,47 @@ function lineOf(player) {
   return `${player.games}場 ${player.goals}球 ${player.assists}助 ⭐${Number(player.avgRating || 0).toFixed(2)} xG ${Number(player.xg || 0).toFixed(2)}`;
 }
 
+/** Visible body link. Title `url` stays set separately so the embed title is still clickable. */
+function statsSiteField(siteUrl) {
+  const url = String(siteUrl || "").trim();
+  if (!url) return null;
+  return {
+    name: "🔗 戰績網",
+    value: `[${url}](${url})`,
+    inline: false,
+  };
+}
+
+function withStatsSite(embed, siteUrl) {
+  const field = statsSiteField(siteUrl);
+  if (!field) return embed;
+  return { ...embed, fields: [...(embed.fields || []), field] };
+}
+
 export function buildPlayerEmbed(stats, query, siteUrl) {
   const found = findPlayer(stats.board?.players, query);
   if (found.status === "empty") {
-    return { title: "❌ 要帶球員名", description: "用 `/player 球員:`", color: 0xffa500 };
+    return withStatsSite(
+      { title: "❌ 要帶球員名", description: "用 `/player 球員:`", color: 0xffa500, url: siteUrl },
+      siteUrl,
+    );
   }
   if (found.status === "none") {
     const names = (stats.board?.players || []).map((player) => `• ${player.name}`).join("\n");
-    return {
+    return withStatsSite({
       title: `❌ 搵唔到 ${query}`,
       description: (names || "榜上暫時無人").slice(0, 4000),
       color: 0xffa500,
       url: siteUrl,
-    };
+    }, siteUrl);
   }
   if (found.status === "many") {
-    return {
+    return withStatsSite({
       title: "多過一個人",
       description: found.names.map((name) => `• ${name}`).join("\n"),
       color: 0xffa500,
-    };
+      url: siteUrl,
+    }, siteUrl);
   }
   const player = found.player;
   const recent = findPlayer(stats.last10?.players, player.name);
@@ -78,6 +99,8 @@ export function buildPlayerEmbed(stats, query, siteUrl) {
       inline: false,
     },
   ];
+  const siteField = statsSiteField(siteUrl);
+  if (siteField) fields.push(siteField);
   return {
     title: `${posEmoji(player.posCN)} ${player.name} | ${player.posCN || "未知"}`,
     description: `${stats.board?.label || "全部累計"} · ${stats.board?.totalMatches ?? "?"}場 · ${stats.meta?.lastUpdatedDisplay || ""}`.trim(),
