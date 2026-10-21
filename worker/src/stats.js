@@ -103,12 +103,50 @@ function decodeEvents(player) {
   return out;
 }
 
+/** Same ids as scripts/sync.py. Used for xG there; here they also split shots by box. */
+const SHOT_ON_IN = 13;
+const SHOT_OFF_IN = 14;
+const SHOT_ON_OUT = 18;
+const SHOT_OFF_OUT = 19;
+
+function rosterOf(rawPlayers) {
+  if (!rawPlayers || typeof rawPlayers !== "object") return [];
+  return Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers);
+}
+
+/**
+ * Sum in-box and out-of-box shots for one player from matches.json.
+ * `onIn`/`offIn` are 禁區內 中靶/偏出 (events 13/14). `onOut`/`offOut` are 禁區外 (18/19).
+ * When `clubId` is set, only that club is counted.
+ */
+export function aggregateShotZones(matches, playerName, clubId) {
+  const target = String(playerName || "").trim().toLowerCase();
+  const zones = { onIn: 0, offIn: 0, onOut: 0, offOut: 0 };
+  if (!target) return zones;
+  const club = clubId == null || clubId === "" ? "" : String(clubId);
+  for (const match of matches || []) {
+    const groups = club ? [match?.players?.[club]] : Object.values(match?.players || {});
+    for (const raw of groups) {
+      for (const player of rosterOf(raw)) {
+        const name = String(player?.playername || player?.name || "").trim().toLowerCase();
+        if (name !== target) continue;
+        const events = decodeEvents(player);
+        zones.onIn += events[SHOT_ON_IN] || 0;
+        zones.offIn += events[SHOT_OFF_IN] || 0;
+        zones.onOut += events[SHOT_ON_OUT] || 0;
+        zones.offOut += events[SHOT_OFF_OUT] || 0;
+      }
+    }
+  }
+  return zones;
+}
+
 /** Same shot model as scripts/sync.py — estimated, not official EA xG. */
 function estimatedXg(player, events) {
-  const onIn = events[13] || 0;
-  const onOut = events[18] || 0;
-  const offIn = events[14] || 0;
-  const offOut = events[19] || 0;
+  const onIn = events[SHOT_ON_IN] || 0;
+  const onOut = events[SHOT_ON_OUT] || 0;
+  const offIn = events[SHOT_OFF_IN] || 0;
+  const offOut = events[SHOT_OFF_OUT] || 0;
   const shotOn = events[217] || 0;
   const shots = num(player.shots) || shotOn + (events[218] || 0);
   if (onIn || onOut || offIn || offOut) return onIn * 0.35 + onOut * 0.12 + offIn * 0.1 + offOut * 0.04;

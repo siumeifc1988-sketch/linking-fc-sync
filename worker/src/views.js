@@ -1,4 +1,4 @@
-import { findPlayer, formatHk, guessPlayerName, summarizeMatches } from "./stats.js";
+import { aggregateShotZones, findPlayer, formatHk, guessPlayerName, summarizeMatches } from "./stats.js";
 
 const TYPE_LABEL = {
   leagueMatch: "聯賽",
@@ -20,18 +20,84 @@ function posColor(posCN) {
   return 0xe74c3c;
 }
 
-function bar(percent, label) {
+function bar(percent, suffix) {
   const clamped = Math.max(0, Math.min(100, Math.round(Number(percent) || 0)));
   const filled = Math.round(clamped / 10);
-  const suffix = label == null ? `${clamped}%` : label;
-  return `${"█".repeat(filled)}${"░".repeat(10 - filled)} ${suffix}`;
+  const note = suffix == null ? `${clamped}%` : suffix;
+  return `${"█".repeat(filled)}${"░".repeat(10 - filled)} ${note}`;
 }
 
-/** Empty string when there is no denominator, so a 0/0 rate is not drawn as 0%. */
-function rateLine(label, part, whole) {
-  const total = Number(whole) || 0;
-  if (total <= 0) return "";
-  return `${label} ${bar(((Number(part) || 0) / total) * 100)}`;
+/** Discord's monospace treats CJK as two columns. Pad labels so the bars share a column. */
+function displayWidth(text) {
+  let width = 0;
+  for (const char of String(text)) {
+    const code = char.codePointAt(0);
+    width += code > 0xff ? 2 : 1;
+  }
+  return width;
+}
+
+function pctLabel(percent) {
+  return `${Math.round(Number(percent) || 0)}%`;
+}
+
+/** One fenced block. A row is left out when its denominator is 0. Suffixes stay short. */
+function overviewBlock(player) {
+  const rating = Number(player.avgRating || 0);
+  const rows = [{ label: "評分", percent: rating * 10, suffix: `${rating.toFixed(2)}/10` }];
+  const passAttempts = Number(player.pa) || 0;
+  if (passAttempts > 0) {
+    const passPct = Number(player.passPct || 0);
+    rows.push({ label: "傳球%", percent: passPct, suffix: pctLabel(passPct) });
+  }
+  const shots = Number(player.shots) || 0;
+  if (shots > 0) {
+    const onTarget = ((Number(player.shotsOn) || 0) / shots) * 100;
+    rows.push({ label: "中靶率", percent: onTarget, suffix: pctLabel(onTarget) });
+  }
+  const tacklesWon = Number(player.tk) || 0;
+  const tackleAttempts = tacklesWon + (Number(player.tacklesLost) || 0);
+  if (tackleAttempts > 0) {
+    const tacklePct = (tacklesWon / tackleAttempts) * 100;
+    rows.push({ label: "搶斷成功率", percent: tacklePct, suffix: pctLabel(tacklePct) });
+  }
+  const labelWidth = rows.reduce((max, row) => Math.max(max, displayWidth(row.label)), 0);
+  const lines = rows.map((row) => {
+    const pad = " ".repeat(labelWidth - displayWidth(row.label) + 1);
+    return `${row.label}${pad}${bar(row.percent, row.suffix)}`;
+  });
+  return `\`\`\`\n${lines.join("\n")}\n\`\`\``;
+}
+
+function attackLines(player, zones) {
+  const goals = Number(player.goals) || 0;
+  const shots = Number(player.shots) || 0;
+  const shotsOn = Number(player.shotsOn) || 0;
+  const lines = [
+    `${goals}球 (${player.goalsPerGame ?? 0}/場) · ${player.assists || 0}助 (${player.assistsPerGame ?? 0}/場)`,
+    shots > 0 ? `射門 ${shots} · 中靶 ${shotsOn} · 轉化 ${goals}/${shots}` : `射門 ${shots} · 中靶 ${shotsOn}`,
+    `xG ${Number(player.xg || 0).toFixed(2)} · xA ${Number(player.xa || 0).toFixed(2)}`,
+  ];
+  if (zones.onIn || zones.offIn) lines.push(`禁區內 中靶 ${zones.onIn} · 偏出 ${zones.offIn}`);
+  if (zones.onOut || zones.offOut) lines.push(`禁區外 中靶 ${zones.onOut} · 偏出 ${zones.offOut}`);
+  return lines.join("\n");
+}
+
+function passLines(player) {
+  return [
+    `完成 ${player.pm || 0}/${player.pa || 0}`,
+    `向前 ${player.passFwd || 0} · 向後 ${player.passBack || 0} · 橫 ${player.passSide || 0}`,
+    `關鍵傳球 ${player.keyPass || 0}`,
+  ].join("\n");
+}
+
+function defenseLines(player) {
+  return [
+    `攔截 ${player.interceptions || 0}`,
+    `搶斷成功 ${player.tk || 0} · 失敗 ${player.tacklesLost || 0}`,
+    `封堵 ${player.blocks || 0} · 頭槌防守 ${player.aerialDef || 0} · 盤帶成功 ${player.dribbles || 0}`,
+    `上場 ${player.minutes || 0} 分鐘`,
+  ].join("\n");
 }
 
 function lineOf(player) {
@@ -41,15 +107,15 @@ function lineOf(player) {
 
 /**
  * Visible body link. Title `url` stays set separately so the embed title is still clickable.
- * Field values on Discord (especially mobile) print markdown `[text](url)` as literal text,
- * so the value is a short label plus a bare URL that clients linkify.
+ * The field name is the label. The value is the bare URL, which Discord linkifies.
+ * Markdown `[text](url)` in a field value is printed as literal text on mobile.
  */
 function statsSiteField(siteUrl) {
   const url = String(siteUrl || "").trim();
   if (!url) return null;
   return {
     name: "🔗 戰績網",
-    value: `戰績網\n${url}`,
+    value: url,
     inline: false,
   };
 }
@@ -60,7 +126,7 @@ function withStatsSite(embed, siteUrl) {
   return { ...embed, fields: [...(embed.fields || []), field] };
 }
 
-export function buildPlayerEmbed(stats, query, siteUrl) {
+export function buildPlayerEmbed(stats, query, siteUrl, clubId) {
   const found = findPlayer(stats.board?.players, query);
   if (found.status === "empty") {
     return withStatsSite(
@@ -88,47 +154,34 @@ export function buildPlayerEmbed(stats, query, siteUrl) {
   const player = found.player;
   const recent = findPlayer(stats.last10?.players, player.name);
   const recentLine = recent.status === "one" ? lineOf(recent.player) : "近10無出場";
-  const rating = Number(player.avgRating || 0);
-  const passPct = Number(player.passPct || 0);
-  const tackleAttempts = (Number(player.tk) || 0) + (Number(player.tacklesLost) || 0);
+  const zones = aggregateShotZones(stats.matches, player.name, clubId);
   const fields = [
     {
       name: "👤 球員",
       value: [
-        `**${player.name}** | ${player.posCN || "未知"} | **${player.games}場** | ⭐ ${rating.toFixed(2)}`,
-        `評分 ${bar(rating * 10, `${rating.toFixed(2)}/10`)}`,
+        `**${player.name}** | ${player.posCN || "未知"} | **${player.games}場** | ${player.minutes || 0} 分鐘`,
         `近10：${recentLine}`,
       ].join("\n"),
       inline: false,
     },
     {
-      name: `⚽ 進攻 · ${player.goals}球 ${player.assists}助`,
-      value: [
-        `${player.goals}球 (${player.goalsPerGame ?? 0}/場) · ${player.assists}助 (${player.assistsPerGame ?? 0}/場)`,
-        `射門 ${player.shots || 0} · 中靶 ${player.shotsOn || 0}`,
-        rateLine("中靶率", player.shotsOn, player.shots),
-        rateLine("轉化率", player.goals, player.shots),
-        `估算 xG ${Number(player.xg || 0).toFixed(2)} · xA ${Number(player.xa || 0).toFixed(2)}`,
-      ].filter(Boolean).join("\n"),
+      name: "📊 大方向",
+      value: overviewBlock(player),
       inline: false,
     },
     {
-      name: `🎯 傳球 · ${player.pm || 0}/${player.pa || 0}`,
-      value: [
-        `傳球 ${bar(passPct)}`,
-        `關鍵傳球 ${player.keyPass || 0}`,
-        `向前 ${player.passFwd || 0} · 向後 ${player.passBack || 0} · 橫 ${player.passSide || 0}`,
-      ].join("\n"),
+      name: "⚽ 進攻明細",
+      value: attackLines(player, zones),
       inline: false,
     },
     {
-      name: `🛡 防守 · ${player.totalDef || 0}`,
-      value: [
-        `攔截 ${player.interceptions || 0} · 搶斷成功 ${player.tk || 0} · 失敗 ${player.tacklesLost || 0}`,
-        rateLine("搶斷成功率", player.tk, tackleAttempts),
-        `封堵 ${player.blocks || 0} · 頭槌防守 ${player.aerialDef || 0} · 盤帶成功 ${player.dribbles || 0}`,
-        `上場 ${player.minutes || 0} 分鐘`,
-      ].filter(Boolean).join("\n"),
+      name: "🎯 傳球明細",
+      value: passLines(player),
+      inline: false,
+    },
+    {
+      name: "🛡 防守明細",
+      value: defenseLines(player),
       inline: false,
     },
   ];
