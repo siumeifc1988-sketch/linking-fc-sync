@@ -1,4 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { BoardPlayer, ShapedMatch } from "../types";
 import {
   coachTip,
@@ -201,22 +215,34 @@ function ActionButtons({
 }) {
   return (
     <>
-      <button
+      <Button
         type="button"
         onClick={onClose}
-        className="h-12 min-h-12 flex-1 rounded-full bg-white text-[14px] font-extrabold tracking-wide text-ink"
+        className="h-12 min-h-12 flex-1 rounded-full bg-white text-[14px] font-extrabold tracking-wide text-card-ink hover:bg-white/90"
       >
         關閉 CLOSE
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="outline"
         onClick={onCopy}
-        className="h-12 min-h-12 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[13px] font-extrabold tracking-wide text-white/85 sm:min-w-[148px] sm:shrink-0"
+        className="h-12 min-h-12 rounded-full border-white/15 bg-white/5 px-4 text-[13px] font-extrabold tracking-wide text-white hover:bg-white/10 hover:text-white sm:min-w-[148px] sm:shrink-0"
       >
         {copied === "ok" ? "已複製 COPIED" : copied === "fail" ? "複製失敗" : "複製數據 COPY"}
-      </button>
+      </Button>
     </>
   );
+}
+
+function useIsDesktop() {
+  const [desktop, setDesktop] = useState(() => window.matchMedia("(min-width: 640px)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const onChange = () => setDesktop(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return desktop;
 }
 
 function copyPayload(p: BoardPlayer, six: SixAttr, ovr: number, impact: ReturnType<typeof playerImpact>): string {
@@ -281,21 +307,7 @@ export function PlayerCardModal({
   const passLabel = passAccuracyLabel(player);
   const passStyle = passStyleLabel(player);
   const [copied, setCopied] = useState<"idle" | "ok" | "fail">("idle");
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeRef.current();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, []);
+  const desktop = useIsDesktop();
 
   useEffect(() => {
     if (copied === "idle") return;
@@ -308,46 +320,42 @@ export function PlayerCardModal({
     setCopied(ok ? "ok" : "fail");
   };
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4">
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="player-card-title"
-        className="relative flex max-h-[94dvh] w-full max-w-[980px] flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#10131a] text-white shadow-2xl sm:rounded-[24px]"
-      >
-        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pb-2 pt-4 sm:px-5 sm:pt-5">
+  const shellClass =
+    "player-card-shell flex max-h-[94dvh] w-full max-w-[980px] flex-col gap-0 overflow-hidden border-white/10 p-0 text-white sm:max-w-[980px]";
+
+  const panel = (
+    <>
+        <div className="flex shrink-0 items-start justify-between gap-3 px-4 pt-4 pr-14 pb-2 sm:px-5 sm:pt-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-[14px] bg-gradient-to-b from-card-gold to-card-gold-deep text-[20px] font-black leading-none text-card-ink shadow-gold-badge">
               {ovr}
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5">
-                <h3 id="player-card-title" className="m-0 truncate text-[18px] font-extrabold tracking-tight">
-                  {player.name}
-                </h3>
-                <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-extrabold">
-                  {posShort(player.posCN)}
-                </span>
-                <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-extrabold tracking-wide">
-                  {nameTag(player.name)}
-                </span>
+                {desktop ? (
+                  <DialogTitle id="player-card-title" className="truncate text-[18px] font-extrabold tracking-tight text-white">
+                    {player.name}
+                  </DialogTitle>
+                ) : (
+                  <SheetTitle id="player-card-title" className="truncate text-[18px] font-extrabold tracking-tight text-white">
+                    {player.name}
+                  </SheetTitle>
+                )}
+                <Badge variant="secondary">{posShort(player.posCN)}</Badge>
+                <Badge variant="secondary">{nameTag(player.name)}</Badge>
               </div>
-              <p className="m-0 mt-0.5 text-[12px] text-white/55">
-                詳細賽季數據 · Season Detail · {player.games} 場 · 均分 {Number(player.avgRating).toFixed(2)}
-              </p>
+              {desktop ? (
+                <DialogDescription className="mt-0.5 text-[12px] text-white/55">
+                  詳細賽季數據 · Season Detail · {player.games} 場 · 均分 {Number(player.avgRating).toFixed(2)}
+                </DialogDescription>
+              ) : (
+                <SheetDescription className="mt-0.5 text-[12px] text-white/55">
+                  詳細賽季數據 · Season Detail · {player.games} 場 · 均分 {Number(player.avgRating).toFixed(2)}
+                </SheetDescription>
+              )}
               <p className="m-0 text-[11px] font-semibold text-white/35">實戰推算 · 非官方屬性</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="關閉"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/5 text-[16px] text-white/70"
-          >
-            ×
-          </button>
         </div>
 
         <div className="min-h-0 flex-auto overflow-y-auto px-4 pb-4 sm:px-5 sm:pb-5">
@@ -433,7 +441,22 @@ export function PlayerCardModal({
         >
           <ActionButtons onClose={onClose} onCopy={onCopy} copied={copied} />
         </div>
-      </div>
-    </div>
+    </>
+  );
+
+  if (desktop) {
+    return (
+      <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className={`${shellClass} rounded-3xl`}>{panel}</DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent side="bottom" className={`${shellClass} h-[94dvh] rounded-t-3xl`}>
+        {panel}
+      </SheetContent>
+    </Sheet>
   );
 }

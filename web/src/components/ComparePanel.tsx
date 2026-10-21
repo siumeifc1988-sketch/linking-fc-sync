@@ -47,13 +47,13 @@ export function CompareBar({
               </div>
             ))}
           </div>
-          <span className="text-[11px] text-muted">{selected.length}/3</span>
+          <span className="text-[11px] text-muted-foreground">{selected.length}/3</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={onClear}
-            className="h-9 min-w-[52px] rounded-full border border-line bg-bg px-3 text-[12px] font-semibold text-muted active:text-ink"
+            className="h-9 min-w-[52px] rounded-full border border-line bg-bg px-3 text-[12px] font-semibold text-muted-foreground active:text-ink"
           >
             清除
           </button>
@@ -89,7 +89,7 @@ export function ComparePanel({
           <button
             type="button"
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-bg text-muted active:text-ink"
+            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-bg text-muted-foreground active:text-ink"
           >
             ✕
           </button>
@@ -101,7 +101,7 @@ export function ComparePanel({
               gridTemplateColumns: `minmax(72px,100px) repeat(${players.length}, minmax(0,1fr))`,
             }}
           >
-            <div className="py-2 text-[10px] font-bold uppercase tracking-widest text-muted sm:text-[11px]">
+            <div className="py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[11px]">
               指標
             </div>
             {players.map((p) => (
@@ -110,7 +110,7 @@ export function ComparePanel({
                   {p.name.slice(0, 1)}
                 </div>
                 <div className="mt-1.5 truncate px-0.5 text-[12px] font-bold sm:text-[13px]">{p.name}</div>
-                <div className="text-[10px] text-muted sm:text-[11px]">{p.posCN || ""}</div>
+                <div className="text-[10px] text-muted-foreground sm:text-[11px]">{p.posCN || ""}</div>
               </div>
             ))}
             {METRICS.map((m) => {
@@ -118,7 +118,7 @@ export function ComparePanel({
               const max = Math.max(...nums);
               return (
                 <Fragment key={m.label}>
-                  <div className="border-t border-[#F5F0F8] py-2.5 text-[11px] font-semibold text-muted sm:py-3 sm:text-[12px]">
+                  <div className="border-t border-[#F5F0F8] py-2.5 text-[11px] font-semibold text-muted-foreground sm:py-3 sm:text-[12px]">
                     {m.label}
                   </div>
                   {players.map((p, i) => {

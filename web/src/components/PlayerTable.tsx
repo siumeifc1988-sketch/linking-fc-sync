@@ -12,6 +12,8 @@ import {
 } from "@tanstack/react-table";
 import type { BoardPlayer } from "../types";
 import { ratingClass } from "../lib/format";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CumExpand } from "./StatExpand";
 
 type Props = {
@@ -63,13 +65,13 @@ export function PlayerTable({
       {
         id: "idx",
         header: "#",
-        cell: ({ row }) => <span className="font-extrabold text-muted">{row.index + 1}</span>,
+        cell: ({ row }) => <span className="font-extrabold text-muted-foreground">{row.index + 1}</span>,
       },
       {
         accessorKey: "posCN",
         header: "位置",
         cell: ({ getValue }) => (
-          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted">
+          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
             {String(getValue() || "-")}
           </span>
         ),
@@ -79,16 +81,17 @@ export function PlayerTable({
         header: "球員",
         cell: ({ row, getValue }) =>
           onOpenCard ? (
-            <button
+            <Button
               type="button"
-              className="text-left text-[13px] font-bold text-pl-purple underline-offset-2 hover:underline"
+              variant="link"
+              className="h-auto px-0 text-[13px] font-bold text-pl-purple underline-offset-2"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenCard(row.original);
               }}
             >
               {String(getValue())}
-            </button>
+            </Button>
           ) : (
             <strong className="text-[13px] font-bold">{String(getValue())}</strong>
           ),
@@ -148,7 +151,7 @@ export function PlayerTable({
       {
         accessorKey: "minutes",
         header: "分",
-        cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() ?? "-")}</span>,
+        cell: ({ getValue }) => <span className="tabular text-muted-foreground">{String(getValue() ?? "-")}</span>,
       },
     );
     return cols;
@@ -205,17 +208,20 @@ export function PlayerTable({
                     onChange={row.getToggleSelectedHandler()}
                   />
                 )}
-                <button
+                <Button
                   type="button"
-                  className="min-w-0 flex-1 text-left"
+                  variant="link"
+                  className="h-auto min-w-0 flex-1 justify-start px-0 text-left"
                   onClick={() => {
                     if (onOpenCard) onOpenCard(p);
                     else row.toggleExpanded();
                   }}
                 >
-                  <div className="truncate text-[13px] font-bold text-pl-purple">{p.name}</div>
-                  <div className="text-[10px] text-muted">{p.posCN || "-"}</div>
-                </button>
+                  <span className="block min-w-0">
+                    <span className="block truncate text-[13px] font-bold text-pl-purple">{p.name}</span>
+                    <span className="block text-[10px] font-medium text-muted-foreground@@FG@@">{p.posCN || "-"}</span>
+                  </span>
+                </Button>
                 <button
                   type="button"
                   className="flex shrink-0 items-center gap-2"
@@ -235,76 +241,77 @@ export function PlayerTable({
                 <div className="bg-bg px-3 pb-3">
                   <CumExpand p={p} />
                   {onOpenCard && (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       onClick={() => onOpenCard(p)}
-                      className="mt-2 h-10 w-full rounded-xl border border-pl-purple/20 bg-pl-purple/5 text-[13px] font-bold text-pl-purple"
+                      className="mt-2 h-10 w-full rounded-xl border-pl-purple/20 bg-pl-purple/5 text-[13px] font-bold text-pl-purple hover:bg-pl-purple/10 hover:text-pl-purple"
                     >
                       打開球員卡
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
             </div>
           );
         })}
-        {!sorted.length && <p className="p-4 text-[13px] text-muted">沒有球員</p>}
+        {!sorted.length && <p className="p-4 text-[13px] text-muted-foreground">沒有球員</p>}
       </div>
 
-      {/* 桌面表格 */}
-      <div className="hidden overflow-x-auto sm:block">
-        <table className="w-full min-w-[640px] border-collapse text-[13px]">
-          <thead>
+      <div className="hidden sm:block">
+        <Table className="min-w-[640px] border-collapse text-[13px]">
+          <TableHeader>
             {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
+              <TableRow key={hg.id} className="border-0 hover:bg-transparent">
                 {hg.headers.map((h) => (
-                  <th
+                  <TableHead
                     key={h.id}
-                    className={`whitespace-nowrap bg-ink px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white ${
+                    className={`h-auto bg-ink px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-white ${
                       h.column.getCanSort() ? "cursor-pointer select-none hover:bg-pl-purple" : ""
                     } ${h.column.getIsSorted() ? "bg-pl-purple" : ""}`}
                     onClick={h.column.getToggleSortingHandler()}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
                     {{ asc: " ▲", desc: " ▼" }[h.column.getIsSorted() as string] ?? null}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {sorted.map((row) => (
               <Fragment key={row.id}>
-                <tr
-                  className={`cursor-pointer border-b border-line-soft hover:bg-row-hover ${row.getIsExpanded() ? "bg-tint" : ""}`}
+                <TableRow
+                  className={`cursor-pointer border-line-soft hover:bg-row-hover ${row.getIsExpanded() ? "bg-tint" : ""}`}
                   onClick={() => row.toggleExpanded()}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-3 py-2.5 align-middle">
+                    <TableCell key={cell.id} className="px-3 py-2.5 whitespace-normal">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
                 {row.getIsExpanded() && (
-                  <tr className="border-b border-line bg-bg">
-                    <td colSpan={columns.length} className="p-3">
+                  <TableRow className="border-line bg-bg hover:bg-bg">
+                    <TableCell colSpan={columns.length} className="p-3 whitespace-normal">
                       <CumExpand p={row.original} />
                       {onOpenCard && (
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
                           onClick={() => onOpenCard(row.original)}
-                          className="mt-2 h-10 rounded-xl border border-pl-purple/20 bg-pl-purple/5 px-4 text-[13px] font-bold text-pl-purple"
+                          className="mt-2 h-10 rounded-xl border-pl-purple/20 bg-pl-purple/5 px-4 text-[13px] font-bold text-pl-purple hover:bg-pl-purple/10 hover:text-pl-purple"
                         >
                           打開球員卡
-                        </button>
+                        </Button>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
               </Fragment>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </>
   );

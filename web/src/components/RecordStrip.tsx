@@ -1,4 +1,5 @@
 import type { ClubRecord, FormCode } from "../types";
+import { Card } from "@/components/ui/card";
 
 export function RecordStrip({ record }: { record?: ClubRecord | null }) {
   if (!record) return null;
@@ -18,13 +19,13 @@ export function RecordStrip({ record }: { record?: ClubRecord | null }) {
     },
   ];
   return (
-    <div className="card mb-3 grid grid-cols-4 sm:grid-cols-7">
+    <Card className="mb-3 grid grid-cols-4 gap-0 py-0 sm:grid-cols-7">
       {items.map((it) => (
         <div
           key={it.l}
           className="border-r border-line px-1 py-3 text-center last:border-r-0 max-sm:[&:nth-child(n+5)]:border-t"
         >
-          <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-muted">
+          <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground@@FG@@">
             {it.l}
           </span>
           <span className={`tabular text-[22px] font-extrabold tracking-tight ${it.cls || "text-ink"}`}>
@@ -32,7 +33,7 @@ export function RecordStrip({ record }: { record?: ClubRecord | null }) {
           </span>
         </div>
       ))}
-    </div>
+    </Card>
   );
 }
 
@@ -46,7 +47,7 @@ export function FormDots({ form, compact }: { form?: FormCode[]; compact?: boole
   return (
     <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "" : "mb-4 px-0.5"}`}>
       {!compact && (
-        <span className="mr-1 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+        <span className="mr-1 text-[11px] font-extrabold uppercase tracking-widest text-muted-foreground@@FG@@">
           近況
         </span>
       )}

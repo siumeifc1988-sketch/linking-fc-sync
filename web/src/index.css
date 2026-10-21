@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --color-ink: #13101a;
@@ -8,7 +12,6 @@
   --color-pl-green: #16a34a;
   --color-pl-gray: #9ca3af;
   --color-pl-gold: #c9a227;
-  --color-muted: #7c7589;
   --color-line: #ede8f1;
   --color-line-soft: #f3eff6;
   --color-surface: #ffffff;
@@ -53,8 +56,8 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-bg);
-  color: var(--color-ink);
+  background: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
@@ -86,4 +89,151 @@ body {
 }
 .safe-pt {
   padding-top: env(safe-area-inset-top);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Page shell. Gold Rare ink/gold are wired into ring, charts, and the card sheet. */
+  --background: #faf8fc;
+  --foreground: #13101a;
+  --card: #ffffff;
+  --card-foreground: #13101a;
+  --popover: #ffffff;
+  --popover-foreground: #13101a;
+  --primary: #37003c;
+  --primary-foreground: #ffffff;
+  --secondary: #fcfaff;
+  --secondary-foreground: #37003c;
+  --muted: #f3eff6;
+  --muted-foreground: #7c7589;
+  --accent: #fff0f7;
+  --accent-foreground: #37003c;
+  --destructive: #ff005a;
+  --border: #ede8f1;
+  --input: #ede8f1;
+  --ring: var(--color-card-gold-deep);
+  --chart-1: #37003c;
+  --chart-2: #ff005a;
+  --chart-3: #7c3aed;
+  --chart-4: var(--color-card-gold);
+  --chart-5: var(--color-card-gold-deep);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Dialog / Sheet around the player card. Remaps shadcn tokens to the Gold Rare palette. */
+.player-card-shell {
+  --background: var(--color-card-ink);
+  --foreground: #ffffff;
+  --card: #171b24;
+  --card-foreground: #ffffff;
+  --popover: var(--color-card-ink);
+  --popover-foreground: #ffffff;
+  --primary: var(--color-card-gold);
+  --primary-foreground: var(--color-card-ink);
+  --secondary: rgb(255 255 255 / 0.08);
+  --secondary-foreground: #ffffff;
+  --muted: var(--color-card-sheet);
+  --muted-foreground: rgb(255 255 255 / 0.55);
+  --accent: rgb(255 255 255 / 0.08);
+  --accent-foreground: #ffffff;
+  --border: rgb(255 255 255 / 0.12);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: var(--color-card-gold);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

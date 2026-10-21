@@ -16,7 +16,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-[#F5F0F8] px-3 py-2 text-[13px] last:border-0">
-      <span className="min-w-0 shrink font-semibold text-muted">{label}</span>
+      <span className="min-w-0 shrink font-semibold text-muted-foreground">{label}</span>
       <span className="tabular shrink-0 text-right font-extrabold text-ink">{value}</span>
     </div>
   );

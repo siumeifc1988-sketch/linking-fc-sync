@@ -1,5 +1,6 @@
 import type { BoardPlayer } from "../types";
 import { deriveSix, initials, overallFromPlayer, posShort, type SixAttr } from "../lib/cardStats";
+import { Card, CardContent } from "@/components/ui/card";
 import { GoldRareCard } from "./player-card/GoldRareCard";
 
 export const CARD_DISCLAIMER = "實戰推算 · 非官方屬性";
@@ -34,7 +35,13 @@ export function cardFaceFromPlayer(
   };
 }
 
-/** Roster click target. Stats stay on deriveSix / overallFromPlayer. No portrait. */
+/** shadcn Card is only the root. The visible face is the custom Gold Rare SVG. */
 export function PlayerCardFace({ name, overall, position, stats, className }: PlayerCardFaceProps) {
-  return <GoldRareCard name={name} overall={overall} position={position} stats={stats} className={className} />;
+  return (
+    <Card className="gap-0 overflow-visible border-0 bg-transparent p-0 text-inherit shadow-none ring-0 [--card-spacing:0px]">
+      <CardContent className="p-0">
+        <GoldRareCard name={name} overall={overall} position={position} stats={stats} className={className} />
+      </CardContent>
+    </Card>
+  );
 }

@@ -10,6 +10,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import type { MatchPlayerRaw, ShapedMatch } from "../types";
+import { Card } from "@/components/ui/card";
 import { CLUB, num, posLabel, ratingClass } from "../lib/format";
 import { passPct } from "../lib/events";
 import { MatchPlayerExpand } from "./StatExpand";
@@ -37,13 +38,13 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
       {
         id: "idx",
         header: "#",
-        cell: ({ row }) => <span className="font-extrabold text-muted">{row.index + 1}</span>,
+        cell: ({ row }) => <span className="font-extrabold text-muted-foreground">{row.index + 1}</span>,
       },
       {
         id: "pos",
         header: "位置",
         cell: ({ row }) => (
-          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted">
+          <span className="inline-block rounded-full bg-bg px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
             {posLabel(row.original)}
           </span>
         ),
@@ -114,7 +115,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         id: "mins",
         accessorFn: (r) => Math.round(num(r.secondsPlayed ?? r.gameTime) / 60),
         header: "分",
-        cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() || "-")}</span>,
+        cell: ({ getValue }) => <span className="tabular text-muted-foreground">{String(getValue() || "-")}</span>,
       },
     ],
     [],
@@ -134,7 +135,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
   });
 
   if (!list.length) {
-    return <p className="py-2 text-[13px] text-muted">沒有球員細項</p>;
+    return <p className="py-2 text-[13px] text-muted-foreground">沒有球員細項</p>;
   }
 
   const sorted = table.getRowModel().rows;
@@ -162,7 +163,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[13px] font-bold">{name}</div>
-                  <div className="text-[10px] text-muted">{posLabel(p)}</div>
+                  <div className="text-[10px] text-muted-foreground">{posLabel(p)}</div>
                 </div>
                 <span
                   className={`inline-flex w-12 shrink-0 justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(num(p.rating))}`}
@@ -257,7 +258,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
         </div>
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
-            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">結果</div>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[10px]">結果</div>
             <div className="mt-1">
               <span
                 className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-extrabold ${
@@ -265,7 +266,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
                     ? "bg-pl-green/10 text-pl-green"
                     : match.code === "L"
                       ? "bg-pl-magenta/10 text-pl-magenta"
-                      : "bg-line text-muted"
+                      : "bg-line text-muted-foreground"
                 }`}
               >
                 {match.outcome}
@@ -273,13 +274,13 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
             </div>
           </div>
           <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
-            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">MOTM</div>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[10px]">MOTM</div>
             <div className="mt-1 truncate text-[12px] font-bold sm:text-[13px]">
               {(mom && (mom.playername || mom.name)) || "-"}
             </div>
           </div>
           <div className="rounded-[12px] border border-line bg-bg px-2 py-2 sm:px-3">
-            <div className="text-[9px] font-bold uppercase tracking-widest text-muted sm:text-[10px]">均分</div>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[10px]">均分</div>
             <div className="mt-1 tabular text-[12px] font-bold sm:text-[13px]">{avg}</div>
           </div>
         </div>
@@ -288,7 +289,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
       <div>
         <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-purple bg-tint px-3 py-2 text-[13px] font-extrabold text-pl-purple">
           LinKing FC{" "}
-          <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
+          <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted-foreground">
             {usList.length} 人
           </span>
         </h3>
@@ -297,7 +298,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
       <div>
         <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-gray bg-bg px-3 py-2 text-[13px] font-extrabold text-ink">
           <span className="truncate">{match.opp}</span>{" "}
-          <span className="shrink-0 rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
+          <span className="shrink-0 rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted-foreground">
             {themList.length} 人
           </span>
         </h3>
@@ -341,12 +342,12 @@ export function MatchList({
                 <div className="flex items-center gap-2">
                   <div className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-bg px-2.5 py-1">
                     <span className="tabular text-[16px] font-black sm:text-[18px]">{m.us}</span>
-                    <span className="text-muted">:</span>
+                    <span className="text-muted-foreground">:</span>
                     <span className="tabular text-[16px] font-black sm:text-[18px]">{m.them}</span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13px] font-extrabold">{m.opp}</div>
-                    <div className="truncate text-[10px] text-muted sm:text-[11px]">
+                    <div className="truncate text-[10px] text-muted-foreground sm:text-[11px]">
                       {m.type} · {m.when}
                       {m.dnf ? " · 離線" : ""}
                     </div>
@@ -355,7 +356,7 @@ export function MatchList({
               </div>
               <div
                 className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition ${
-                  open ? "border-ink bg-ink text-white" : "border-line text-muted"
+                  open ? "border-ink bg-ink text-white" : "border-line text-muted-foreground"
                 }`}
               >
                 <svg
@@ -381,9 +382,9 @@ export function MatchList({
 
         if (asCards) {
           return (
-            <div key={m.id} className="card">
+            <Card key={m.id} className="gap-0 py-0">
               {body}
-            </div>
+            </Card>
           );
         }
 
@@ -393,7 +394,7 @@ export function MatchList({
           </div>
         );
       })}
-      {!matches.length && <p className="p-4 text-[13px] text-muted">沒有比賽</p>}
+      {!matches.length && <p className="p-4 text-[13px] text-muted-foreground">沒有比賽</p>}
     </div>
   );
 }
