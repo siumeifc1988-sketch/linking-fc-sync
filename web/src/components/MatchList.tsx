@@ -57,9 +57,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
         accessorFn: (r) => r.playername || r.name || "?",
         header: "球員",
         cell: ({ getValue }) => (
-          <strong className="block max-w-[6.5rem] truncate text-[13px] font-bold sm:max-w-none">
-            {String(getValue())}
-          </strong>
+          <strong className="block truncate text-[13px] font-bold">{String(getValue())}</strong>
         ),
       },
       {
@@ -150,8 +148,8 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
   }
 
   return (
-    <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-      <table className="w-full min-w-0 border-collapse text-[13px] sm:min-w-[480px]">
+    <div className="w-full max-w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+      <table className="mobile-fixed w-full border-collapse text-[13px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -189,7 +187,7 @@ function MatchPlayerTable({ list, side }: { list: MatchPlayerRaw[]; side: string
               </tr>
               {row.getIsExpanded() && (
                 <tr className="border-b border-line bg-bg">
-                  <td colSpan={columns.length} className="p-2 sm:p-3">
+                  <td colSpan={columns.length} className="expand-cell p-2 sm:p-3">
                     <MatchPlayerExpand p={row.original} />
                   </td>
                 </tr>
@@ -217,7 +215,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
   const avg = usList.length ? (sumR / usList.length).toFixed(2) : "-";
 
   return (
-    <div className="space-y-3 p-0.5 sm:space-y-4">
+    <div className="w-full max-w-full space-y-3 overflow-x-hidden p-0.5 sm:space-y-4">
       <div className="grid gap-2 border-b border-line pb-3 sm:grid-cols-[auto_1fr] sm:gap-3">
         <div className="rounded-[14px] bg-gradient-to-br from-pl-purple to-[#4a1450] px-4 py-3 text-center text-white shadow sm:px-5 sm:py-4">
           <div className="tabular text-[26px] font-black tracking-tight sm:text-[28px]">
@@ -255,7 +253,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
         </div>
       </div>
 
-      <div>
+      <div className="w-full max-w-full overflow-x-hidden">
         <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-purple bg-tint px-3 py-2 text-[13px] font-extrabold text-pl-purple">
           LinKing FC{" "}
           <span className="rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
@@ -264,7 +262,7 @@ function MatchDetailBody({ match }: { match: ShapedMatch }) {
         </h3>
         <MatchPlayerTable list={usList} side="us" />
       </div>
-      <div>
+      <div className="w-full max-w-full overflow-x-hidden">
         <h3 className="mb-2 flex items-center gap-2 rounded-[10px] border-l-[3px] border-pl-gray bg-bg px-3 py-2 text-[13px] font-extrabold text-ink">
           <span className="truncate">{match.opp}</span>{" "}
           <span className="shrink-0 rounded-full border border-line bg-white px-2 text-[11px] font-semibold text-muted">
@@ -309,7 +307,7 @@ export function MatchList({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 rounded-full border border-line bg-bg px-2.5 py-1">
+                  <div className="flex shrink-0 items-center gap-2 rounded-full border border-line bg-bg px-2.5 py-1">
                     <span className="tabular text-[16px] font-black sm:text-[18px]">{m.us}</span>
                     <span className="text-muted">:</span>
                     <span className="tabular text-[16px] font-black sm:text-[18px]">{m.them}</span>
@@ -342,7 +340,7 @@ export function MatchList({
               </div>
             </button>
             {open && (
-              <div className="border-t border-line bg-bg px-2.5 py-3 sm:px-5 sm:py-4">
+              <div className="w-full max-w-full overflow-x-hidden border-t border-line bg-bg px-2.5 py-3 sm:px-5 sm:py-4">
                 <MatchDetailBody match={m} />
               </div>
             )}
