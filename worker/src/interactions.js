@@ -96,7 +96,7 @@ async function runCommand(body, config) {
   const stats = await loadStats(config, { force });
   if (name === "sync") return { content: buildSyncMessage(stats, config) };
   if (name === "player") {
-    return { embeds: [buildPlayerEmbed(stats, optionValue(body.data, "球員"), config.siteUrl, config.clubId)] };
+    return { embeds: [buildPlayerEmbed(stats, optionValue(body.data, "球員"), config.siteUrl)] };
   }
   if (name === "rank") return { embeds: [buildRankEmbed(stats, optionValue(body.data, "類型") || "goals", config.siteUrl)] };
   if (name === "matches") return { embeds: [buildMatchesEmbed(stats, config)] };

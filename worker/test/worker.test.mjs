@@ -208,7 +208,7 @@ test("GET /health reports club and stats base", async () => {
   const body = await response.json();
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
-  assert.equal(body.version, "1.0.5");
+  assert.equal(body.version, "1.0.6");
   assert.equal(body.clubId, "41026");
   assert.equal(body.platform, "common-gen5");
   assert.equal(body.statsJsonBase, "https://cdn.example/data");
@@ -321,15 +321,6 @@ function field(embed, name) {
   return embed.fields.find((item) => item.name === name);
 }
 
-function displayWidth(text) {
-  let width = 0;
-  for (const char of String(text)) {
-    const code = char.codePointAt(0);
-    width += code > 0xff ? 2 : 1;
-  }
-  return width;
-}
-
 test("/player embed uses board JSON", async () => {
   clearStatsCache();
   const calls = installFetch();
@@ -338,52 +329,43 @@ test("/player embed uses board JSON", async () => {
   const payload = JSON.parse(webhook.body);
   const embed = payload.embeds[0];
   const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
-  assert.match(embed.title, /SHOHOKU14/);
-  assert.match(embed.description, /^全部累計 · 2場 · 2026-10-21 12:03 HKT\n近10：2場 1球 2助 ⭐7\.40 xG 1\.20$/);
-  assert.equal(embed.description.includes("█"), false);
-  for (const name of ["👤 球員", "⚽ 進攻明細", "🎯 傳球明細", "🛡 防守明細"]) {
+  assert.equal(embed.title, "SHOHOKU14 - 2場 ⭐7.40");
+  assert.equal(embed.color, 0x3498db);
+  assert.equal(embed.description, [
+    "⚙️ **進攻** - 1球 2助",
+    "1球 (0.50/場) · 2助 (1.00/場)",
+    "射門 3-中2 唔中1",
+    "xG 1.20 · xA 0.40",
+    "███████░░░ 67%",
+    "",
+    "🎯 **傳球** - 28次",
+    "成功 20 - 失敗 8",
+    "███████░░░ 71%",
+    "向前 8 · 向後 4 · 橫 8",
+    "關鍵傳球 4",
+    "",
+    "🛡 **防守** - 攔截3次",
+    "攔截 3(1.5/場) · 搶斷 2/3",
+    "███████░░░ 67%",
+    "封堵 0 · 頭槌防 1 · 盤帶 5",
+    "上場 90 分鐘",
+  ].join("\n"));
+  assert.equal(embed.description.includes("```"), false);
+  for (const word of ["走位", "決策", "紀律", "禁區", "滑剷", "短傳", "近10"]) {
+    assert.equal(embed.description.includes(word), false, word);
+  }
+  for (const name of ["👤 球員", "📊 大方向", "📋 明細", "⚽ 進攻明細", "🎯 傳球明細", "🛡 防守明細"]) {
     assert.equal(field(embed, name), undefined);
   }
-  const overview = field(embed, "📊 大方向");
-  const [attack, passing, defense] = field(embed, "📋 明細").value.split("\n\n——\n\n");
-  assert.equal(overview.value.includes("```"), false);
-  const bars = overview.value.split("\n\n");
-  assert.deepEqual(bars.map((line) => line.split(" ")[0]), ["評分", "傳球%", "中靶率", "搶斷成功率"]);
-  for (const line of bars) {
-    assert.equal(line.includes("\n"), false);
-    assert.match(line, /^(評分|傳球%|中靶率|搶斷成功率) +[█░]{10} \S+$/);
-  }
-  const columns = bars.map((line) => displayWidth(line.slice(0, line.indexOf("█"))));
-  assert.equal(new Set(columns).size, 1);
-  assert.match(overview.value, /評分 +███████░░░ 7\.40\/10\n\n傳球%/);
-  assert.match(overview.value, /傳球% +███████░░░ 71%\n\n中靶率/);
-  assert.match(overview.value, /中靶率 +███████░░░ 67%\n\n搶斷成功率/);
-  assert.match(overview.value, /搶斷成功率 ███████░░░ 67%/);
-  assert.equal(overview.value.includes("·"), false);
-  assert.match(attack, /^⚽ 進攻\n/);
-  assert.match(attack, /1球 \(0\.5\/場\) · 2助 \(1\/場\)/);
-  assert.match(attack, /射門 3 · 中靶 2 · 轉化 1\/3/);
-  assert.match(attack, /xG 1\.20 · xA 0\.40/);
-  assert.equal(attack.includes("禁區"), false);
-  assert.equal(attack.includes("█"), false);
-  assert.match(passing, /^🎯 傳球\n/);
-  assert.match(passing, /完成 20\/28/);
-  assert.match(passing, /向前 8 · 向後 4 · 橫 8/);
-  assert.match(passing, /關鍵傳球 4/);
-  assert.equal(passing.includes("█"), false);
-  assert.match(defense, /^🛡 防守\n/);
-  assert.match(defense, /攔截 3/);
-  assert.match(defense, /搶斷成功 2 · 失敗 1/);
-  assert.match(defense, /封堵 0 · 頭槌防守 1 · 盤帶成功 5/);
-  assert.match(defense, /上場 90 分鐘/);
-  assert.equal(defense.includes("█"), false);
+  assert.deepEqual(embed.fields.map((item) => item.name), ["🔗 戰績網"]);
   assert.equal(embed.url, site);
   const link = field(embed, "🔗 戰績網");
-  assert.ok(link);
   assert.equal(link.value, site);
+  assert.equal(link.inline, false);
   assert.equal(link.value.includes("]("), false);
   assert.equal(embed.image, undefined);
   assert.equal(embed.thumbnail, undefined);
+  assert.equal(embed.footer.text, "已更新 全部累計 2場");
 });
 
 test("/player bars skip rates that have no attempts", () => {
@@ -404,23 +386,31 @@ test("/player bars skip rates that have no attempts", () => {
     { board: { ...board, players: [quiet] }, meta, last10: { players: [] }, matches: [] },
     "Quiet",
     site,
-    "41026",
   );
-  const overview = field(embed, "📊 大方向").value;
-  const detail = field(embed, "📋 明細").value;
-  assert.equal(overview.includes("```"), false);
-  assert.equal(overview.includes("\n\n"), false);
-  assert.match(overview, /評分 /);
-  assert.equal(overview.includes("傳球%"), false);
-  assert.equal(overview.includes("中靶率"), false);
-  assert.equal(overview.includes("搶斷成功率"), false);
-  assert.equal(detail.includes("轉化"), false);
-  assert.equal(detail.includes("禁區"), false);
-  assert.match(detail, /射門 0 · 中靶 0/);
-  assert.match(detail, /⚽ 進攻\n[\s\S]*\n\n——\n\n🎯 傳球\n[\s\S]*\n\n——\n\n🛡 防守\n/);
+  assert.equal(embed.description.includes("█"), false);
+  assert.equal(embed.description.includes("```"), false);
+  assert.equal(embed.description.includes("禁區"), false);
+  assert.match(embed.description, /射門 0-中0 唔中0/);
+  assert.match(embed.description, /成功 0 - 失敗 0/);
+  assert.match(embed.description, /搶斷 0\/0/);
+  const sections = embed.description.split("\n\n");
+  assert.equal(sections.length, 3);
+  assert.match(sections[0], /^⚙️ \*\*進攻\*\*/);
+  assert.match(sections[1], /^🎯 \*\*傳球\*\*/);
+  assert.match(sections[2], /^🛡 \*\*防守\*\*/);
 });
 
-test("/player box shots come from match events and skip empty zones", () => {
+test("/player pass bar follows passPct, not completed divided by attempts", () => {
+  const skewed = { ...players[0], name: "Skew", pa: 28, pm: 20, passPct: 40 };
+  const embed = buildPlayerEmbed(
+    { board: { ...board, players: [skewed] }, meta, last10: { players: [] }, matches: [] },
+    "Skew",
+    "https://siumeifc1988-sketch.github.io/linking-fc-sync/",
+  );
+  assert.match(embed.description, /成功 20 - 失敗 8\n████░░░░░░ 40%/);
+});
+
+test("/player box shots stay on match events and off the card", () => {
   const matches = [
     {
       players: {
@@ -455,24 +445,9 @@ test("/player box shots come from match events and skip empty zones", () => {
     offOut: 3,
   });
   const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
-  const embed = buildPlayerEmbed({ board, meta, last10: { players: [] }, matches }, "SHOHOKU14", site, "41026");
-  const attack = field(embed, "📋 明細").value;
-  assert.match(attack, /禁區內 中靶 3 · 偏出 2/);
-  assert.match(attack, /禁區外 中靶 3 · 偏出 3/);
-  assert.equal(attack.includes("█"), false);
-
-  const insideOnly = [{
-    players: { 41026: { 1: { playername: "SHOHOKU14", match_event_aggregate_0: "13:4" } } },
-  }];
-  const inside = buildPlayerEmbed(
-    { board, meta, last10: { players: [] }, matches: insideOnly },
-    "SHOHOKU14",
-    site,
-    "41026",
-  );
-  const insideAttack = field(inside, "📋 明細").value;
-  assert.match(insideAttack, /禁區內 中靶 4 · 偏出 0/);
-  assert.equal(insideAttack.includes("禁區外"), false);
+  const embed = buildPlayerEmbed({ board, meta, last10: { players: [] }, matches }, "SHOHOKU14", site);
+  assert.equal(embed.description.includes("禁區"), false);
+  assert.match(embed.description, /射門 3-中2 唔中1/);
 });
 
 test("/player miss and ambiguous embeds still link the stats site", () => {
