@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { BoardPlayer } from "../types";
 
 const METRICS: { key: keyof BoardPlayer | "gA"; label: string; fmt?: (p: BoardPlayer) => string }[] = [
@@ -36,9 +37,6 @@ export function CompareBar({
     >
       <div className="flex items-center justify-between gap-2 rounded-[18px] border border-line bg-white/95 px-3 py-2.5 shadow-[0_16px_48px_rgba(55,0,60,0.18)] backdrop-blur-xl sm:gap-3 sm:rounded-[20px] sm:px-4 sm:py-3">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="hidden text-[11px] font-extrabold uppercase tracking-widest text-muted xs:block sm:block">
-            對比
-          </div>
           <div className="flex -space-x-2">
             {selected.map((p) => (
               <div
@@ -99,7 +97,9 @@ export function ComparePanel({
         <div className="overflow-auto p-3 sm:p-5">
           <div
             className="grid min-w-[280px]"
-            style={{ gridTemplateColumns: `minmax(72px,100px) repeat(${players.length}, minmax(0,1fr))` }}
+            style={{
+              gridTemplateColumns: `minmax(72px,100px) repeat(${players.length}, minmax(0,1fr))`,
+            }}
           >
             <div className="py-2 text-[10px] font-bold uppercase tracking-widest text-muted sm:text-[11px]">
               指標
@@ -159,5 +159,3 @@ export function ComparePanel({
     </div>
   );
 }
-
-import { Fragment } from "react";
