@@ -1,12 +1,6 @@
 import type { BoardPlayer } from "../types";
-import {
-  coachTip,
-  deriveSix,
-  initials,
-  overallFromPlayer,
-  posShort,
-  type SixAttr,
-} from "../lib/cardStats";
+import { coachTip, deriveSix, overallFromPlayer, posShort, type SixAttr } from "../lib/cardStats";
+import { CARD_DISCLAIMER, PlayerCardFace } from "./PlayerCardFace";
 
 const ATTR_ORDER: (keyof SixAttr)[] = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"];
 const ATTR_CN: Record<keyof SixAttr, string> = {
@@ -97,38 +91,17 @@ function StatBar({ label, cn, value }: { label: string; cn: string; value: numbe
   );
 }
 
-function FutCard({ p, six, ovr }: { p: BoardPlayer; six: SixAttr; ovr: number }) {
-  const pos = posShort(p.posCN);
-  const ini = initials(p.name);
-  return (
-    <div className="relative mx-auto w-full max-w-[220px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#1e3a8a] via-[#1d4ed8] to-[#0f172a] p-4 text-white shadow-xl shadow-blue-900/40">
-      <div className="absolute right-3 top-3 rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-bold tracking-wide">
-        FC27
-      </div>
-      <div className="text-[42px] font-black leading-none tracking-tight">{ovr}</div>
-      <div className="text-[13px] font-extrabold tracking-widest opacity-90">{pos}</div>
-      <div className="mt-3 flex justify-center">
-        <div className="grid h-20 w-20 place-items-center rounded-full bg-white/15 text-[28px] font-black tracking-tight ring-2 ring-white/25">
-          {ini}
-        </div>
-      </div>
-      <div className="mt-3 text-center text-[18px] font-black tracking-wide">{p.name.slice(0, 12).toUpperCase()}</div>
-      <div className="text-center text-[10px] font-semibold tracking-widest text-white/50">
-        {p.name.toUpperCase()}
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-white/15 pt-3 text-[12px] font-bold">
-        {ATTR_ORDER.map((k) => (
-          <div key={k} className="flex justify-between">
-            <span className="text-white/55">{k}</span>
-            <span className="tabular">{six[k]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onClose: () => void }) {
+export function PlayerCardModal({
+  player,
+  onClose,
+  portraitSrc,
+  imageUrl,
+}: {
+  player: BoardPlayer;
+  onClose: () => void;
+  portraitSrc?: string | null;
+  imageUrl?: string | null;
+}) {
   const six = deriveSix(player);
   const ovr = overallFromPlayer(player);
   const tip = coachTip(player, six);
@@ -142,7 +115,7 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
       <div className="relative flex max-h-[92dvh] w-full max-w-[920px] flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0f1117] text-white shadow-2xl sm:rounded-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3.5 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-[15px] font-black">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-pl-magenta to-pl-violet text-[15px] font-black">
               {ovr}
             </div>
             <div className="min-w-0">
@@ -165,8 +138,15 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
         </div>
 
         <div className="overflow-y-auto p-4 sm:p-5">
-          <div className="grid gap-4 lg:grid-cols-[220px_1fr_1fr]">
-            <FutCard p={player} six={six} ovr={ovr} />
+          <div className="grid items-center gap-4 lg:grid-cols-[240px_1fr_1fr]">
+            <PlayerCardFace
+              name={player.name}
+              overall={ovr}
+              position={posShort(player.posCN)}
+              stats={six}
+              portraitSrc={portraitSrc}
+              imageUrl={imageUrl}
+            />
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="mb-2 text-center text-[10px] font-bold uppercase tracking-widest text-white/40">
@@ -223,6 +203,7 @@ export function PlayerCardModal({ player, onClose }: { player: BoardPlayer; onCl
           </div>
 
           <p className="mt-2 text-center text-[9px] leading-relaxed text-white/30">
+            <span className="mb-0.5 block font-semibold tracking-wide text-white/45">{CARD_DISCLAIMER}</span>
             PAC=每90分鐘動作量 · SHO=場均進球+射正 · PAS=傳球%+直塞/助攻 · DRI=場均盤帶 · DEF=防守動作+搶截成功率 ·
             PHY=場均分鐘+頭錘 · 總評=均分55%+六維45%
           </p>

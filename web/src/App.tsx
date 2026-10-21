@@ -7,6 +7,7 @@ import { PlayerTable } from "./components/PlayerTable";
 import { MatchList } from "./components/MatchList";
 import { CompareBar, ComparePanel } from "./components/ComparePanel";
 import { PlayerCardModal } from "./components/PlayerCardModal";
+import { PlayerCardStrip } from "./components/PlayerCardStrip";
 import type { BoardPlayer } from "./types";
 
 type Tab = "overview" | "all" | "matches";
@@ -98,6 +99,7 @@ export default function App() {
           <section className="space-y-3 sm:space-y-4">
             <RecordStrip record={board.record} />
             <FormDots form={board.record?.form} />
+            <PlayerCardStrip players={players} onOpen={setCardPlayer} />
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-[1.4fr_0.95fr]">
               <div className="card">
                 <div className="flex items-center justify-between border-b border-line bg-tint px-3 py-3 sm:px-5 sm:py-3.5">
