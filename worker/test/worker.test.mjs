@@ -208,7 +208,7 @@ test("GET /health reports club and stats base", async () => {
   const body = await response.json();
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
-  assert.ok(body.version);
+  assert.equal(body.version, "1.0.3");
   assert.equal(body.clubId, "41026");
   assert.equal(body.platform, "common-gen5");
   assert.equal(body.statsJsonBase, "https://cdn.example/data");
@@ -326,14 +326,42 @@ test("/player embed uses board JSON", async () => {
   const embed = payload.embeds[0];
   const site = "https://siumeifc1988-sketch.github.io/linking-fc-sync/";
   assert.match(embed.title, /SHOHOKU14/);
+  assert.match(embed.fields[0].value, /評分 ███████░░░ 7\.40\/10/);
   assert.match(embed.fields[1].value, /xG 1.20/);
+  assert.match(embed.fields[1].value, /中靶率 ███████░░░ 67%/);
+  assert.match(embed.fields[1].value, /轉化率 ███░░░░░░░ 33%/);
+  assert.match(embed.fields[2].value, /傳球 ███████░░░ 71%/);
+  assert.match(embed.fields[3].value, /搶斷成功率 ███████░░░ 67%/);
   assert.equal(embed.description.includes("全部累計"), true);
   assert.equal(embed.url, site);
   const link = embed.fields.find((field) => field.name === "🔗 戰績網");
   assert.ok(link);
-  assert.equal(link.value, `[${site}](${site})`);
+  assert.equal(link.value, `戰績網\n${site}`);
+  assert.equal(link.value.includes("]("), false);
   assert.equal(embed.image, undefined);
   assert.equal(embed.thumbnail, undefined);
+});
+
+test("/player bars skip rates that have no attempts", () => {
+  const quiet = {
+    ...players[0],
+    name: "Quiet",
+    shots: 0,
+    shotsOn: 0,
+    goals: 0,
+    tk: 0,
+    tacklesLost: 0,
+  };
+  const embed = buildPlayerEmbed(
+    { board: { ...board, players: [quiet] }, meta, last10: { players: [] } },
+    "Quiet",
+    "https://siumeifc1988-sketch.github.io/linking-fc-sync/",
+  );
+  assert.match(embed.fields[0].value, /評分 /);
+  assert.match(embed.fields[2].value, /傳球 /);
+  assert.equal(embed.fields[1].value.includes("中靶率"), false);
+  assert.equal(embed.fields[1].value.includes("轉化率"), false);
+  assert.equal(embed.fields[3].value.includes("搶斷成功率"), false);
 });
 
 test("/player miss and ambiguous embeds still link the stats site", () => {
@@ -346,7 +374,8 @@ test("/player miss and ambiguous embeds still link the stats site", () => {
   ]) {
     assert.equal(embed.url, site);
     const link = embed.fields.find((field) => field.name === "🔗 戰績網");
-    assert.equal(link.value, `[${site}](${site})`);
+    assert.equal(link.value, `戰績網\n${site}`);
+    assert.equal(link.value.includes("]("), false);
     assert.equal(embed.image, undefined);
     assert.equal(embed.thumbnail, undefined);
   }
