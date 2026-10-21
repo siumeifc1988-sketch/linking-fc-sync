@@ -27,7 +27,7 @@ function bar(percent, suffix) {
   return `${"█".repeat(filled)}${"░".repeat(10 - filled)} ${note}`;
 }
 
-/** Discord's monospace treats CJK as two columns. Pad labels so the bars share a column. */
+/** Pad labels so the bars share a column. CJK counts as two columns. */
 function displayWidth(text) {
   let width = 0;
   for (const char of String(text)) {
@@ -41,7 +41,11 @@ function pctLabel(percent) {
   return `${Math.round(Number(percent) || 0)}%`;
 }
 
-/** One fenced block. A row is left out when its denominator is 0. Suffixes stay short. */
+/**
+ * Plain text, not a code fence. Fences paint a light block on Discord mobile and the
+ * bar glyphs fuse into one staircase. A blank line between rows keeps them apart.
+ * A row is left out when its denominator is 0. Suffixes stay short.
+ */
 function overviewBlock(player) {
   const rating = Number(player.avgRating || 0);
   const rows = [{ label: "評分", percent: rating * 10, suffix: `${rating.toFixed(2)}/10` }];
@@ -66,7 +70,7 @@ function overviewBlock(player) {
     const pad = " ".repeat(labelWidth - displayWidth(row.label) + 1);
     return `${row.label}${pad}${bar(row.percent, row.suffix)}`;
   });
-  return `\`\`\`\n${lines.join("\n")}\n\`\`\``;
+  return lines.join("\n\n");
 }
 
 function attackLines(player, zones) {
@@ -98,6 +102,16 @@ function defenseLines(player) {
     `封堵 ${player.blocks || 0} · 頭槌防守 ${player.aerialDef || 0} · 盤帶成功 ${player.dribbles || 0}`,
     `上場 ${player.minutes || 0} 分鐘`,
   ].join("\n");
+}
+
+/** One field. Sections stay apart with a blank line, a rule, and a blank line. */
+function detailBlock(player, zones) {
+  const sections = [
+    `⚽ 進攻\n${attackLines(player, zones)}`,
+    `🎯 傳球\n${passLines(player)}`,
+    `🛡 防守\n${defenseLines(player)}`,
+  ];
+  return sections.join("\n\n——\n\n");
 }
 
 function lineOf(player) {
@@ -155,33 +169,16 @@ export function buildPlayerEmbed(stats, query, siteUrl, clubId) {
   const recent = findPlayer(stats.last10?.players, player.name);
   const recentLine = recent.status === "one" ? lineOf(recent.player) : "近10無出場";
   const zones = aggregateShotZones(stats.matches, player.name, clubId);
+  const cumulative = `${stats.board?.label || "全部累計"} · ${stats.board?.totalMatches ?? "?"}場 · ${stats.meta?.lastUpdatedDisplay || ""}`.trim();
   const fields = [
-    {
-      name: "👤 球員",
-      value: [
-        `**${player.name}** | ${player.posCN || "未知"} | **${player.games}場** | ${player.minutes || 0} 分鐘`,
-        `近10：${recentLine}`,
-      ].join("\n"),
-      inline: false,
-    },
     {
       name: "📊 大方向",
       value: overviewBlock(player),
       inline: false,
     },
     {
-      name: "⚽ 進攻明細",
-      value: attackLines(player, zones),
-      inline: false,
-    },
-    {
-      name: "🎯 傳球明細",
-      value: passLines(player),
-      inline: false,
-    },
-    {
-      name: "🛡 防守明細",
-      value: defenseLines(player),
+      name: "📋 明細",
+      value: detailBlock(player, zones),
       inline: false,
     },
   ];
@@ -189,7 +186,7 @@ export function buildPlayerEmbed(stats, query, siteUrl, clubId) {
   if (siteField) fields.push(siteField);
   return {
     title: `${posEmoji(player.posCN)} ${player.name} | ${player.posCN || "未知"}`,
-    description: `${stats.board?.label || "全部累計"} · ${stats.board?.totalMatches ?? "?"}場 · ${stats.meta?.lastUpdatedDisplay || ""}`.trim(),
+    description: `${cumulative}\n近10：${recentLine}`,
     color: posColor(player.posCN),
     fields,
     footer: { text: stats.board?.source || "數據來自 repo JSON" },

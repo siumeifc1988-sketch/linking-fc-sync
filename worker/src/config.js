@@ -6,7 +6,7 @@ export const DEFAULTS = {
   siteUrl: "https://siumeifc1988-sketch.github.io/linking-fc-sync/",
   statsJsonBase: "https://raw.githubusercontent.com/siumeifc1988-sketch/linking-fc-sync/main/data",
   firebaseProjectId: "football-signup-64bd9",
-  version: "1.0.4",
+  version: "1.0.5",
 };
 
 export const SLOT_IDS = ["2130", "2200", "2230", "2300", "Unsure"];
