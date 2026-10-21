@@ -34,39 +34,41 @@ export default function App() {
   }, [rowSelection, players]);
 
   return (
-    <div className="min-h-screen overflow-x-clip pb-28">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-pl-purple text-white shadow-[0_8px_24px_rgba(55,0,60,0.25)]">
-        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-4 px-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-pl-magenta to-pl-violet text-[12px] font-extrabold shadow-md">
+    <div className="min-h-[100dvh] overflow-x-clip pb-24 safe-pb">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-pl-purple text-white shadow-[0_8px_24px_rgba(55,0,60,0.25)] safe-pt">
+        <div className="mx-auto flex h-14 max-w-[1280px] items-center justify-between gap-3 px-3 sm:h-16 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] bg-gradient-to-br from-pl-magenta to-pl-violet text-[11px] font-extrabold shadow-md sm:h-9 sm:w-9 sm:text-[12px]">
               LK
             </div>
-            <div>
-              <h1 className="m-0 text-[15px] font-extrabold tracking-tight">LinKing FC</h1>
-              <p className="m-0 text-[11px] font-semibold text-white/70">
+            <div className="min-w-0">
+              <h1 className="m-0 truncate text-[14px] font-extrabold tracking-tight sm:text-[15px]">
+                LinKing FC
+              </h1>
+              <p className="m-0 truncate text-[10px] font-semibold text-white/70 sm:text-[11px]">
                 {board
-                  ? `歷史 ${board.totalMatches} 場 · 戰報 ${matches.length} 場`
-                  : "Pro Clubs · Stats Centre"}
+                  ? `${board.totalMatches} 場 · 戰報 ${matches.length}`
+                  : "Pro Clubs · Stats"}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => qc.invalidateQueries({ queryKey: ["club"] })}
-            className="h-8 rounded-full bg-white/10 px-3 text-[12px] font-bold hover:bg-white/18"
+            className="h-9 shrink-0 rounded-full bg-white/10 px-3 text-[12px] font-bold active:bg-white/20"
           >
-            {isFetching ? "讀取中…" : "重新讀取"}
+            {isFetching ? "…" : "更新"}
           </button>
         </div>
-        <div className="h-1 bg-gradient-to-r from-pl-magenta via-pl-violet to-pl-magenta" />
+        <div className="h-0.5 bg-gradient-to-r from-pl-magenta via-pl-violet to-pl-magenta sm:h-1" />
       </header>
 
-      <main className="mx-auto max-w-[1280px] px-4 py-5">
-        <div className="mb-5 flex gap-1 rounded-[14px] border border-line bg-white p-1 shadow-sm">
+      <main className="mx-auto max-w-[1280px] px-3 py-3 sm:px-4 sm:py-5">
+        <div className="mb-3 flex gap-1 rounded-[12px] border border-line bg-white p-1 shadow-sm sm:mb-5 sm:rounded-[14px]">
           {(
             [
               ["overview", "總覽"],
-              ["all", "全部累計"],
+              ["all", "累計"],
               ["matches", "戰報"],
             ] as const
           ).map(([id, label]) => (
@@ -74,10 +76,10 @@ export default function App() {
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              className={`flex-1 rounded-[10px] px-3 py-2.5 text-[13px] font-bold transition ${
+              className={`min-h-[44px] flex-1 rounded-[10px] px-2 text-[13px] font-bold transition active:scale-[0.98] sm:px-3 ${
                 tab === id
                   ? "bg-ink text-white shadow-sm"
-                  : "text-muted hover:bg-bg hover:text-ink"
+                  : "text-muted"
               }`}
             >
               {label}
@@ -86,34 +88,33 @@ export default function App() {
         </div>
 
         {error && (
-          <div className="mb-4 rounded-[12px] border border-pl-magenta/20 bg-pink-soft px-4 py-3 text-[13px] font-semibold text-pl-magenta">
+          <div className="mb-3 rounded-[12px] border border-pl-magenta/20 bg-pink-soft px-3 py-3 text-[13px] font-semibold text-pl-magenta">
             {(error as Error).message}
           </div>
         )}
         {isLoading && <p className="text-[13px] text-muted">載入中…</p>}
 
         {board && tab === "overview" && (
-          <section className="space-y-4">
+          <section className="space-y-3 sm:space-y-4">
             <RecordStrip record={board.record} />
             <FormDots form={board.record?.form} />
-            <div className="grid gap-4 lg:grid-cols-[1.4fr_0.95fr]">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-[1.4fr_0.95fr]">
               <div className="card">
-                <div className="flex items-center justify-between border-b border-line bg-tint px-5 py-3.5">
+                <div className="flex items-center justify-between border-b border-line bg-tint px-3 py-3 sm:px-5 sm:py-3.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-4 w-1 rounded-full bg-pl-magenta" />
-                    <h2 className="m-0 text-[14px] font-extrabold">球員表現</h2>
+                    <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
+                    <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">球員表現</h2>
                   </div>
-                  <span className="text-[11px] font-semibold text-muted">點欄位排序 · 點列展開</span>
+                  <span className="hide-sm text-[11px] font-semibold text-muted">點列展開</span>
                 </div>
                 <PlayerTable data={players} limit={8} />
               </div>
               <div className="card">
-                <div className="flex items-center justify-between border-b border-line bg-tint px-5 py-3.5">
+                <div className="flex items-center justify-between border-b border-line bg-tint px-3 py-3 sm:px-5 sm:py-3.5">
                   <div className="flex items-center gap-2">
-                    <div className="h-4 w-1 rounded-full bg-pl-magenta" />
-                    <h2 className="m-0 text-[14px] font-extrabold">最近比賽</h2>
+                    <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
+                    <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">最近比賽</h2>
                   </div>
-                  <span className="text-[11px] font-semibold text-muted">點擊展開</span>
                 </div>
                 <MatchList matches={matches.slice(0, 6)} />
               </div>
@@ -122,18 +123,16 @@ export default function App() {
         )}
 
         {board && tab === "all" && (
-          <section className="space-y-4">
+          <section className="space-y-3 sm:space-y-4">
             <RecordStrip record={board.record} />
             <FormDots form={board.record?.form} />
             <div className="card">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-tint px-5 py-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-tint px-3 py-3 sm:px-5 sm:py-3.5">
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-1 rounded-full bg-pl-magenta" />
-                  <h2 className="m-0 text-[14px] font-extrabold">全部累計球員榜</h2>
+                  <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
+                  <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">全部累計</h2>
                 </div>
-                <span className="rounded-full border border-line bg-bg px-2 py-0.5 text-[11px] font-semibold text-muted">
-                  勾選最多 3 人對比 · 點列展開
-                </span>
+                <span className="text-[11px] font-semibold text-muted">最多勾 3 人對比</span>
               </div>
               <PlayerTable
                 data={players}
@@ -147,29 +146,24 @@ export default function App() {
         )}
 
         {tab === "matches" && (
-          <section className="space-y-4">
-            <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
-              <div className="flex items-center gap-3">
-                <div className="h-4 w-1 rounded-full bg-pl-magenta" />
-                <h2 className="m-0 text-[14px] font-extrabold">戰報 · 全部比賽</h2>
+          <section className="space-y-3 sm:space-y-4">
+            <div className="card flex flex-wrap items-center justify-between gap-3 px-3 py-3.5 sm:p-5">
+              <div className="flex items-center gap-2">
+                <div className="h-3.5 w-1 rounded-full bg-pl-magenta" />
+                <h2 className="m-0 text-[13px] font-extrabold sm:text-[14px]">戰報</h2>
                 <span className="rounded-full border border-line bg-bg px-2 py-0.5 text-[11px] font-semibold text-muted">
                   {matches.length} 場
                 </span>
               </div>
-              <FormDots form={(board?.record?.form || matches.slice(0, 10).map((m) => m.code))} compact />
+              <FormDots form={board?.record?.form || matches.slice(0, 10).map((m) => m.code)} compact />
             </div>
             <MatchList matches={matches} asCards />
           </section>
         )}
 
-        <footer className="mt-12 flex flex-wrap justify-between gap-4 border-t border-line py-6 text-[11px] text-muted">
-          <span>LinKing FC Stats Centre · React + TanStack Table / Query · GitHub Pages</span>
-          <span>
-            <a className="font-semibold text-pl-purple" href="https://github.com/siumeifc1988-sketch/linking-fc-sync">
-              GitHub
-            </a>
-            {board?.lastUpdatedDisplay ? ` · 更新 ${board.lastUpdatedDisplay}` : null}
-          </span>
+        <footer className="mt-8 border-t border-line py-5 text-[10px] leading-relaxed text-muted sm:mt-12 sm:text-[11px]">
+          <div>LinKing FC Stats · GitHub Pages</div>
+          {board?.lastUpdatedDisplay ? <div className="mt-1">更新 {board.lastUpdatedDisplay}</div> : null}
         </footer>
       </main>
 

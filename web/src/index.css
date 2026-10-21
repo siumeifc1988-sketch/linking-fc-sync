@@ -24,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -32,7 +33,9 @@ body {
   background: var(--color-bg);
   color: var(--color-ink);
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
 
 .tabular,
@@ -47,4 +50,22 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(55, 0, 60, 0.04);
   overflow: hidden;
+}
+
+/* iPhone: hide secondary table columns */
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none !important;
+  }
+  .card {
+    border-radius: 14px;
+  }
+}
+
+/* safe area helpers */
+.safe-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
 }
