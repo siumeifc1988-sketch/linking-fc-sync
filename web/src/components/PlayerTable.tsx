@@ -24,22 +24,6 @@ type Props = {
   onOpenCard?: (p: BoardPlayer) => void;
 };
 
-function CardBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      title="球員卡"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line bg-bg text-[12px] font-extrabold text-pl-purple active:bg-tint"
-    >
-      卡
-    </button>
-  );
-}
-
 export function PlayerTable({
   data,
   enableSelect = false,
@@ -93,18 +77,21 @@ export function PlayerTable({
       {
         accessorKey: "name",
         header: "球員",
-        cell: ({ row, getValue }) => (
-          <button
-            type="button"
-            className="text-left text-[13px] font-bold text-pl-purple underline-offset-2 hover:underline"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenCard?.(row.original);
-            }}
-          >
-            {String(getValue())}
-          </button>
-        ),
+        cell: ({ row, getValue }) =>
+          onOpenCard ? (
+            <button
+              type="button"
+              className="text-left text-[13px] font-bold text-pl-purple underline-offset-2 hover:underline"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenCard(row.original);
+              }}
+            >
+              {String(getValue())}
+            </button>
+          ) : (
+            <strong className="text-[13px] font-bold">{String(getValue())}</strong>
+          ),
       },
       {
         accessorKey: "avgRating",
@@ -164,13 +151,6 @@ export function PlayerTable({
         cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() ?? "-")}</span>,
       },
     );
-    if (onOpenCard) {
-      cols.push({
-        id: "card",
-        header: "",
-        cell: ({ row }) => <CardBtn onClick={() => onOpenCard(row.original)} />,
-      });
-    }
     return cols;
   }, [enableSelect, maxSelect, rowSelection, onOpenCard]);
 
@@ -209,16 +189,13 @@ export function PlayerTable({
           <span className="w-8 text-center">G</span>
           <span className="w-8 text-center">A</span>
           <span className="w-10 text-center">G+A</span>
-          {onOpenCard && <span className="w-8" />}
         </div>
         {sorted.map((row) => {
           const p = row.original;
           const open = row.getIsExpanded();
           return (
             <div key={row.id} className="border-b border-line-soft">
-              <div
-                className={`flex w-full items-center gap-2 px-3 py-3 ${open ? "bg-tint" : ""}`}
-              >
+              <div className={`flex w-full items-center gap-2 px-3 py-3 ${open ? "bg-tint" : ""}`}>
                 {enableSelect && (
                   <input
                     type="checkbox"
@@ -231,20 +208,28 @@ export function PlayerTable({
                 <button
                   type="button"
                   className="min-w-0 flex-1 text-left"
-                  onClick={() => row.toggleExpanded()}
+                  onClick={() => {
+                    if (onOpenCard) onOpenCard(p);
+                    else row.toggleExpanded();
+                  }}
                 >
                   <div className="truncate text-[13px] font-bold text-pl-purple">{p.name}</div>
                   <div className="text-[10px] text-muted">{p.posCN || "-"}</div>
                 </button>
-                <span
-                  className={`inline-flex w-12 shrink-0 justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(Number(p.avgRating))}`}
+                <button
+                  type="button"
+                  className="flex shrink-0 items-center gap-2"
+                  onClick={() => row.toggleExpanded()}
                 >
-                  {Number(p.avgRating).toFixed(2)}
-                </span>
-                <span className="tabular w-8 shrink-0 text-center text-[13px] font-bold">{p.goals}</span>
-                <span className="tabular w-8 shrink-0 text-center text-[13px] font-semibold">{p.assists}</span>
-                <span className="tabular w-10 shrink-0 text-center text-[13px] font-bold text-pl-purple">{p.gA}</span>
-                {onOpenCard && <CardBtn onClick={() => onOpenCard(p)} />}
+                  <span
+                    className={`inline-flex w-12 justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(Number(p.avgRating))}`}
+                  >
+                    {Number(p.avgRating).toFixed(2)}
+                  </span>
+                  <span className="tabular w-8 text-center text-[13px] font-bold">{p.goals}</span>
+                  <span className="tabular w-8 text-center text-[13px] font-semibold">{p.assists}</span>
+                  <span className="tabular w-10 text-center text-[13px] font-bold text-pl-purple">{p.gA}</span>
+                </button>
               </div>
               {open && (
                 <div className="bg-bg px-3 pb-3">
