@@ -1,4 +1,5 @@
-import type { BoardPlayer } from "../types";
+import type { BoardPlayer, ShapedMatch } from "../types";
+import { CLUB, num } from "./format";
 
 export type SixAttr = {
   PAC: number;
@@ -108,13 +109,107 @@ export function initials(name: string): string {
   return s.slice(0, 2).toUpperCase();
 }
 
+export function nameTag(name: string): string {
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+  const src = parts.length > 1 ? parts[parts.length - 1]! : parts[0] || "?";
+  const latin = src.replace(/[^A-Za-z0-9]/g, "");
+  if (latin.length >= 2) return latin.slice(0, 4).toUpperCase();
+  return [...src].slice(0, 2).join("") || "?";
+}
+
+/** 卡面大字：有姓氏用姓，否則用玩家名稱 */
+export function cardNameLines(name: string): { big: string; small: string } {
+  const clean = (name || "").trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length > 1) {
+    return { big: parts[parts.length - 1]!.toUpperCase(), small: clean.toUpperCase() };
+  }
+  return { big: clean.toUpperCase(), small: "" };
+}
+
+export type PlayerImpact = {
+  appearances: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  mom: number;
+  /** 勝場 / 有出場紀錄的比賽。沒有樣本時為 null。 */
+  winPct: number | null;
+};
+
+/** 從已載入的戰報彙總個人勝率和全場最佳，不改寫 data/*.json。 */
+export function playerImpact(name: string, matches: ShapedMatch[] | undefined): PlayerImpact {
+  const target = name.trim().toLowerCase();
+  let appearances = 0;
+  let wins = 0;
+  let draws = 0;
+  let losses = 0;
+  let mom = 0;
+  for (const match of matches || []) {
+    const bucket = match.raw.players?.[CLUB];
+    const list = Array.isArray(bucket) ? bucket : bucket ? Object.values(bucket) : [];
+    for (const raw of list) {
+      const n = String(raw.playername || raw.name || "").trim().toLowerCase();
+      if (n !== target) continue;
+      appearances += 1;
+      const w = num(raw.wins);
+      const l = num(raw.losses);
+      if (w > 0) wins += 1;
+      else if (l > 0) losses += 1;
+      else draws += 1;
+      if (num(raw.mom) > 0) mom += 1;
+      break;
+    }
+  }
+  return {
+    appearances,
+    wins,
+    draws,
+    losses,
+    mom,
+    winPct: appearances > 0 ? Math.round((wins / appearances) * 100) : null,
+  };
+}
+
+/** 傳球成功率：有成功/嘗試次數時顯示一位小數。 */
+export function passAccuracyLabel(p: BoardPlayer): string {
+  const pa = p.pa ?? 0;
+  const pm = p.pm ?? 0;
+  if (pa > 0) return `${((pm / pa) * 100).toFixed(1)}%`;
+  if (p.passPct != null) return `${p.passPct}%`;
+  return "—";
+}
+
+/** 由向前 / 向後 / 橫傳次數描述傾向。樣本太少則不標。 */
+export function passStyleLabel(p: BoardPlayer): string | null {
+  const fwd = p.passFwd || 0;
+  const back = p.passBack || 0;
+  const side = p.passSide || 0;
+  const total = fwd + back + side;
+  if (total < 8) return null;
+  const f = fwd / total;
+  const b = back / total;
+  const s = side / total;
+  if (f >= 0.48) return "向前為主";
+  if (b >= 0.4) return "回傳為主";
+  if (s >= 0.38) return "橫傳為主";
+  if (f <= 0.4) return "短傳為主";
+  return "均衡傳球";
+}
+
 export function coachTip(p: BoardPlayer, six: SixAttr): string {
   const g = Math.max(1, p.games || 1);
   const gpg = p.goalsPerGame ?? p.goals / g;
   const apg = p.assistsPerGame ?? p.assists / g;
+  const kpPg = (p.keyPass || 0) / g;
 
   if (gpg >= 0.7) return "進球效率極高，建議主打禁區終結，減少過深回撤。";
-  if (apg >= 0.45 || (p.keyPass || 0) / g >= 3) return "創造力突出，適合當組織核心，專注最後一傳與直塞。";
+  if (apg >= 0.45 || kpPg >= 2.5) {
+    if (six.DEF < six.PAS && six.DEF < six.DRI) {
+      return "高位自由人，建議減少回防，專注最後一傳。";
+    }
+    return "創造力突出，適合當組織核心，專注最後一傳與直塞。";
+  }
   if ((p.passPct || 0) >= 80) return "傳球極穩，適合控場與節奏掌控，可多做安全轉移。";
   if ((p.totalDef || 0) / g >= 5) return "防守貢獻高，適合後腰／中衛屏障，鞏固中後場。";
 
