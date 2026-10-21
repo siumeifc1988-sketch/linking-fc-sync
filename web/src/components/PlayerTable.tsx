@@ -21,7 +21,24 @@ type Props = {
   onRowSelectionChange?: (s: RowSelectionState) => void;
   maxSelect?: number;
   limit?: number;
+  onOpenCard?: (p: BoardPlayer) => void;
 };
+
+function CardBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      title="球員卡"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line bg-bg text-[12px] font-extrabold text-pl-purple active:bg-tint"
+    >
+      卡
+    </button>
+  );
+}
 
 export function PlayerTable({
   data,
@@ -30,6 +47,7 @@ export function PlayerTable({
   onRowSelectionChange,
   maxSelect = 3,
   limit,
+  onOpenCard,
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "gA", desc: true }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
@@ -75,7 +93,18 @@ export function PlayerTable({
       {
         accessorKey: "name",
         header: "球員",
-        cell: ({ getValue }) => <strong className="text-[13px] font-bold">{String(getValue())}</strong>,
+        cell: ({ row, getValue }) => (
+          <button
+            type="button"
+            className="text-left text-[13px] font-bold text-pl-purple underline-offset-2 hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenCard?.(row.original);
+            }}
+          >
+            {String(getValue())}
+          </button>
+        ),
       },
       {
         accessorKey: "avgRating",
@@ -135,8 +164,15 @@ export function PlayerTable({
         cell: ({ getValue }) => <span className="tabular text-muted">{String(getValue() ?? "-")}</span>,
       },
     );
+    if (onOpenCard) {
+      cols.push({
+        id: "card",
+        header: "",
+        cell: ({ row }) => <CardBtn onClick={() => onOpenCard(row.original)} />,
+      });
+    }
     return cols;
-  }, [enableSelect, maxSelect, rowSelection]);
+  }, [enableSelect, maxSelect, rowSelection, onOpenCard]);
 
   const table = useReactTable({
     data: rows,
@@ -164,7 +200,7 @@ export function PlayerTable({
 
   return (
     <>
-      {/* —— 手機：卡片列 —— */}
+      {/* 手機：卡片列 */}
       <div className="sm:hidden">
         <div className="flex items-center gap-2 border-b border-line bg-ink px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white">
           {enableSelect && <span className="w-5" />}
@@ -173,16 +209,15 @@ export function PlayerTable({
           <span className="w-8 text-center">G</span>
           <span className="w-8 text-center">A</span>
           <span className="w-10 text-center">G+A</span>
+          {onOpenCard && <span className="w-8" />}
         </div>
         {sorted.map((row) => {
           const p = row.original;
           const open = row.getIsExpanded();
           return (
             <div key={row.id} className="border-b border-line-soft">
-              <button
-                type="button"
-                className={`flex w-full items-center gap-2 px-3 py-3 text-left active:bg-tint ${open ? "bg-tint" : ""}`}
-                onClick={() => row.toggleExpanded()}
+              <div
+                className={`flex w-full items-center gap-2 px-3 py-3 ${open ? "bg-tint" : ""}`}
               >
                 {enableSelect && (
                   <input
@@ -191,13 +226,16 @@ export function PlayerTable({
                     checked={row.getIsSelected()}
                     disabled={!row.getIsSelected() && Object.keys(rowSelection).length >= maxSelect}
                     onChange={row.getToggleSelectedHandler()}
-                    onClick={(e) => e.stopPropagation()}
                   />
                 )}
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-bold">{p.name}</div>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => row.toggleExpanded()}
+                >
+                  <div className="truncate text-[13px] font-bold text-pl-purple">{p.name}</div>
                   <div className="text-[10px] text-muted">{p.posCN || "-"}</div>
-                </div>
+                </button>
                 <span
                   className={`inline-flex w-12 shrink-0 justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold ${ratingClass(Number(p.avgRating))}`}
                 >
@@ -206,10 +244,20 @@ export function PlayerTable({
                 <span className="tabular w-8 shrink-0 text-center text-[13px] font-bold">{p.goals}</span>
                 <span className="tabular w-8 shrink-0 text-center text-[13px] font-semibold">{p.assists}</span>
                 <span className="tabular w-10 shrink-0 text-center text-[13px] font-bold text-pl-purple">{p.gA}</span>
-              </button>
+                {onOpenCard && <CardBtn onClick={() => onOpenCard(p)} />}
+              </div>
               {open && (
                 <div className="bg-bg px-3 pb-3">
                   <CumExpand p={p} />
+                  {onOpenCard && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenCard(p)}
+                      className="mt-2 h-10 w-full rounded-xl border border-pl-purple/20 bg-pl-purple/5 text-[13px] font-bold text-pl-purple"
+                    >
+                      打開球員卡
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -218,7 +266,7 @@ export function PlayerTable({
         {!sorted.length && <p className="p-4 text-[13px] text-muted">沒有球員</p>}
       </div>
 
-      {/* —— 桌面：完整表格 —— */}
+      {/* 桌面表格 */}
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[640px] border-collapse text-[13px]">
           <thead>
@@ -256,6 +304,15 @@ export function PlayerTable({
                   <tr className="border-b border-line bg-bg">
                     <td colSpan={columns.length} className="p-3">
                       <CumExpand p={row.original} />
+                      {onOpenCard && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenCard(row.original)}
+                          className="mt-2 h-10 rounded-xl border border-pl-purple/20 bg-pl-purple/5 px-4 text-[13px] font-bold text-pl-purple"
+                        >
+                          打開球員卡
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )}
