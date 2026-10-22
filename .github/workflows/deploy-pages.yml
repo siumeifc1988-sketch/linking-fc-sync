@@ -1,5 +1,7 @@
 name: Deploy Pages
 
+# refresh site data bundle after nightly sync fix
+
 on:
   push:
     branches: [main]
