@@ -8,7 +8,7 @@
 EA Pro Clubs API
     │  scripts/sync.py（curl_cffi；失敗保留舊 matches）
     ▼
-GitHub Actions（ea-sync-curl_cffi，每 6 小時）
+GitHub Actions（ea-sync-curl_cffi，每日 03:00 HKT）
     │  data/matches.json
     │  data/aggregated/board.json + board_last10.json
     │  data/meta.json
@@ -20,7 +20,7 @@ Firebase football-signup-64bd9 只存報名時段，唔係數據來源
 
 ## 抓取
 
-- 工作流：`.github/workflows/ea-sync-curl_cffi.yml`
+- 工作流：`.github/workflows/ea-sync-curl_cffi.yml`（每日 03:00 HKT）。`data/` 有變先 commit；push 用 `GITHUB_TOKEN` 唔會觸發 `on: push`，所以寫入 `main` 後會 `workflow_dispatch` Deploy Pages
 - 腳本：`scripts/sync.py`（唯一同步邏輯）
 - 依賴：`requirements.txt` → `curl-cffi`
 - `EA_PROXY_URL` 在「執行腳本」步驟注入；直連失敗才走 proxy

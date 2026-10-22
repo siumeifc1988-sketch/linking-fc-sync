@@ -3,10 +3,12 @@ name: ea-sync-curl_cffi
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    # 03:00 Asia/Hong_Kong (UTC+8, no DST) = 19:00 UTC
+    - cron: "0 19 * * *"
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   sync:
@@ -27,8 +29,20 @@ jobs:
         run: python scripts/sync.py
 
       - name: Commit
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "pepe-bot"
           git config user.email "pepe-bot@users.noreply.github.com"
           git add data/matches.json data/meta.json data/aggregated/board.json data/aggregated/board_last10.json || true
-          git diff --cached --quiet && echo "無變化" || (git commit -m "chore: accumulate sync $(date +%Y%m%d%H%M) [skip ci]" && git push)
+          if git diff --cached --quiet; then
+            echo "無變化"
+          else
+            git commit -m "chore: accumulate sync $(date +%Y%m%d%H%M)"
+            git push
+            # GITHUB_TOKEN pushes do not emit push events, so Deploy Pages
+            # would stay idle. workflow_dispatch is the supported exception.
+            if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+              gh workflow run deploy-pages.yml --ref main
+            fi
+          fi
