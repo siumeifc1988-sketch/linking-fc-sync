@@ -312,8 +312,8 @@
     ]
   },
   "totalMatches": 74,
-  "lastUpdated": "2026-11-02T06:35:57.650047+08:00",
-  "lastUpdatedDisplay": "2026-11-02 06:35 HKT",
+  "lastUpdated": "2026-11-03T09:27:34.890054+08:00",
+  "lastUpdatedDisplay": "2026-11-03 09:27 HKT",
   "lastStatus": "已更新",
   "lastFetchCounts": {
     "league": 10,
@@ -322,5 +322,5 @@
   },
   "version": "curl_cffi-accumulate",
   "eventMap": "1erkandogan/fc27-clubs-api match-events.md",
-  "source": "已更新 全部累計 74場 (2026-11-02 06:35 HKT)"
+  "source": "已更新 全部累計 74場 (2026-11-03 09:27 HKT)"
 }
