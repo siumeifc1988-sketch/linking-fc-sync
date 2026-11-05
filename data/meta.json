@@ -1,9 +1,9 @@
 {
   "totalMatches": 79,
   "last10Matches": 10,
-  "newMatchesThisRun": 5,
-  "lastUpdated": "2026-11-05T08:11:28.702970+08:00",
-  "lastUpdatedDisplay": "2026-11-05 08:11 HKT",
+  "newMatchesThisRun": 0,
+  "lastUpdated": "2026-11-06T07:57:01.323903+08:00",
+  "lastUpdatedDisplay": "2026-11-06 07:57 HKT",
   "lastStatus": "已更新",
   "lastFetchCounts": {
     "league": 10,
@@ -11,7 +11,7 @@
     "playoff": 0
   },
   "version": "curl_cffi-accumulate",
-  "note": "已更新 · 歷史 79 場 · 近10 · 本輪新增 5",
+  "note": "已更新 · 歷史 79 場 · 近10 · 本輪新增 0",
   "recordAll": {
     "played": 79,
     "wins": 42,
