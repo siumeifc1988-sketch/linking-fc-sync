@@ -1,9 +1,9 @@
 {
-  "totalMatches": 79,
+  "totalMatches": 86,
   "last10Matches": 10,
-  "newMatchesThisRun": 0,
-  "lastUpdated": "2026-11-07T07:40:05.291280+08:00",
-  "lastUpdatedDisplay": "2026-11-07 07:40 HKT",
+  "newMatchesThisRun": 7,
+  "lastUpdated": "2026-11-08T06:30:09.799862+08:00",
+  "lastUpdatedDisplay": "2026-11-08 06:30 HKT",
   "lastStatus": "已更新",
   "lastFetchCounts": {
     "league": 10,
@@ -11,47 +11,47 @@
     "playoff": 0
   },
   "version": "curl_cffi-accumulate",
-  "note": "已更新 · 歷史 79 場 · 近10 · 本輪新增 0",
+  "note": "已更新 · 歷史 86 場 · 近10 · 本輪新增 7",
   "recordAll": {
-    "played": 79,
-    "wins": 42,
-    "draws": 8,
-    "losses": 29,
-    "goalsFor": 183,
-    "goalsAgainst": 141,
-    "goalDiff": 42,
+    "played": 86,
+    "wins": 46,
+    "draws": 9,
+    "losses": 31,
+    "goalsFor": 208,
+    "goalsAgainst": 159,
+    "goalDiff": 49,
     "form": [
-      "D",
       "W",
+      "W",
+      "D",
       "L",
+      "L",
+      "W",
+      "W",
       "D",
       "W",
-      "W",
-      "W",
-      "W",
-      "W",
-      "W"
+      "L"
     ]
   },
   "recordLast10": {
     "played": 10,
-    "wins": 7,
+    "wins": 5,
     "draws": 2,
-    "losses": 1,
-    "goalsFor": 35,
-    "goalsAgainst": 21,
-    "goalDiff": 14,
+    "losses": 3,
+    "goalsFor": 36,
+    "goalsAgainst": 27,
+    "goalDiff": 9,
     "form": [
-      "D",
       "W",
+      "W",
+      "D",
       "L",
+      "L",
+      "W",
+      "W",
       "D",
       "W",
-      "W",
-      "W",
-      "W",
-      "W",
-      "W"
+      "L"
     ]
   }
 }
