@@ -66,7 +66,7 @@
       "assistsPerGame": 0.0
     },
     {
-      "name": "noobmaster922",
+      "name": "zyamarco",
       "posCN": "中場",
       "games": 8,
       "goals": 2,
@@ -280,8 +280,8 @@
     ]
   },
   "totalMatches": 10,
-  "lastUpdated": "2026-11-25T10:56:36.576313+08:00",
-  "lastUpdatedDisplay": "2026-11-25 10:56 HKT",
+  "lastUpdated": "2026-11-26T10:02:32.326297+08:00",
+  "lastUpdatedDisplay": "2026-11-26 10:02 HKT",
   "lastStatus": "已更新",
   "lastFetchCounts": {
     "league": 10,
@@ -290,5 +290,5 @@
   },
   "version": "curl_cffi-accumulate",
   "eventMap": "1erkandogan/fc27-clubs-api match-events.md",
-  "source": "已更新 近10場 10場 (2026-11-25 10:56 HKT)"
+  "source": "已更新 近10場 10場 (2026-11-26 10:02 HKT)"
 }
